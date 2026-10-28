@@ -9,7 +9,7 @@
 *{box-sizing:border-box}
 body{margin:0;padding:16px;padding-top:calc(16px + env(safe-area-inset-top));padding-bottom:calc(16px + env(safe-area-inset-bottom));font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:radial-gradient(circle at top,#16213e 0%,#070b14 60%,#03050a 100%);color:var(--text);min-height:100vh;min-height:100dvh}
 #app{max-width:1100px;margin:0 auto}
-h1{font-size:clamp(22px,4vw,34px);margin:0 0 4px;color:#9fd3ff;text-shadow:0 0 22px rgba(80,170,255,.35)}
+h1{display:none!important}
 .sub{color:var(--muted);margin:0 0 18px;font-size:14px}
 .hidden{display:none!important}
 .fade{animation:fadeIn .8s ease}
@@ -150,6 +150,186 @@ label.form{display:block;font-size:12px;color:var(--muted);margin:6px 0 3px}
 .modal-box input{font:inherit;background:#0a1222;color:var(--text);border:1px solid #2c4266;border-radius:10px;padding:12px 14px;width:100%;font-size:16px;margin-bottom:14px;min-height:48px}
 .modal-box input:focus{outline:none;border-color:#73b8ff;box-shadow:0 0 0 3px rgba(115,184,255,.2)}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+/* ============================================================
+   THEME OVERRIDE — amber & copper, no blue dominance
+   ============================================================ */
+:root{
+  --bg:#14110d;
+  --panel:#1e1811;
+  --panel2:#2a2218;
+  --border:#4a3a26;
+  --accent:#f0a742;
+  --text:#f0e6d2;
+  --muted:#a89070;
+  --success:#7be6a5;
+  --warn:#ffcc5c;
+  --danger:#ff6b5c;
+  --ship:#5ce0c8;
+  --combat:#c46bff;
+  --brand:#e0663b;
+  --love:#ff7aa8;
+}
+
+body{
+  background:
+    radial-gradient(circle at 20% 10%, #3a2410 0%, transparent 45%),
+    radial-gradient(circle at 80% 90%, #3d1a1a 0%, transparent 50%),
+    linear-gradient(180deg, #14110d 0%, #0a0806 100%);
+  color:var(--text);
+}
+
+h1{color:#f0c070;text-shadow:0 0 30px rgba(240,167,66,.5)}
+
+/* Карточки и панели — тёплые, с мягким свечением */
+.card{
+  background:linear-gradient(180deg, rgba(42,34,24,.92), rgba(30,24,17,.94));
+  border:1px solid var(--border);
+  box-shadow:0 4px 20px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,200,120,.05);
+}
+.card h2{color:#f0c070}
+.card p{color:var(--muted)}
+.kv b{color:var(--text)}
+
+.panel{
+  background:linear-gradient(180deg, rgba(42,34,24,.92), rgba(30,24,17,.94));
+  border:1px solid var(--border);
+  box-shadow:0 4px 20px rgba(0,0,0,.45);
+}
+.panel h3{color:#f0c070}
+.panel h4{color:#f0a742;border-bottom-color:var(--border)}
+
+/* Кнопки — медь и латунь */
+button{
+  background:linear-gradient(180deg,#5a3a1a,#3a2410);
+  border:1px solid #7a5428;
+  color:#f5e8d0;
+  box-shadow:0 2px 8px rgba(0,0,0,.3);
+}
+button:hover:not(:disabled){
+  border-color:#f0a742;
+  box-shadow:0 0 14px rgba(240,167,66,.35), 0 2px 8px rgba(0,0,0,.3);
+}
+button.secondary{background:linear-gradient(180deg,#2a2218,#1a140d);border-color:#5a4022}
+button.active{
+  background:linear-gradient(180deg,#a06a20,#6a4810);
+  border-color:#f0a742;
+  box-shadow:0 0 16px rgba(240,167,66,.5);
+}
+button.icon-btn{background:transparent;border-color:#7a5428}
+button.icon-btn:hover{border-color:#f0a742;box-shadow:0 0 10px rgba(240,167,66,.4)}
+button.delegate{border-color:#c46bff;background:linear-gradient(180deg,#3a2255,#221533);color:#eadcff}
+button.combat-btn{border-color:#c46bff;background:linear-gradient(180deg,#3a1a55,#221033);color:#eadcff}
+button.fire-btn{background:#3a1518;border-color:#c44040;color:#ffb8b8}
+button.love-btn{border-color:#ff7aa8;background:linear-gradient(180deg,#5a1a33,#3a1022);color:#ffd9e8}
+
+/* Бейджи */
+.badge{background:#3a2a1a;border-color:#7a5428;color:#f0dcc0}
+.badge.nick{background:#3a2255;border-color:#8b6bff;color:#e8d4ff}
+.badge.tag{background:#1f4a2d;border-color:#4a9c5a;color:#c8ffd8}
+.badge.trans{background:#4a3a1f;border-color:#9c7a3b;color:#ffe0b0}
+.badge.mix{background:#4a1f48;border-color:#9c3b9c;color:#ffc8f0}
+.badge.shiptag{background:#1f4444;border-color:#3b9494;color:#c8f8f8}
+.badge.brand{background:linear-gradient(180deg,#5c2e10,#3e1f08);border-color:#e0663b;color:#ffd8b8}
+.badge.captain{background:#4a3a1f;border-color:#f0a742;color:#ffe8b8}
+.badge.regent{background:#4a1f4a;border-color:#9c4a9c;color:#ffc8ff}
+.badge.love{background:#4a1f36;border-color:#ff7aa8;color:#ffd9e8}
+.badge.strength{background:#4a4a1f;border-color:#c4c44a;color:#ffefb8}
+
+/* Шкалы — ярче, тёплый фон */
+.axis-bar{height:8px;background:#0a0806;border-color:#3a2a1a}
+.axis-fill{background:#f0a742;box-shadow:0 0 6px rgba(240,167,66,.6)}
+.axis-fill.neg{background:#e0663b;box-shadow:0 0 6px rgba(224,102,59,.5)}
+.axis-fill.shipfill{background:#5ce0c8;box-shadow:0 0 6px rgba(92,224,200,.5)}
+.axis-fill.shipfill.neg{background:#a06abf;box-shadow:0 0 6px rgba(160,106,191,.5)}
+.axis-center{background:#3a2a1a}
+.axis-val{color:#f0dcc0;font-weight:600}
+
+.stat-bar{height:8px;background:#0a0806;border-color:#3a2a1a}
+.stat-fill{box-shadow:0 0 6px currentColor}
+.stat-fill.hull{background:#7be6a5}
+.stat-fill.shields{background:#5ce0c8}
+.stat-fill.fuel{background:#ffcc5c}
+.stat-fill.fuellow{background:#ff6b5c}
+.stat-fill.engine{background:#f0a742}
+.stat-fill.weapons{background:#ff7b5c}
+.stat-fill.cargo{background:#c4a06b}
+.stat-fill.crew{background:#e0b050}
+.stat-val{color:#f0e6d2;font-weight:600}
+
+/* Лог — тёплый фон, тёмный текст для контраста */
+.log{
+  background:linear-gradient(180deg, rgba(20,16,12,.9), rgba(12,10,7,.92));
+  border:1px solid var(--border);
+}
+.log-line{color:#d8c8b0}
+.log-line.start{color:#f0c070}
+.log-line.event{color:#f0e6d2}
+.log-line.joke{color:#ffe4a8}
+.log-line.desc{color:#c8b8a0}
+.log-line.choice{color:#9ff0bd}
+.log-line.level{color:#ffcc5c;font-weight:600}
+.log-line.death{color:#ff8c80}
+.log-line.sys{color:#c8a8ff}
+.log-line.shipdrift{color:#5ce0c8}
+.log-line.knowledge{color:#c8b8a0;border-left-color:#f0a742}
+.log-line.work{color:#a8f0c8;border-left-color:#7be6a5}
+.log-line.routine{color:#e8c8a0}
+.log-line.brand{color:#e0663b}
+.log-line.love{color:#ff7aa8}
+.log-line.combat{color:#c46bff}
+.log-line.end{color:#ffcc5c;font-weight:600}
+
+/* Табы */
+.tabs{border-bottom-color:var(--border)}
+.tabs button{color:var(--muted)}
+.tabs button.active{color:#f0c070;border-bottom-color:var(--accent)}
+
+/* Время */
+.time-block{
+  background:linear-gradient(180deg, rgba(42,34,24,.92), rgba(30,24,17,.94));
+  border:1px solid var(--border);
+  box-shadow:0 4px 20px rgba(0,0,0,.45);
+}
+.time-label{color:#f0e6d2}
+.time-label b{color:#f0c070}
+.time-label .age{color:#ffcc5c}
+.time-label .life{color:#7be6a5}
+.time-bar{background:#0a0806;border-color:#3a2a1a;height:12px}
+.time-fill{
+  background:linear-gradient(90deg,#f0a742,#ffcc5c,#7be6a5);
+  box-shadow:0 0 10px rgba(240,167,66,.5);
+}
+.time-bar-mini{background:#0a0806;border-color:#3a2a1a}
+.time-fill-mini{background:linear-gradient(90deg,#7be6a5,#5ce0c8)}
+
+/* Баннеры */
+.banner.danger{background:rgba(255,107,92,.15);border-color:#ff6b5c;color:#ffb8b0}
+.banner.warn{background:rgba(255,204,92,.15);border-color:#ffcc5c;color:#ffe8b8}
+
+/* Боевая панель — фиолетово-багровая, контраст к янтарю */
+.combat-panel{
+  background:linear-gradient(135deg, rgba(60,30,80,.95), rgba(30,10,20,.95));
+  border-color:#c46bff;
+  box-shadow:0 0 40px rgba(196,107,255,.35);
+}
+
+/* Модалки */
+.modal-box{
+  background:linear-gradient(180deg,#2a2218,#1e1811);
+  border-color:#7a5428;
+  box-shadow:0 20px 60px rgba(0,0,0,.8), 0 0 40px rgba(240,167,66,.15);
+}
+.modal-box h3{color:#f0c070}
+.modal-box input{background:#14110d;border-color:#5a4022;color:#f0e6d2}
+.modal-box input:focus{border-color:#f0a742;box-shadow:0 0 0 3px rgba(240,167,66,.3)}
+
+/* select */
+select{background:#14110d;border-color:#5a4022;color:#f0e6d2}
+select:focus{outline:none;border-color:#f0a742;box-shadow:0 0 0 3px rgba(240,167,66,.3)}
+
+/* identity reveal всё ещё скрыт */
+.identity-reveal{display:none}
+
 </style>
 </head>
 <body>
@@ -214,7 +394,7 @@ const AXIS_LABELS={tempo:'Темп',risk:'Риск',initiative:'Инициати
 const TAG_ON=60,TAG_UP_2=80,TAG_UP_3=95;
 const SAVE_KEY='cosmos_save_v10';
 const SHIP_AXES=['sturdy','jumpworthy','loud','maintained','loyal','warm','renowned'];
-const SHIP_AXIS_LABELS={sturdy:'Крепость',jumpworthy:'Прыжковость',loud:'Громкость',maintained:'Ухоженность',loyal:'Верность',warm:'Тепло',renowned:'Известность'};
+const SHIP_AXIS_LABELS={sturdy:'Крепкость',jumpworthy:'Джампдрайв',loud:'ЭМИ Силуэт',maintained:'Ухоженность',loyal:'Верность',warm:'СЖО',renowned:'Известность'};
 const SC='⬡ SC';
 const PARENT_GIFT_AMOUNT=50000;
 const SHIP_PURCHASE_PRICE=50000;
@@ -951,7 +1131,7 @@ const EVENTS=[
     {label:'Пройти напрямую',weight:25,axes:{risk:+1,tempo:+1,initiative:+1},shipAxes:{loud:+1},log:'Корпус принимает удары.',effects:{hull:-10}},
   ]},
   {id:'station',title:'Торговая станция',text:'Вращающееся кольцо станции светится рекламой.',choices:[
-    {label:'Заправиться и починиться',weight:35,axes:{risk:-1,tempo:-1},shipAxes:{maintained:+3},available:s=>s.credits>=4500,log:'Топливо и ремонт. Корабль пристыкован — доступны верфь и наём.',effects:{credits:-4500,fuel:+50,hull:+30,dockNow:true}},
+    {label:'Заправиться и починиться',weight:35,axes:{risk:-1,tempo:-1},shipAxes:{maintained:+3},available:s=>s.credits>=4500,log:'Топливо и ремонт. Корабль пристыкован — доступны верфь и наём.',effects:{credits:-4500,isRepairCost:true,fuel:+50,hull:+30,dockNow:true}},
     {label:'Продать часть груза',weight:30,axes:{initiative:+1},log:'Трюм пустеет. Корабль пристыкован.',effects:{credits:+3500,cargo:-10,rep:+1,dockNow:true}},
     {label:'Нанять механика',weight:30,axes:{initiative:+1,firmness:+1},shipAxes:{warm:+1,loyal:+1},available:s=>s.credits>=10000,log:'Новый механик.',effects:{credits:-10000,engine:+10,addCrew:1,dockNow:true}},
   ]},
@@ -971,7 +1151,7 @@ const EVENTS=[
     {label:'Донести',weight:25,axes:{firmness:+1,initiative:+1},log:'Патруль благодарит.',effects:{rep:+5,credits:+1000}},
   ]},
   {id:'breakdown',title:'Поломка двигателя',text:'Двигатель чихает и теряет тягу.',choices:[
-    {label:'Оплатить ремонт',weight:35,axes:{risk:-1},shipAxes:{maintained:+3},available:s=>s.credits>=2500,log:'Ремонт.',effects:{credits:-2500,engine:+10}},
+    {label:'Оплатить ремонт',weight:35,axes:{risk:-1},shipAxes:{maintained:+3},available:s=>s.credits>=2500,log:'Ремонт.',effects:{credits:-2500,isRepairCost:true,engine:+10}},
     {label:'Починить на скорую руку',weight:35,axes:{tempo:+1,risk:+1},shipAxes:{maintained:-2},log:'Держится.',effects:{engine:-3,hull:-3,rep:+1}},
     {label:'Заглушить',weight:30,axes:{tempo:-1},shipAxes:{maintained:-1},log:'Экономишь топливо.',effects:{fuel:+3,hull:-3}},
   ]},
@@ -1130,30 +1310,36 @@ const makeZeroShipTraits=()=>({sturdy:0,jumpworthy:0,loud:0,maintained:0,loyal:0
 function getPilotNarration(){
   const P=G.professions||{};
   if(P['pilot_cruiser']) return {label:'Пилот Крейсера',lines:[
-    'Девяносто человек работают как один механизм. Твой голос — приказ. Перехватчики кажутся игрушками.',
-    'Ты думаешь не о себе — о корабле. Каждое решение отдаётся эхом по всем палубам.',
-    'Крейсер разворачивается медленно, но неотвратимо. Пираты начинают понимать масштаб.',
-    'Ты ощущаешь крейсер как собственное тело. Каждая пробоина — твоя рана.',
-    'Крейсер дрожит, но держится. Экипаж смотрит на тебя. Ты не подведёшь.',
-    'Финальный раунд. Ты отдаёшь приказ — и мир вокруг превращается в огонь.'
+    'Ты видишь бой не так, как другие. Не отдельные выстрелы — всю картину: их строй, их слабое звено, ошибку, которую они ещё не сделали.',
+    'Ты не гонишься за перехватчиками. Ты действуешь так, будто у тебя за спиной мостик и десятки глаз. Их капитан начинает нервничать.',
+    'Каждое движение пиратов — как на ладони. Ты знаешь тактику больших кораблей. Знаешь, где они ошибутся.',
+    'Ты позволяешь им думать, что доминируют. И в этот момент меняешь курс — неожиданно для них.',
+    'Бой перестаёт быть импровизацией. Это партия, где ты видишь на три хода вперёд.',
+    'Финальный манёвр. Ты отдаёшь приказ — и пиратский капитан понимает, что проиграл ещё до залпа.'
   ]};
   if(P['pilot_bomber']) return {label:'Пилот Бомбардировщика',lines:[
-    'Бомбардировщик — это про терпение. Ты ждёшь, пока враг ошибётся. Время работает на тебя.',
-    'Тяжёлый корабль разворачивается медленно. Ты рассчитываешь траекторию на три хода вперёд.',
-    'Перехватчики суетятся. Ты спокоен. Главное — не промахнуться в нужный момент.',
-    'Ты видишь их траекторию за секунду до того, как они её начнут. Расчёт и опыт.',
-    'Один точный удар может решить всё. Ты ждёшь этого удара.',
-    'Сейчас. Ты нажимаешь гашетку.'
+    'Ты не гонишься. Ты ждёшь. Бомбардировщик — про терпение. Кто атакует первым — ошибается первым.',
+    'Тяжёлый корабль разворачивается медленно. Пока перехватчики суетятся, ты рассчитываешь траекторию на три хода вперёд.',
+    'Они думают, что могут тебя достать. Ты знаешь — нет. Ты уже видишь их будущий промах.',
+    'Ты давишь на курок мысленно. Ещё рано. Ещё секунда. Враг почти в зоне поражения.',
+    'Пальцы на гашетке. Каждый мускул напряжён. Сейчас.',
+    'Ты жмёшь. Мир превращается в огонь. Один точный залп — и бой решён.'
   ]};
   if(P['pilot_corvette']) return {label:'Пилот Корвета',lines:[
-    'Корвет — твоё продолжение. Ты чувствуешь каждую перегрузку. Перехватчики обходят с флангов — ты уже там.',
-    'Скорость — это жизнь. Ты уходишь от залпа за миг до попадания. Пираты теряют тебя из вида.',
-    'Корпус звенит. Инстинкт подсказывает: следующая атака — справа. Ты разворачиваешься раньше.',
-    'Ты на грани. Каждый манёвр — на пределе возможностей корвета. Пираты начинают ошибаться.',
-    'Ты не думаешь — ты летишь. Корвет отвечает на каждое движение. Это уже не бой, это танец.',
-    'Финальный залп. Ты давишь на все педали. Корвет ревёт.'
+    'Корвет — продолжение твоего тела. Перегрузки отдаются в костях. Ты чувствуешь момент выстрела до того, как он случится.',
+    'Перехватчики идут с двух сторон. Ты разворачиваешься через верх — быстрее, чем они ждут. Один отстаёт.',
+    'Корпус звенит. Ты уже знаешь: следующий залп будет справа. Уходишь влево раньше, чем пираты нажмут гашетку.',
+    'На пределе. Каждый манёвр — на границе возможностей корвета. Но ты здесь, ты жив, и ты всё ещё быстрее.',
+    'Ты не думаешь — ты летишь. Корвет отвечает на каждое движение раньше тебя. Это уже не бой, это танец.',
+    'Последний залп. Ты давишь на все педали. Корвет ревёт — и пиратский строй рассыпается.'
   ]};
   return null;
+}
+function repairCostMultiplier(){
+  const m = G.ship.traits.maintained || 0;
+  if(m > 50) return 0.8;
+  if(m < -50) return 1.3;
+  return 1.0;
 }
 function getRepTier(rep){
   if(rep>=80) return {name:'Легенда',color:'#ffd700'};
@@ -1479,7 +1665,7 @@ function generateShip(opts){
     if(filtered.length) names=filtered;
   }
   const name=pick(names);
-  return {name,formerNames:[],className:t.className,role:t.role,classId:'small',hull:t.hull,hullMax:t.hull,shields:t.shields,shieldsMax:t.shields,engine:t.engine+randInt(-5,5),weapons:t.weapons+randInt(-5,5),cargo:t.cargo+randInt(-5,5),fuel:60,fuelToStation:randInt(15,25),crewMax:10,oldHulls:[],traits:makeZeroShipTraits(),shipTransitions:{},firstBlood:false,baptized:false,stranded:null,currentSystem:'sol'};
+  return {name,formerNames:[],className:t.className,role:t.role,classId:'small',hull:t.hull,hullMax:t.hull,shields:t.shields,shieldsMax:t.shields,engine:t.engine+randInt(-5,5),weapons:t.weapons+randInt(-5,5),cargo:t.cargo+randInt(-5,5),fuel:60,fuelToStation:randInt(15,25),crewMax:HULL_CLASSES.small.crew_max,oldHulls:[],traits:makeZeroShipTraits(),shipTransitions:{},firstBlood:false,baptized:false,stranded:null,currentSystem:'sol'};
 }
 function generateParents(surname){
   return [
@@ -1741,12 +1927,23 @@ window.goToShipyard=function(){
   addLog(`Ты берёшь курс на верфь. Тратишь ${cost} топлива, 2 месяца.`,'sys');
   advanceTime(2);
   if(G.over||G.pendingInheritance){saveGame();return;}
+  const maintained=G.ship.traits.maintained||0;
   G.ship.fuel=100;
-  G.ship.hull=G.ship.hullMax;
-  G.ship.shields=G.ship.shieldsMax;
   G.ship.stranded=null;
   G.docked=true;
-  addLog(`Верфь. Всё восстановлено. Корабль пристыкован — доступны смена корпуса и наём.`,'level');
+  if(maintained<-50){
+    G.ship.hull=Math.round(G.ship.hullMax*0.85);
+    G.ship.shields=Math.round(G.ship.shieldsMax*0.85);
+    addLog(`Верфь. Ржавчина въелась глубоко — обшивка не держит 100%. Восстановлено до ${Math.round(0.85*100)}%. Корабль пристыкован.`,'sys');
+  } else if(maintained>50){
+    G.ship.hull=G.ship.hullMax;
+    G.ship.shields=G.ship.shieldsMax;
+    addLog(`Верфь. Квартирмейстер не зря ел свой хлеб — ремонт занял считанные дни. Всё восстановлено. Корабль пристыкован.`,'level');
+  } else {
+    G.ship.hull=G.ship.hullMax;
+    G.ship.shields=G.ship.shieldsMax;
+    addLog(`Верфь. Всё восстановлено. Корабль пристыкован — доступны смена корпуса и наём.`,'level');
+  }
   currentTab='shipyard';
   document.querySelectorAll('#tabs button').forEach(x=>{
     x.classList.toggle('active', x.dataset.tab==='shipyard');
@@ -1815,7 +2012,10 @@ function advanceTime(months){
     if(G.timeMonths%12===0){
       for(const c of G.crew){
         if(c.sick) continue;
-        const chance=hasDoctorOnBoard?0.03:0.06;
+        let chance=hasDoctorOnBoard?0.03:0.06;
+        const warm=G.ship.traits.warm||0;
+        if(warm>50) chance*=0.7;
+        else if(warm<-50) chance*=1.5;
         if(Math.random()<chance){
           const d=pick(CREW_DISEASES);
           let months=randInt(d.minMonths,d.maxMonths);
@@ -2191,6 +2391,27 @@ function makeChildEvent(){
 }
 
 function pickActionEvent(){
+  const maintained=G.ship.traits.maintained||0;
+  const warm=G.ship.traits.warm||0;
+
+  // плохое состояние корпуса → чаще поломки
+  if(maintained<-50 && Math.random()<0.3){
+    const bd=EVENTS.find(e=>e.id==='breakdown');
+    if(bd && !G.recentEvents.includes('breakdown')){
+      G.recentEvents.push('breakdown');
+      return bd;
+    }
+  }
+
+  // холодный экипаж → чаще драки
+  if(warm<-50 && G.isCaptain && canAdultEvents() && Math.random()<0.2){
+    const tf=EVENTS.find(e=>e.id==='team_fight');
+    if(tf && !G.recentEvents.includes('team_fight')){
+      G.recentEvents.push('team_fight');
+      return tf;
+    }
+  }
+
   if(!canAdultEvents()){
     if(!G.childFuelDone && G.ship.fuel < (G.ship.fuelToStation||15) * 1.5 && G.protagonist.age >= 6 && Math.random()<0.5){
       G.childFuelDone = true;
@@ -2212,6 +2433,8 @@ function pickActionEvent(){
     return ev;
   }
   let pool=EVENTS.filter(e=>!G.recentEvents.includes(e.id)&&(!e.ageMin||G.protagonist.age>=e.ageMin)&&(!e.ageMax||G.protagonist.age<=e.ageMax)&&(!e.requiresCaptain||G.isCaptain));
+  // ухоженный корабль → поломки не выпадают из пула
+  if(maintained>50) pool=pool.filter(e=>e.id!=='breakdown');
   if(pool.length===0){
     G.recentEvents=[];
     pool=EVENTS.filter(e=>(!e.ageMin||G.protagonist.age>=e.ageMin)&&(!e.ageMax||G.protagonist.age<=e.ageMax)&&(!e.requiresCaptain||G.isCaptain));
@@ -2316,7 +2539,13 @@ function applyChoice(choice,target){
 
 function applyEffects(e){
   if(!e) return;
-  if(e.credits!==undefined) G.credits=Math.max(0,G.credits+e.credits);
+  if(e.credits!==undefined){
+    let delta=e.credits;
+    if(e.isRepairCost && delta<0){
+      delta=Math.round(delta*repairCostMultiplier());
+    }
+    G.credits=Math.max(0,G.credits+delta);
+  }
   if(e.rep!==undefined) G.rep=clamp(G.rep+e.rep,-100,100);
   if(e.hull!==undefined) G.ship.hull=clamp(G.ship.hull+e.hull,0,G.ship.hullMax);
   if(e.shields!==undefined) G.ship.shields=clamp(G.ship.shields+e.shields,0,G.ship.shieldsMax);
@@ -2327,7 +2556,10 @@ function applyEffects(e){
   if(e.lifespanLoss!==undefined){G.protagonist.lifespan=Math.max(G.protagonist.age,G.protagonist.lifespan-e.lifespanLoss);}
   if(e.crewLossChance!==undefined){
     const hasDoctor=G.crew.some(c=>c.role==='Врач');
-    const effectiveChance=hasDoctor?e.crewLossChance*0.5:e.crewLossChance;
+    let effectiveChance=hasDoctor?e.crewLossChance*0.5:e.crewLossChance;
+    const warm=G.ship.traits.warm||0;
+    if(warm>50) effectiveChance*=0.7;
+    else if(warm<-50) effectiveChance*=1.4;
     if(Math.random()<effectiveChance&&G.crew.length>0){
       const removed=G.crew.pop();
       if(G.stats) G.stats.crewLost++;
