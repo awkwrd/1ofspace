@@ -339,6 +339,41 @@ button.fire-btn { padding: 4px 10px; font-size: 12px; background: #381a14; borde
   margin-bottom: 8px;
   line-height: 1.4;
 }
+
+/* --- УМЕНЬШАЕМ РАДАР ДЛЯ КАРТОЧКИ --- */
+.dashboard-grid {
+  padding: 10px 0 0 0;
+  margin-bottom: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  gap: 20px;
+}
+.radar-housing { width: 140px; height: 140px; }
+.gauges-container { gap: 10px; }
+.gauge { width: 60px; height: 60px; }
+.gauge-needle { height: 22px; }
+.gauge-label { font-size: 8px; }
+.radar-hud { bottom: 15px; padding: 0 10px; font-size: 8px; }
+
+/* --- ФИКС ФОРМАТИРОВАНИЯ КОРАБЛЯ --- */
+#shipCard .tag-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+#shipCard .kv {
+  align-items: center;
+  flex-wrap: wrap;
+}
+.ship-spec-block {
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+  margin-top: 8px;
+  margin-bottom: 12px;
+}
+
 </style>
 </head>
 <body>
@@ -3877,7 +3912,44 @@ function renderProtagonist(){
     ${familyLine}
     <div class="kv"><span>Кредиты</span><b>${G.credits} ${SC}</b></div>
     <div class="kv"><span>Содержание</span><b style="color:#ff6b7a">−${getUpkeep()} ${SC}/мес</b></div>
-    ${G.credits < getUpkeep() * 3 && G.protagonist.age >= 18 ? `<div class="banner danger" style="font-size:11px;margin:4px 0 0">⚠ Кредитов хватит меньше чем на 3 месяца. Бери контракт!</div>` : ''}`;
+    ${G.credits < getUpkeep() * 3 && G.protagonist.age >= 18 ? `<div class="banner danger" style="font-size:11px;margin:4px 0 0">⚠ Кредитов хватит меньше чем на 3 месяца. Бери контракт!</div>` : ''}
+    
+    <!-- РАДАР ВНУТРИ КАРТОЧКИ -->
+    <div class="dashboard-grid">
+      <div class="radar-housing">
+        <div class="radar-screen">
+          <div class="radar-grid"></div>
+          <div class="radar-crosshair"></div>
+          <div class="radar-sweep"></div>
+          <div class="radar-blip blip-ship" style="top: 50%; left: 50%;"></div>
+          <div class="radar-blip blip-enemy" style="top: 25%; left: 60%; animation-delay: 1.2s;"></div>
+          <div class="radar-blip blip-anomaly" style="top: 75%; left: 30%; animation-delay: 3.5s;"></div>
+          <div class="radar-hud">
+            <div class="hud-status"><span class="led led-green pulse"></span> SCAN</div>
+            <span class="hud-dist">10k KM</span>
+          </div>
+        </div>
+      </div>
+      <div class="gauges-container">
+        <div class="gauge-wrapper">
+          <div class="gauge">
+            <div class="gauge-ticks"></div>
+            <div class="gauge-needle" style="transform: rotate(45deg);"></div>
+            <div class="gauge-center"></div>
+          </div>
+          <span class="gauge-label">VELOCITY</span>
+        </div>
+        <div class="gauge-wrapper">
+          <div class="gauge">
+            <div class="gauge-ticks"></div>
+            <div class="gauge-needle" style="transform: rotate(-60deg);"></div>
+            <div class="gauge-center"></div>
+          </div>
+          <span class="gauge-label">CORE TEMP</span>
+        </div>
+      </div>
+    </div>
+  `;
 }
 function renderAxes(crew){
   let html='';
