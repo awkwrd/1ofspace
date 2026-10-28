@@ -629,7 +629,12 @@ const EVENTS=[
   ]},
   {id:'team_fight',title:'Драка в кают-компании',text:'Двое членов экипажа сцепились. Слышны ругательства: «Да пошёл ты!», «Сам такой, блядь!»',ageMin:15,requiresCaptain:true,choices:[
     {label:'Разнять',weight:40,axes:{firmness:+1,initiative:+1},log:'Ты растаскиваешь их.',effects:{rep:+2}},
-    {label:'Дать подраться',weight:30,axes:{risk:+1},log:'Драка кончается сама. Один уходит с корабля.',effects:{crewLossChance:0.3}},
+    {label:'Дать подраться',weight:30,axes:{risk:+1},
+      check:()=>Math.random()<0.3,
+      okLog:'Драка кончается сама. Один из элиты, разбив нос, уходит с корабля — элита не терпит унижения.',
+      failLog:'Драка кончается сама. Оба живы, но злы. Элита держит удар.',
+      okEffects:{crewLossChance:1},
+      failEffects:{}},
     {label:'Наказать обоих',weight:30,axes:{firmness:+1,tempo:-1},log:'Дисциплина важнее.',effects:{rep:-2}},
   ]},
   {id:'toilet',title:'Засор',text:'Унитаз засорился. Кто-то написал на стенке: «Не мы такие — жизнь такая. Но лучше вызывайте сантехника».',ageMin:6,choices:[
@@ -1223,7 +1228,7 @@ window.hireSpecialist=function(id){
     else if(axis==='shieldsMax'){G.ship.shieldsMax+=val;G.ship.shields+=val;}
     else G.ship[axis]=clamp((G.ship[axis]||0)+val,0,100);
   }
-  addLog(`${spec.name} ${m.name} присоединяется к экипажу (${spec.desc}).`,'level');
+  addLog(`${spec.name} ${m.name} присоединяется к экипажу (${spec.desc}). −${spec.cost} ${SC}.`,'level');
   saveGame();renderAll();renderPanel();
 };
 window.fireCrewMember=function(idx){
