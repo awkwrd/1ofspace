@@ -1404,7 +1404,7 @@ function repairCostMultiplier(){
   return 1.0;
 }
 function getUpkeep(){
-  const shipUpkeep = {small: 500, medium: 2000, large: 5000}[G.ship.classId] || 1000;
+  const shipUpkeep = {small: 150, medium: 800, large: 2500}[G.ship.classId] || 500;
   const crewUpkeep = G.crew.reduce((sum, c) => sum + (c.level || 1) * 500, 0);
   return shipUpkeep + crewUpkeep;
 }
@@ -2269,20 +2269,21 @@ function advanceTime(months){
       }
     }
 
-    // ── Содержание корабля и экипажа ──
-    const totalUpkeep = getUpkeep();
+    // ── Содержание корабля и экипажа (только для взрослых) ──
+    if (G.protagonist.age >= 18) {
+      const totalUpkeep = getUpkeep();
+      G.credits -= totalUpkeep;
 
-    G.credits -= totalUpkeep;
-
-    if (G.credits <= 0) {
-      G.credits = 0;
-      if (G.crew.length > 0 && !G.crewLeftDueToDebt) {
-        const removed = G.crew.pop();
-        addLog(`⚠ Долги! ${removed.name} (${removed.role}) уходит — зарплату платить нечем.`,'death');
-        G.crewLeftDueToDebt = true;
+      if (G.credits <= 0) {
+        G.credits = 0;
+        if (G.crew.length > 0 && !G.crewLeftDueToDebt) {
+          const removed = G.crew.pop();
+          addLog(`⚠ Долги! ${removed.name} (${removed.role}) уходит — зарплату платить нечем.`,'death');
+          G.crewLeftDueToDebt = true;
+        }
+      } else {
+        G.crewLeftDueToDebt = false;
       }
-    } else {
-      G.crewLeftDueToDebt = false;
     }
 
     if(G.activeContract){
@@ -2399,9 +2400,10 @@ function advanceTime(months){
       addLog('Скафандрята завершён. Пора учиться всерьёз.','level');
     }
 
-    if(!G.isCaptain&&G.crew.length===0&&G.protagonist.age<18){
-      G.isCaptain=true;
-      addLog('Экипажа не осталось. Ты один у штурвала.','reveal');
+    if(!G.isCaptain && G.crew.length===0 && G.protagonist.age<18){
+      addLog('Экипаж покинул корабль. В таком возрасте ты не выживешь один.','death');
+      endGame('Экипаж покинул корабль. Ты остался один в детстве.');
+      return;
     }
 
     tickShipTransitions();
@@ -3746,7 +3748,8 @@ function renderProtagonist(){
     ${dynastyLine}
     ${familyLine}
     <div class="kv"><span>Кредиты</span><b>${G.credits} ${SC}</b></div>
-    <div class="kv"><span>Содержание</span><b style="color:#ff6b7a">−${getUpkeep()} ${SC}/мес</b></div>`;
+    <div class="kv"><span>Содержание</span><b style="color:#ff6b7a">−${getUpkeep()} ${SC}/мес</b></div>
+    ${G.credits < getUpkeep() * 3 && G.protagonist.age >= 18 ? `<div class="banner danger" style="font-size:11px;margin:4px 0 0">⚠ Кредитов хватит меньше чем на 3 месяца. Бери контракт!</div>` : ''}`;
 }
 function renderAxes(crew){
   let html='';
