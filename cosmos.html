@@ -242,6 +242,17 @@ select:focus{outline:none;border-color:#f0a742;box-shadow:0 0 0 3px rgba(240,167
   font-family: Cambria, "Cambria Math", Georgia, serif;
   font-size: 18px;
 }
+/* Подсветка вкладки при событии */
+@keyframes tabPulse {
+  0%, 100% { background: rgba(115,184,255,0.15); box-shadow: 0 0 8px rgba(115,184,255,0.4); }
+  50% { background: rgba(115,184,255,0.35); box-shadow: 0 0 16px rgba(115,184,255,0.8); }
+}
+.tabs button.tab-alert {
+  color: #73b8ff !important;
+  font-weight: bold;
+  border-radius: 6px;
+  animation: tabPulse 1.5s infinite;
+}
 </style>
 </head>
 <body>
@@ -1479,11 +1490,21 @@ function timeTick(){
   maybeLogFlavor();
   renderAll();safeRenderPanel();saveGame();
 }
+let lastInteraction = 0;
+document.addEventListener('mousedown', () => lastInteraction = Date.now());
+document.addEventListener('mouseup', () => lastInteraction = Date.now());
+document.addEventListener('touchstart', () => lastInteraction = Date.now(), {passive: true});
+document.addEventListener('touchend', () => lastInteraction = Date.now(), {passive: true});
+
 function isUserInteracting(){
   const el=document.activeElement;
   return el&&(el.tagName==='SELECT'||el.tagName==='INPUT'||el.tagName==='TEXTAREA');
 }
-function safeRenderPanel(){if(isUserInteracting())return;renderPanel();}
+function safeRenderPanel(){
+  if(isUserInteracting()) return;
+  if(Date.now() - lastInteraction < 500) return; // пауза обновления на 0.5 сек после клика
+  renderPanel();
+}
 function getMandatoryEvent(){
   if(G.capitalOpportunity&&!G.dynastyCapital&&!G.noCapital){
     G.capitalOpportunity=false;return makeCapitalEvent();
@@ -3429,13 +3450,25 @@ function startStudy(profId){
   addLog(`Начинаешь обучение: ${p.name} (${p.study_months} мес).`,'sys');
   saveGame();renderAll();renderPanel();
 }
+function updateTabs(){
+  const evBtn = document.querySelector('#tabs button[data-tab="events"]');
+  if(!evBtn) return;
+  if(G && G.currentEvent && currentTab !== 'events'){
+    evBtn.classList.add('tab-alert');
+  } else {
+    evBtn.classList.remove('tab-alert');
+  }
+}
 
 function renderAll(){
   if(!G) return;
   renderProtagonist();renderShip();renderCrew();renderTime();renderPointOfNoReturn();
   const sb=document.getElementById('shipyardBtn');
   if(sb) sb.style.display=G.isCaptain?'':'none';
+  updateTabs();
+
 }
+
 function renderPointOfNoReturn(){
   const el=document.getElementById('pointOfNoReturn');
   if(!el) return;
@@ -3849,7 +3882,7 @@ function renderContractsPanel(el){
       <div class="kv"><span>Прогресс</span><b>${elapsed}/${c.monthsTotal} мес (${pct}%)</b></div>
       <div class="kv"><span>Оплата</span><b>${c.payPerMonth} ${SC}/мес</b></div>
       <div class="kv"><span>Осталось</span><b>${c.monthsLeft} мес · ${c.monthsLeft*c.payPerMonth} ${SC}</b></div>
-      <div style="margin-top:8px"><button class="small" onclick="abortContract()">Прервать (штраф ${c.payPerMonth*2} ${SC})</button></div>
+      <div style="margin-top:8px"><button class="small" onmousedown="abortContract()">Прервать (штраф ${c.payPerMonth*2} ${SC})</button></div>
     </div>`;
   } else if(G.protagonist.age<minAge){
     html+=`<p>Тебе ${Math.floor(G.protagonist.age)}. Контракты — с ${minAge}${G.isCaptain?' (ты капитан)':' лет'}.${!G.isCaptain?' Сначала возьми корабль под свою руку.':''}</p>`;
@@ -4042,6 +4075,7 @@ document.querySelectorAll('#tabs button').forEach(b=>{
     b.classList.add('active');
     currentTab=b.dataset.tab;
     renderPanel();
+    updateTabs();
   });
 });
 const continueBtn=document.getElementById('continueBtn');
