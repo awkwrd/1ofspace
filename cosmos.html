@@ -2858,8 +2858,7 @@ function applyEffects(e){
     const spG=pickGender();
     const spFirst=spG==='м'?pick(CREW_MALE):pick(CREW_FEMALE);
     G.spouse={name:`${spFirst} ${surname}`,gender:spG,age:G.protagonist.age,isSpouse:true,surname,relation:'хорошие'};
-    const word=spG==='м'?'супругом':'супругой';
-    addLog(`💕 ${G.spouse.name} становится твоим ${word}.`,'love');
+    addLog(`💕 ${G.spouse.name} теперь с тобой. Вы стали семьёй.`,'love');
   }
   if(e.haveChild){
     const months=randInt(7,9);
