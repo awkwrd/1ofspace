@@ -267,6 +267,7 @@ select:focus{outline:none;border-color:#f0a742;box-shadow:0 0 0 3px rgba(240,167
       <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap">
         <button id="newGameBtn">Новая жизнь</button>
         <button id="continueBtn" class="secondary hidden">Продолжить</button>
+        <button id="lastGameBtn" class="secondary hidden">Итоги прошлой игры</button>
       </div>
     </div>
   </div>
@@ -2423,6 +2424,11 @@ function advanceTime(months){
   }
 }
 function addLog(text,cls=''){
+  if(!G) return;
+  if(!G.logHistory) G.logHistory = [];
+  G.logHistory.push({text, cls});
+  if(G.logHistory.length > LOG_MAX) G.logHistory.shift();
+
   const log=document.getElementById('log');
   if(!log) return;
   const line=document.createElement('div');
@@ -2432,7 +2438,20 @@ function addLog(text,cls=''){
   while(log.children.length>LOG_MAX) log.removeChild(log.firstChild);
   log.scrollTop=log.scrollHeight;
 }
-
+function renderLog(){
+  const log=document.getElementById('log');
+  if(!log) return;
+  log.innerHTML = '';
+  if(G && G.logHistory){
+    for(const item of G.logHistory){
+      const line=document.createElement('div');
+      line.className='log-line '+(item.cls||'');
+      line.textContent=item.text;
+      log.appendChild(line);
+    }
+    log.scrollTop=log.scrollHeight;
+  }
+}
 const BIRTH_ORIGINS = [
   {id:'corp', text:'Твои родители — управленцы крупной корпорации. Ты вырос в достатке, но под гнётом ожиданий.', credits:50000, axes:{certainty:+10, firmness:+5, warm:-5}},
   {id:'colonists', text:'Ты из семьи первых колонистов. Ты знаешь цену воздуху и умеешь работать руками.', credits:15000, axes:{firmness:+10, warm:+5}},
@@ -2474,6 +2493,7 @@ function startNewGame(){
     contractUI:{profId:null,durId:'short'},
     learnedKnowledge:[],
     workedEvents:[],
+    logHistory: [],
     stats:{decisions:0,successes:0,doubtful:0,combats:0,victories:0,defeats:0,crewHired:0,crewLost:0},
     scafandryataGraduated:false,
     isCaptain:false,
@@ -2495,6 +2515,8 @@ function startNewGame(){
   };
   document.getElementById('intro').classList.add('hidden');
   document.getElementById('game').classList.remove('hidden');
+  G.logHistory = [];
+  document.getElementById('log').innerHTML = '';
   document.getElementById('identityReveal').innerHTML=`<div class="name">${name}</div><div class="ship">Родился на борту: ${G.ship.className} «${G.ship.name}»</div><div class="gen">Поколение ${G.dynastyGeneration} · год 0</div>`;
   addLog(`Ты родился на борту ${G.ship.className} «${G.ship.name}».`,'reveal');
   addLog(`📜 ${origin.text} (Стартовый капитал: ${origin.credits} ⬡ SC)`, 'start');
@@ -2537,7 +2559,7 @@ function loadAndContinue(){
   document.getElementById('intro').classList.add('hidden');
   document.getElementById('game').classList.remove('hidden');
   document.getElementById('identityReveal').innerHTML=`<div class="name">${G.protagonist.name}</div><div class="ship">${G.ship.className} «${G.ship.name}» · ${Math.floor(G.protagonist.age)} лет</div><div class="gen">Поколение ${G.dynastyGeneration||1}</div>`;
-  addLog(`Сохранение загружено. ${G.protagonist.name} продолжает путь.`,'sys');
+  renderLog(); // Восстанавливаем лог из G.logHistory
   renderAll();
   renderPanel();
   timeSpeed=1;
@@ -3442,7 +3464,17 @@ function endGame(reason){
   addLog(`★ ${reason}`,'end');
   addLog(`Династия длилась ${G.dynastyGeneration||1} поколений.`,'end');
   renderAll();renderTimeControls();
-  document.getElementById('panel').innerHTML=generateFinalReport(reason);
+  const reportHTML = generateFinalReport(reason);
+  document.getElementById('panel').innerHTML = reportHTML;
+  
+  // Сохраняем итоги в кэш
+  try {
+    localStorage.setItem('cosmos_last_game', JSON.stringify({
+      reportHTML: reportHTML,
+      logHistory: G.logHistory || []
+    }));
+  } catch(e){ console.error('save last game error', e); }
+  
   clearSave();
 }
 
@@ -4171,6 +4203,49 @@ continueBtn.addEventListener('click',loadAndContinue);
 document.getElementById('newGameBtn').addEventListener('click',()=>{
   if(hasSave()&&!confirm('Начать новую жизнь? Текущее сохранение будет потеряно.')) return;
   clearSave();startNewGame();
+});
+// --- Загрузка итогов прошлой игры ---
+const lastGameBtn = document.getElementById('lastGameBtn');
+if(localStorage.getItem('cosmos_last_game')){
+  lastGameBtn.classList.remove('hidden');
+}
+
+lastGameBtn.addEventListener('click', () => {
+  try {
+    const data = JSON.parse(localStorage.getItem('cosmos_last_game'));
+    if(!data) return;
+    
+    // Создаём фейковый G для рендера лога
+    G = { logHistory: data.logHistory || [], over: true };
+    
+    document.getElementById('intro').classList.add('hidden');
+    document.getElementById('game').classList.remove('hidden');
+    
+    // Скрываем всё лишнее
+    document.getElementById('playBtn').disabled = true;
+    document.getElementById('x1Btn').disabled = true;
+    document.getElementById('x2Btn').disabled = true;
+    document.getElementById('x16Btn').disabled = true;
+    document.getElementById('shipyardBtn').style.display = 'none';
+    document.getElementById('retireBtn').style.display = 'none';
+    document.querySelectorAll('#tabs button').forEach(b => b.style.display = 'none');
+    document.getElementById('pointOfNoReturn').style.display = 'none';
+    
+    // Очищаем карточки
+    document.getElementById('protagonistCard').innerHTML = '';
+    document.getElementById('shipCard').innerHTML = '';
+    document.getElementById('crewCard').innerHTML = '';
+    document.getElementById('timeLabel').innerHTML = '';
+    
+    // Показываем отчёт и лог
+    document.getElementById('panel').innerHTML = data.reportHTML;
+    renderLog();
+  } catch(e) { console.error(e); }
+});
+
+// Очистка итогов при старте новой жизни
+document.getElementById('newGameBtn').addEventListener('click',()=>{
+  localStorage.removeItem('cosmos_last_game');
 });
 document.getElementById('retireBtn').addEventListener('click',()=>{
   if(G&&!G.over&&!G.pendingInheritance){
