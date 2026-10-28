@@ -992,6 +992,16 @@ const randInt=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const makeZeroAxes=()=>({tempo:0,risk:0,initiative:0,firmness:0,certainty:0});
 const makeZeroShipTraits=()=>({sturdy:0,jumpworthy:0,loud:0,maintained:0,loyal:0,warm:0,renowned:0});
+function getRepTier(rep){
+  if(rep>=80) return {name:'Легенда',color:'#ffd700'};
+  if(rep>=60) return {name:'Уважаемый',color:'#61d095'};
+  if(rep>=40) return {name:'Замеченный',color:'#4ea1ff'};
+  if(rep>=20) return {name:'Нейтральный',color:'#8fa3c7'};
+  if(rep>=-20) return {name:'Безымянный',color:'#6b8bb8'};
+  if(rep>=-40) return {name:'Подозрительный',color:'#ffa347'};
+  if(rep>=-60) return {name:'Преступник',color:'#ff6b7a'};
+  return {name:'Изгой',color:'#8b1a1a'};
+}
 function pluralYears(n){const m10=n%10,m100=n%100;if(m10===1&&m100!==11)return'год';if(m10>=2&&m10<=4&&(m100<12||m100>14))return'года';return'лет';}
 
 function getCurrentLeader(){
@@ -2682,14 +2692,22 @@ function renderProtagonist(){
     dynastyLine+=`<div class="kv" style="font-size:12px"><span>🏛 Столица</span><b style="color:${canAfford?'#61d095':'#ff6b7a'}">можно основать за ${CAPITAL_COST.toLocaleString('ru-RU')} ${SC} <button class="icon-btn" onclick="foundCapitalNow()" title="Основать столицу">▶</button></b></div>`;
   }
 
+  // репутация с полоской и тиром
+  const repTier=getRepTier(G.rep);
+  const repPct=clamp(G.rep, -100, 100);
+  const repPos=repPct>=0;
+  const repWidth=Math.min(100,Math.abs(repPct));
+  const repFillStyle=repPos?`left:50%;width:${repWidth/2}%`:`right:50%;width:${repWidth/2}%`;
+  const repBarHtml=`<div class="axis" style="margin-top:6px"><span class="axis-label" style="color:${repTier.color};font-weight:600">${repTier.name}</span><div class="axis-bar" style="height:8px"><div class="axis-center"></div><div class="axis-fill" style="${repFillStyle};background:${repTier.color}"></div></div><span class="axis-val" style="color:${repTier.color}">${repPct>0?'+':''}${Math.round(repPct)}</span></div>`;
+
   document.getElementById('protagonistCard').innerHTML=`
     <h2>${p.name} ${p.nickname?`<span class="badge nick">«${p.nickname}»</span>`:''} <span style="color:var(--muted);font-size:12px">ур. ${p.level} · ${stage}</span></h2>
     <p>Возраст: ${Math.floor(p.age)} · Поколение ${G.dynastyGeneration||1} ${captainLabel}</p>
     ${renderAxes(p)}${renderTagsBadges(p,tags,badges)}${brandsHtml}
+    ${repBarHtml}
     ${dynastyLine}
     ${familyLine}
-    <div class="kv"><span>Кредиты</span><b>${G.credits} ${SC}</b></div>
-    <div class="kv"><span>Репутация</span><b>${G.rep}</b></div>`;
+    <div class="kv"><span>Кредиты</span><b>${G.credits} ${SC}</b></div>`;
 }
 function renderAxes(crew){
   let html='';
