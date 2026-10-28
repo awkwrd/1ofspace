@@ -1150,7 +1150,7 @@ const EVENTS=[
   ]},
   {id:'toilet',title:'Засор',text:'Унитаз засорился. Кто-то написал на стенке: «Не мы такие — жизнь такая. Но лучше вызывайте сантехника».',ageMin:6,choices:[
     {label:'Починить самому',weight:45,axes:{initiative:+1,tempo:+1},log:'Победа. Пахнет, но работает.',effects:{rep:+1}},
-    {label:'Вызвать сантехника',weight:35,axes:{tempo:-1},available:s=>s.credits>=1500,log:'Сантехник приходит. Исчезает.',effects:{credits:-1500}},
+    {label:'Вызвать сантехника',weight:35,axes:{tempo:-1},available:s=>s.credits>=1500,log:'Вызывая свободного сантехника вы битый час слушали отборную ругань бабки охранницы.',effects:{credits:-1500}},
     {label:'Забить',weight:20,axes:{tempo:-1,risk:-1},log:'Пусть разбирается кто-нибудь другой.',effects:{rep:-1}},
   ]},
   {id:'pet_buy',title:'Питомец',text:'На станции — приют для животных. Маленькое существо смотрит на тебя из клетки.',ageMin:15,choices:[
