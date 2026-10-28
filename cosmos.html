@@ -176,7 +176,7 @@ button.love-btn{border-color:#ff7aa8;background:linear-gradient(180deg,#5a1a33,#
 .badge.shiptag{background:#1f4444;border-color:#3b9494;color:#c8f8f8}
 .badge.brand{background:linear-gradient(180deg,#5c2e10,#3e1f08);border-color:#e0663b;color:#ffd8b8}
 .badge.captain{background:#4a3a1f;border-color:#f0a742;color:#ffe8b8}
-.badge.regent{background:#4a1f4a;border-color:#9c4a9c;color:#ffc8ff}
+.badge.regent{background:#ffe4e1;border-color:#ffb6c1;color:#c71585;font-weight:600}
 .badge.love{background:#4a1f36;border-color:#ff7aa8;color:#ffd9e8}
 .badge.strength{background:#4a4a1f;border-color:#c4c44a;color:#ffefb8}
 .axis-bar{height:8px;background:#0a0806;border-color:#3a2a1a}
@@ -3725,7 +3725,7 @@ function renderCrew(){
       }})();
       html+=`<div style="border-top:1px solid var(--border);padding:8px 0">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
-          <div><b>${c.name}</b> <span class="badge" style="background:${(c.gender==='ж')?'#5c2a45':'#1d3c68'};border-color:${(c.gender==='ж')?'#ff6ba8':'#4ea1ff'};color:${(c.gender==='ж')?'#ffd9e8':'#cfe5ff'}">${c.gender==='ж'?'♀':'♂'}</span> <span class="badge" style="background:${roleStyle.bg};border-color:${roleStyle.bg};color:${roleStyle.fg}">${c.role||'Матрос'}</span> <span style="color:var(--muted);font-size:12px">ур. ${c.level} · ${Math.floor(c.age||25)}</span>${c.nickname?`<span class="badge nick">«${c.nickname}»</span>`:''}${isLeader?'<span class="badge regent">Регент</span>':''}</div>
+          <div><b>${c.name}</b> <span class="badge" style="background:${(c.gender==='ж')?'#5c2a45':'#1d3c68'};border-color:${(c.gender==='ж')?'#ff6ba8':'#4ea1ff'};color:${(c.gender==='ж')?'#ffd9e8':'#cfe5ff'}">${c.gender==='ж'?'♀':'♂'}</span> <span class="badge" style="background:${roleStyle.bg};border-color:${roleStyle.bg};color:${roleStyle.fg}">${c.role||'Матрос'}</span> <span style="color:var(--muted);font-size:12px">ур. ${c.level} · ${Math.floor(c.age||25)}</span>${c.nickname?`<span class="badge nick">«${c.nickname}»</span>`:''}${isLeader?'&nbsp;&nbsp;<span class="badge regent">Регент</span>':''}</div>
           <button class="fire-btn" onclick="fireCrewMember(${i})" title="Уволить">✖ Уволить</button>
         </div>
         ${renderAxes(c)}${renderTagsBadges(c,tags,badges)}</div>`;
