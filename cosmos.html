@@ -984,9 +984,20 @@ function gainXP(member,amount){
     else addLog(`${member.name} достигает уровня ${member.level}.`,'level');
   }
 }
-function generateShip(){
-  const t=pick(SHIP_TEMPLATES);
-  const name=pick(SHIP_NAMES_POOL);
+function generateShip(opts){
+  opts=opts||{};
+  let templates=SHIP_TEMPLATES.slice();
+  if(opts.excludeClassName){
+    const filtered=templates.filter(t=>t.className!==opts.excludeClassName);
+    if(filtered.length) templates=filtered;
+  }
+  const t=pick(templates);
+  let names=SHIP_NAMES_POOL.slice();
+  if(opts.excludeName){
+    const filtered=names.filter(n=>n!==opts.excludeName);
+    if(filtered.length) names=filtered;
+  }
+  const name=pick(names);
   return {name,formerNames:[],className:t.className,role:t.role,classId:'small',hull:t.hull,hullMax:t.hull,shields:t.shields,shieldsMax:t.shields,engine:t.engine+randInt(-5,5),weapons:t.weapons+randInt(-5,5),cargo:t.cargo+randInt(-5,5),fuel:60,fuelToStation:randInt(15,25),crewMax:10,oldHulls:[],traits:makeZeroShipTraits(),shipTransitions:{},firstBlood:false,baptized:false,stranded:null,currentSystem:'sol'};
 }
 function generateParents(surname){
@@ -1056,23 +1067,48 @@ function swapHull(newClassId){
   if(!check.ok) return check;
   const nc=HULL_CLASSES[newClassId];
   if(G.credits<nc.price) return {ok:false,reason:'Не хватает кредитов'};
+
+  const oldClassName=G.ship.className;
+  const oldName=G.ship.name;
+  const oldSystem=G.ship.currentSystem;
+  const oldHulls=G.ship.oldHulls||[];
+  const oldTraits=G.ship.traits;
+
+  const inherited={};
+  for(const a of SHIP_AXES) inherited[a]=Math.round((oldTraits[a]||0)*0.5*10)/10;
+  const baseShift={small:{},medium:{sturdy:+20,loyal:+10},large:{sturdy:+30,loud:+20,renowned:+20}}[newClassId]||{};
+  for(const [a,v] of Object.entries(baseShift)) inherited[a]=clamp((inherited[a]||0)+v,-100,100);
+
+  oldHulls.push({classId:G.ship.classId,className:oldClassName,name:oldName,traits:JSON.parse(JSON.stringify(oldTraits)),stored:true});
+
   const backup=JSON.parse(JSON.stringify(G.ship));
   try{
     G.credits-=nc.price;
-    G.ship.oldHulls.push({classId:G.ship.classId,name:G.ship.name,traits:JSON.parse(JSON.stringify(G.ship.traits)),stored:true});
-    const oldTraits=G.ship.traits;
-    const inherited={};
-    for(const a of SHIP_AXES) inherited[a]=Math.round((oldTraits[a]||0)*0.5*10)/10;
-    const baseShift={small:{},medium:{sturdy:+20,loyal:+10},large:{sturdy:+30,loud:+20,renowned:+20}}[newClassId]||{};
-    for(const [a,v] of Object.entries(baseShift)) inherited[a]=clamp((inherited[a]||0)+v,-100,100);
-    G.ship.traits=inherited;
-    G.ship.shipTransitions={};
-    G.ship.classId=nc.id;
-    G.ship.hullMax=nc.hull_max;
-    G.ship.shieldsMax=nc.shields_max;
-    G.ship.crewMax=nc.crew_max;
-    G.ship.hull=nc.hull_max;
-    G.ship.shields=nc.shields_max;
+    const nd=generateShip({excludeClassName:oldClassName,excludeName:oldName});
+    G.ship={
+      name:nd.name,
+      formerNames:[],
+      className:nd.className,
+      role:nd.role,
+      classId:nc.id,
+      hull:nc.hull_max,
+      hullMax:nc.hull_max,
+      shields:nc.shields_max,
+      shieldsMax:nc.shields_max,
+      engine:nd.engine,
+      weapons:nd.weapons,
+      cargo:nd.cargo,
+      fuel:100,
+      fuelToStation:randInt(15,25),
+      crewMax:nc.crew_max,
+      oldHulls:oldHulls,
+      traits:inherited,
+      shipTransitions:{},
+      firstBlood:false,
+      baptized:false,
+      stranded:null,
+      currentSystem:oldSystem,
+    };
     return {ok:true};
   }catch(e){G.ship=backup;return {ok:false,reason:'Ошибка транзакции'};}
 }
@@ -2238,7 +2274,8 @@ function renderShip(){
   const renameBtn=`<button class="icon-btn" onclick="renameShip()" title="Переименовать">✎</button>`;
   const currentSys=STAR_SYSTEMS.find(sy=>sy.id===s.currentSystem);
   let html=`<h2>«${s.name}» ${renameBtn}</h2>`;
-  html+=`<p>${s.className} · ${s.role||''}${!G.isCaptain?' · под регентом':''}</p>`;
+  const hullLabel=HULL_CLASSES[s.classId]?.name||'';
+  html+=`<p>${s.className} · ${s.role||''} · <span style="color:var(--ship)">${hullLabel} корпус</span>${!G.isCaptain?' · под регентом':''}</p>`;
   html+=`<div class="kv" style="font-size:12px"><span>🌍 Система</span><b>${currentSys?.name||'?'}</b></div>`;
   html+=renderShipAxes();
   let tagHtml='';
@@ -2540,9 +2577,17 @@ function renderShipyardPanel(el){
   el.innerHTML=html+'</div>';
 }
 window.doSwap=function(id){
+  const oldName=G.ship.name;
+  const oldClassName=G.ship.className;
+  const price=HULL_CLASSES[id].price;
   const r=swapHull(id);
-  if(r.ok){addLog(`Корабль сменён на класс ${HULL_CLASSES[id].name}.`,'shipdrift');saveGame();renderAll();renderPanel();}
-  else{addLog(`Не удалось: ${r.reason}`,'sys');}
+  if(r.ok){
+    addLog(`🛒 Новый корабль: ${G.ship.className} «${G.ship.name}» (${HULL_CLASSES[id].name} корпус). −${price} ${SC}.`,'reveal');
+    addLog(`📦 Старый ${oldClassName} «${oldName}» → музей династии.`,'sys');
+    saveGame();renderAll();renderPanel();
+  }else{
+    addLog(`Не удалось: ${r.reason}`,'sys');
+  }
 };
 function renderShipTabPanel(el){
   let html='<div class="panel"><h3>Корабль — семейная реликвия</h3>';
