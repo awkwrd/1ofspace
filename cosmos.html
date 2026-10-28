@@ -1633,23 +1633,23 @@ function advanceTime(months){
       const c=G.activeContract;
       c.monthsLeft--;
       G.credits+=c.payPerMonth;
-      const pool=CONTRACT_EVENTS[c.profId]||[];
-      const done=G.workedEvents||[];
-      const available=pool.filter(k=>!done.includes(k.id));
-      if(available.length&&Math.random()<0.20){
-        const w=pick(available);
-        G.workedEvents=[...done,w.id];
-        addLog(`⚙ ${PROFESSIONS[c.profId].name}: ${w.text}`,'work');
-        for(const [axis,delta] of Object.entries(w.axes||{})){
-          G.protagonist.axes[axis]=clamp((G.protagonist.axes[axis]||0)+delta,-100,100);
+      if(!c.eventFired && c.eventId){
+        const pool=CONTRACT_EVENTS[c.profId]||[];
+        const w=pool.find(k=>k.id===c.eventId);
+        if(w && Math.random()<0.25){
+          c.eventFired=true;
+          G.workedEvents=[...(G.workedEvents||[]),w.id];
+          addLog(`⚙ ${PROFESSIONS[c.profId].name}: ${w.text}`,'work');
+          for(const [axis,delta] of Object.entries(w.axes||{})){
+            G.protagonist.axes[axis]=clamp((G.protagonist.axes[axis]||0)+delta,-100,100);
+          }
+          G.protagonist.badges=resolveBadges(G.protagonist);
         }
-        G.protagonist.badges=resolveBadges(G.protagonist);
       }
       if(c.monthsLeft<=0){
         addLog(`Контракт завершён: ${PROFESSIONS[c.profId].name}. Всего получено ${c.totalPay} ${SC}.`,'level');
         const finishedProfId=c.profId;
         G.activeContract=null;
-        G.workedEvents=[];
         if(finishedProfId==='planetary_expansion_2'&&!G.dynastyCapital&&!G.noCapital){
           G.capitalOpportunity=true;
         }
@@ -2602,8 +2602,9 @@ function startContract(profId,durId){
   const multiplier=learned?1.5:1.0;
   const payPerMonth=Math.round(prof.base_salary*multiplier);
   const totalPay=payPerMonth*months;
-  G.activeContract={profId,monthsTotal:months,monthsLeft:months,payPerMonth,totalPay};
-  G.workedEvents=[];
+  const contractPool=CONTRACT_EVENTS[profId]||[];
+  const chosenEvent=contractPool.length?pick(contractPool):null;
+  G.activeContract={profId,monthsTotal:months,monthsLeft:months,payPerMonth,totalPay,eventId:chosenEvent?chosenEvent.id:null,eventFired:false};
   G.docked=false;
   const otherSystems=STAR_SYSTEMS.filter(s=>s.id!==G.ship.currentSystem);
   if(otherSystems.length){const dest=pick(otherSystems);travelToSystem(dest.id);}
