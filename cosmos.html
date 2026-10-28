@@ -2114,7 +2114,28 @@ function advanceTime(months){
         addLog(`🩹 Ты ${pHealVerb}. Раны зажили.`,'level');
       }
     }
+    // 🛡 Щиты медленно восстанавливаются каждый месяц
+    if(G.ship.shields < G.ship.shieldsMax){
+      const m = G.ship.traits.maintained || 0;
+      let regen = 1;
+      if(m > 50) regen = 2;        // ухоженный корабль — вдвое быстрее
+      else if(m < -50) regen = 0.5; // запущенный — вдвое медленнее
+      const before = G.ship.shields;
+      G.ship.shields = Math.min(G.ship.shieldsMax, G.ship.shields + regen);
+      if(before < G.ship.shieldsMax && G.ship.shields >= G.ship.shieldsMax){
+        addLog('🛡 Щиты полностью восстановлены.','level');
+      }
+    }
 
+    if(!G.ship.stranded){
+      G.ship.fuel=Math.max(0,G.ship.fuel-0.15);
+      if(G.ship.fuel<=0){
+        G.ship.fuel=0;
+        G.ship.stranded={monthsLeft:18};
+        addLog('⚠ Топливо кончилось. Дрейф. Спасательный маяк активирован.','death');
+        stopTimeFlow();
+      }
+    } else {
     if(!G.ship.stranded){
       G.ship.fuel=Math.max(0,G.ship.fuel-0.15);
       if(G.ship.fuel<=0){
