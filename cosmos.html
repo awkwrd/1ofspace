@@ -359,7 +359,7 @@ select:focus{outline:none;border-color:#f0a742;box-shadow:0 0 0 3px rgba(240,167
     <div class="card" id="crewCard" style="margin-bottom:12px"></div>
     <div class="time-block">
       <div class="time-label" id="timeLabel"></div>
-      <div class="time-row-mini"><span>Год жизни: <span id="yearNum">0/12</span></span><span>Топливо: <span id="lifeNum">0/100</span></span></div>
+      <div class="time-row-mini"><span>Месяц в году: <span id="yearNum">0/12</span></span><span>Топливо: <span id="lifeNum">0/100</span></span></div>
       <div class="time-bar-mini"><div class="time-fill-mini" id="yearFill"></div></div>
       <div class="time-bar"><div class="time-fill" id="lifeFill"></div></div>
       <div class="time-controls">
@@ -3675,7 +3675,7 @@ function renderFamily(){
 function renderTime(){
   if(!G||!G.protagonist) return;
   const p=G.protagonist;
-  const monthInYear=Math.floor(p.age*12)%12;
+  const monthInYear=((G.timeMonths%12)+12)%12;
   const yearPct=(monthInYear/12)*100;
   const fuel=G.ship.fuel;
   const fuelMax=G.ship.fuelMax||100;
