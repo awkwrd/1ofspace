@@ -2239,10 +2239,10 @@ function advanceTime(months){
       if(G.ship.stranded.monthsLeft<=0){
         const voluntary=G.ship.stranded.voluntary;
         G.ship.stranded=null;
-        G.ship.fuel=30;
+        G.ship.fuel=G.ship.fuelMax||100;
         const fee=voluntary?5000:10000;
         G.credits=Math.max(0,G.credits-fee);
-        addLog(`📡 Спасательная команда прибыла. −${fee} ${SC}, +30 топлива.`,'sys');
+        addLog(`📡 Спасательная команда прибыла. −${fee} ${SC}. Бак заполнен до ${G.ship.fuel}.`,'sys');
       }
     }
 
