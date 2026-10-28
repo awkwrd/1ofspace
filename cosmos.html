@@ -2550,10 +2550,15 @@ function loadAndContinue(){
     G.studying.eventId = c?c.id:null;
     G.studying.eventFired = false;
   }
+  if(!G.logHistory) G.logHistory = [];
   if(G.familyFund==null) G.familyFund = 0;
   if(G.fundClaimed==null) G.fundClaimed = (G.protagonist && G.protagonist.age >= 18);
   if(!G.factions) G.factions = {fleet:{name:'Флот',rep:0},volnitsa:{name:'Вольница',rep:0}};
   if(!G.spy) G.spy = {name:'Агент',task:null,exposure:0};
+  if(G.currentEvent && G.currentEvent.id){
+  const orig = findEventById(G.currentEvent.id);
+  if(orig) G.currentEvent = orig;
+  }
   if(G.spyMonthsElapsed==null) G.spyMonthsElapsed = 0;
   if(G.spy && G.spy.exposure==null) G.spy.exposure = 0;
   document.getElementById('intro').classList.add('hidden');
@@ -2820,7 +2825,19 @@ function applyChoice(choice,target){
     const reason=G._impendingDeath;
     G._impendingDeath=null;
     endGame(reason);
-    saveGame();
+    return;
+  }
+
+  if(choice.startCombat){
+    G.currentEvent=null;
+    renderAll();
+    startCombat(choice.startCombat);
+    return;
+  }
+  if(choice.failCombat&&isOk===false){
+    G.currentEvent=null;
+    renderAll();
+    startCombat(choice.failCombat);
     return;
   }
 
@@ -2828,10 +2845,18 @@ function applyChoice(choice,target){
     G.childEventsDone=G.childEventsDone||[];
     if(!G.childEventsDone.includes(G.currentEvent.id)) G.childEventsDone.push(G.currentEvent.id);
     G.currentEvent=null;
+    if(!G.over && !G.pendingInheritance && !G.combat && !G.pilotingCourse){
+      timeSpeed = G._prevTimeSpeed || 1;
+      startTimeFlow();renderTimeControls();
+    }
     renderAll();renderPanel();saveGame();
     return;
   } else if(G.currentEvent&&G.currentEvent.noTimeAdvance){
     G.currentEvent=null;
+    if(!G.over && !G.pendingInheritance && !G.combat && !G.pilotingCourse){
+      timeSpeed = G._prevTimeSpeed || 1;
+      startTimeFlow();renderTimeControls();
+    }
     renderAll();renderPanel();saveGame();
     return;
   } else {
@@ -2840,8 +2865,7 @@ function applyChoice(choice,target){
   G.currentEvent=null;
   renderAll();
   if(G.over||G.pendingInheritance){saveGame();stopTimeFlow();renderTimeControls();return;}
-  if(choice.startCombat){startCombat(choice.startCombat);return;}
-  if(choice.failCombat&&isOk===false){startCombat(choice.failCombat);return;}
+
   G.actionCooldown=randInt(8,14);
   const followupId = isOk === true ? (choice.okFollowupEvent || null)
                     : isOk === false ? (choice.failFollowupEvent || null)
@@ -2857,25 +2881,13 @@ function applyChoice(choice,target){
       return;
     }
   }
-  // если открыта возможность столицы — показать её сразу, не ждать тика
-  if(G.capitalOpportunity&&!G.dynastyCapital&&!G.noCapital){
-    G.capitalOpportunity=false;
-    const capEv=makeCapitalEvent();
-    if(capEv){
-      G._prevTimeSpeed = timeSpeed > 0 ? timeSpeed : (G._prevTimeSpeed || 1);
-      G.currentEvent=capEv;
-      addLog(`— ${capEv.title} ${capEv.text}`,'event');
-      timeSpeed=0;stopTimeFlow();renderTimeControls();
-      renderAll();renderPanel();saveGame();
-      return;
-    }
-  }
 
   if(!G.currentEvent && !G.over && !G.pendingInheritance && !G.combat && !G.pilotingCourse){
-    timeSpeed = G._prevTimeSpeed || 1;
+    timeSpeed = (G._prevTimeSpeed !== undefined) ? G._prevTimeSpeed : 1;
     startTimeFlow();
     renderTimeControls();
   }
+
   renderPanel();
   saveGame();
 }
@@ -2983,6 +2995,8 @@ function applyEffects(e){
       G.ship.stranded = null;
       addLog(`🛠 Регент ведёт корабль на верфь. Всё восстановлено.`,'level');
     } else {
+      G.ship.fuel = 0;
+      G.ship.stranded = {monthsLeft: 18};
       addLog(`Даже с предупреждением топлива не хватает. Корабль дрейфует.`,'sys');
     }
   }
@@ -3067,6 +3081,7 @@ function startCombat(configKey){
   if(!G.isCaptain){addLog('Ты ещё не капитан. Экипаж принимает решение.','sys');return;}
   const config=COMBAT_CONFIGS[configKey];
   if(!config) return;
+  G._prevTimeSpeed = timeSpeed;
   const morale=Math.max(0,Math.round(shipCombatBonus()/2));
   G.combat={id:configKey,enemyName:config.enemyName,round:1,maxRounds:config.maxRounds,score:morale,crewMood:55,log:[],resolved:false,specialUsed:false,firstActionDone:false,attackLanded:false,specLastUse:-999};
   if(morale>0) addLog(`⚔ Бой с ${config.enemyName}. Слава корабля даёт +${morale} к штурмовому духу.`,'combat');
@@ -3205,7 +3220,7 @@ function resolveCombat(){
 
   if(G.ship.hull<=0){
     G.combat=null;
-    timeSpeed=G._prevTimeSpeed||1;
+    timeSpeed = (G._prevTimeSpeed !== undefined) ? G._prevTimeSpeed : 1;
     startTimeFlow();renderTimeControls();
     saveGame();renderAll();
     endGame('Корабль разорвало в бою. Ты не успел покинуть борт.');
@@ -3214,7 +3229,7 @@ function resolveCombat(){
 
   G.combat=null;
   G.actionCooldown=randInt(8,14);
-  timeSpeed=G._prevTimeSpeed||1;
+  timeSpeed = (G._prevTimeSpeed !== undefined) ? G._prevTimeSpeed : 1;
   startTimeFlow();renderTimeControls();
   saveGame();renderAll();renderPanel();
 }
@@ -3264,7 +3279,7 @@ function resolvePilotingCourse(){
   }
   G.pilotingCourse=null;
   G.actionCooldown=randInt(8,14);
-  timeSpeed=G._prevTimeSpeed||1;
+  timeSpeed = (G._prevTimeSpeed !== undefined) ? G._prevTimeSpeed : 1;
   startTimeFlow();renderTimeControls();
   saveGame();renderAll();renderPanel();
 }
@@ -3368,7 +3383,7 @@ window.inheritAndContinue=function(){
   else addLog(`Ты — ${G.protagonist.name}. Корабль под регентом до твоего совершеннолетия.`,'reveal');
   document.getElementById('identityReveal').innerHTML=`<div class="name">${G.protagonist.name}</div><div class="ship">${G.ship.className} «${G.ship.name}» · ${Math.floor(G.protagonist.age)} лет${G.isCaptain?' · капитан':' · регент'}</div><div class="gen">Поколение ${G.dynastyGeneration}</div>`;
   saveGame();renderAll();renderPanel();
-  timeSpeed=G._prevTimeSpeed||1;
+  timeSpeed = (G._prevTimeSpeed !== undefined) ? G._prevTimeSpeed : 1;
   startTimeFlow();renderTimeControls();
 };
 
@@ -3466,6 +3481,14 @@ function endGame(reason){
   renderAll();renderTimeControls();
   const reportHTML = generateFinalReport(reason);
   document.getElementById('panel').innerHTML = reportHTML;
+  
+  const restartBtn = document.createElement('button');
+  restartBtn.textContent = '🔄 Начать новую жизнь';
+  restartBtn.className = 'small';
+  restartBtn.style.marginTop = '12px';
+  restartBtn.style.width = '100%';
+  restartBtn.onclick = () => { clearSave(); startNewGame(); };
+  document.getElementById('panel').appendChild(restartBtn);
   
   // Сохраняем итоги в кэш
   try {
@@ -4029,21 +4052,37 @@ function renderShipyardPanel(el){
   if(!G.docked){
     html+=`<div style="padding:12px;background:rgba(255,211,122,.08);border:1px solid var(--warn);border-radius:10px;margin-bottom:12px">
       <p style="font-size:13px;color:#ffe6b0;margin:0 0 6px">🚀 Корабль в космосе</p>
-      <p style="font-size:12px;color:var(--muted);margin:0">Смена корпуса и наём специалистов доступны только на верфи или станции. Нажми <b>🛠 Курс на верфь</b> внизу — сто́ит топлива и 2 месяцев пути.</p>
+      <p style="font-size:12px;color:var(--muted);margin:0">Смена корпуса и наём специалистов доступны только на верфи. Нажми <b>🛠 Курс на верфь</b> внизу.</p>
     </div>`;
     el.innerHTML=html+'</div>';
     return;
   }
 
   html+='<p style="font-size:12px;color:#61d095;margin-bottom:8px">✅ Корабль пристыкован. Доступны все услуги.</p>';
-  html+='<p style="font-size:12px;color:var(--muted);margin-bottom:8px">Смена корпуса: 50% характера переезжает + бонус класса.</p>';
-  for(const id of Object.keys(HULL_CLASSES)){
-    const h=HULL_CLASSES[id];
-    const current=G.ship.classId===id;
-    const check=canSwapHull(id);
-    const canBuy=!current&&check.ok&&G.credits>=h.price;
-    html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)"><div><b>${h.name}</b> <span style="color:var(--muted);font-size:12px">×${h.multiplier}</span><br><span style="font-size:12px;color:var(--muted)">экипаж ≤ ${h.crew_max}, корпус ${h.hull_max}, щиты ${h.shields_max}</span></div><div>${current?'<span class="badge tag">текущий</span>':canBuy?`<button class="small" onclick="doSwap('${id}')">Купить (${h.price} ${SC})</button>`:`<span style="font-size:11px;color:var(--muted)">${!check.ok?check.reason:'не хватает'}</span>`}</div></div>`;
+  html+='<p style="font-size:12px;color:var(--muted);margin-bottom:8px">Покупка корабля: 50% характера текущего судна переезжает.</p>';
+  
+  for(const tpl of SHIP_TEMPLATES){
+    const current = G.ship.className===tpl.className;
+    const cm = tpl.crewMax||HULL_CLASSES[tpl.classId||'small'].crew_max||3;
+    const crewFits = G.crew.length+1<=cm;
+    const price = tpl.classId==='small'?35000:(tpl.classId==='medium'?150000:800000);
+    const canBuy = !current && crewFits && G.credits>=price;
+    const cls = {small:'Малый',medium:'Средний',large:'Большой'}[tpl.classId]||'';
+    const reason = current?'':(!crewFits?'экипаж не помещается':(G.credits<price?'не хватает':''));
+    const spec = SHIP_SPECIALS[tpl.className];
+    
+    html+=`<div style="padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+        <div><b>${tpl.name}</b> <span style="color:var(--muted);font-size:12px">· ${cls} · ${tpl.role||''}</span><br>
+          <span style="font-size:12px;color:var(--muted)">корпус ${tpl.hull}, щиты ${tpl.shields}, экипаж ≤ ${cm}, топливо ${tpl.fuelMax}</span><br>
+          <span style="font-size:11px;color:var(--muted)">двиг ${tpl.engine} · ор ${tpl.weapons}</span>
+          ${spec?`<br><span style="font-size:11px;color:#ffd37a">✨ ${spec.label}</span>`:''}
+        </div>
+        <div>${current?'<span class="badge tag">текущий</span>':canBuy?`<button class="small" onclick="doBuyShip('${tpl.className}')">Купить (${price} ${SC})</button>`:`<span style="font-size:11px;color:var(--muted)">${reason}</span>`}</div>
+      </div>
+    </div>`;
   }
+
   html+='<h3 style="margin-top:14px">Наём специалистов</h3>';
   const tierColor={базовый:'#3b6ca8',средний:'#6b4a9c',элитный:'#a83b47'};
   for(const spec of SPECIALISTS){
@@ -4054,19 +4093,36 @@ function renderShipyardPanel(el){
   html+='<p style="font-size:12px;color:var(--muted);margin-top:10px">Чтобы улететь, возьми контракт.</p>';
   el.innerHTML=html+'</div>';
 }
-window.doSwap=function(id){
-  const oldName=G.ship.name;
-  const oldClassName=G.ship.className;
-  const price=HULL_CLASSES[id].price;
-  const r=swapHull(id);
-  if(r.ok){
-    addLog(`🛒 Новый корабль: ${G.ship.className} «${G.ship.name}» (${HULL_CLASSES[id].name} корпус). −${price} ${SC}.`,'reveal');
-    addLog(`📦 Старый ${oldClassName} «${oldName}» → музей династии.`,'sys');
-    saveGame();renderAll();renderPanel();
-  }else{
-    addLog(`Не удалось: ${r.reason}`,'sys');
-  }
+
+window.doBuyShip=function(className){
+  const tpl = SHIP_TEMPLATES.find(t=>t.className===className);
+  if(!tpl) return;
+  const price = tpl.classId==='small'?35000:(tpl.classId==='medium'?150000:800000);
+  if(G.credits < price) return;
+  
+  const oldName=G.ship.name, oldClassName=G.ship.className, oldSystem=G.ship.currentSystem;
+  const oldHulls=G.ship.oldHulls||[]; const oldTraits=G.ship.traits;
+  const inherited={};
+  for(const a of SHIP_AXES) inherited[a]=Math.round((oldTraits[a]||0)*0.5*10)/10;
+  const newTraits={...tpl.traits};
+  for(const a of SHIP_AXES) newTraits[a]=clamp((newTraits[a]||0)+(inherited[a]||0),-100,100);
+  
+  oldHulls.push({classId:G.ship.classId,className:oldClassName,name:oldName,traits:JSON.parse(JSON.stringify(oldTraits)),stored:true});
+  
+  G.credits -= price;
+  G.ship={
+    name:tpl.name, formerNames:[], className:tpl.className, role:tpl.role, classId:tpl.classId,
+    hull:tpl.hull, hullMax:tpl.hull, shields:tpl.shields, shieldsMax:tpl.shields,
+    engine:tpl.engine+randInt(-3,3), weapons:tpl.weapons+randInt(-3,3),
+    cargo:tpl.cargo, cargoMax:tpl.cargoMax, fuel:tpl.fuelMax, fuelMax:tpl.fuelMax,
+    fuelToStation:tpl.fuelToStation, crewMax:tpl.crewMax, crewBaseMax:tpl.crewBaseMax||null, shelterActive:false,
+    oldHulls, traits:newTraits, shipTransitions:{}, firstBlood:false, baptized:false, stranded:null, currentSystem:oldSystem, undyingUsed:false
+  };
+  addLog(`🛒 Новый корабль: ${G.ship.className} «${G.ship.name}». −${price} ${SC}.`,'reveal');
+  addLog(`📦 Старый ${oldClassName} «${oldName}» → музей династии.`,'sys');
+  saveGame();renderAll();renderPanel();
 };
+
 function renderShipTabPanel(el){
   let html='<div class="panel"><h3>Корабль — семейная реликвия</h3>';
   html+='<p style="font-size:12px;color:var(--muted)">Характер корабля сохраняется через поколения.</p>';
@@ -4240,6 +4296,14 @@ lastGameBtn.addEventListener('click', () => {
     // Показываем отчёт и лог
     document.getElementById('panel').innerHTML = data.reportHTML;
     renderLog();
+    
+    const backBtn = document.createElement('button');
+    backBtn.textContent = '← Вернуться в меню';
+    backBtn.className = 'small';
+    backBtn.style.marginTop = '12px';
+    backBtn.style.width = '100%';
+    backBtn.onclick = () => location.reload();
+    document.getElementById('panel').appendChild(backBtn);
   } catch(e) { console.error(e); }
 });
 
