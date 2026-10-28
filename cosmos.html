@@ -131,6 +131,19 @@ label.form{display:block;font-size:12px;color:var(--muted);margin:6px 0 3px}
 .crew-spoiler{display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;padding:4px 0}
 .crew-spoiler h2{margin:0}
 .crew-summary{font-size:11px;color:var(--muted);margin-top:4px}
+.stat-row{display:grid;grid-template-columns:88px 1fr 60px;gap:6px;align-items:center;font-size:12px;margin:3px 0}
+.stat-bar{height:6px;background:#0a1222;border-radius:99px;overflow:hidden;border:1px solid #1d2d4a}
+.stat-fill{height:100%;width:0;background:var(--accent);transition:width .25s}
+.stat-fill.hull{background:#61d095}
+.stat-fill.shields{background:#6bb8ff}
+.stat-fill.fuel{background:#f2e06b}
+.stat-fill.fuellow{background:#ff6b7a}
+.stat-fill.engine{background:#f0b45c}
+.stat-fill.weapons{background:#ff6b7a}
+.stat-fill.cargo{background:#b98cff}
+.stat-fill.crew{background:#7ee0d0}
+.stat-label{color:var(--muted)}
+.stat-val{text-align:right;font-variant-numeric:tabular-nums;color:var(--text)}
 .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(3,5,10,.85);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px);animation:fadeIn .2s ease}
 .modal-box{background:linear-gradient(180deg,#1a2540,#101b2d);border:1px solid #3b6ca8;border-radius:16px;padding:20px 22px;max-width:460px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.7);animation:fadeIn .25s ease}
 .modal-box h3{margin:0 0 12px;font-size:16px;color:#9fd3ff}
@@ -199,7 +212,7 @@ label.form{display:block;font-size:12px;color:var(--muted);margin:6px 0 3px}
 const AXES=['tempo','risk','initiative','firmness','certainty'];
 const AXIS_LABELS={tempo:'Темп',risk:'Риск',initiative:'Инициатива',firmness:'Твёрдость',certainty:'Уверенность'};
 const TAG_ON=60,TAG_UP_2=80,TAG_UP_3=95;
-const SAVE_KEY='cosmos_save_v9';
+const SAVE_KEY='cosmos_save_v10';
 const SHIP_AXES=['sturdy','jumpworthy','loud','maintained','loyal','warm','renowned'];
 const SHIP_AXIS_LABELS={sturdy:'Крепость',jumpworthy:'Прыжковость',loud:'Громкость',maintained:'Ухоженность',loyal:'Верность',warm:'Тепло',renowned:'Известность'};
 const SC='⬡ SC';
@@ -287,11 +300,20 @@ const BRANDS={
 };
 
 const COMBAT_ACTIONS=[
-  {id:'attack',label:'⚔ Атаковать',desc:'Залп из всех орудий.',scoreGain:18,hullCost:{min:10,max:20}},
-  {id:'evade',label:'💨 Уклоняться',desc:'Уйти от залпа.',scoreGain:10,fuelCost:{min:3,max:7}},
-  {id:'talk',label:'🗣 Надавить',desc:'Уговорить или напугать.',scoreGain:12},
+  {id:'attack',label:'⚔ Атаковать',desc:'Залп из всех орудий.',base:10,div:6,random:5,hullCost:{min:8,max:15},scale:'weapons'},
+  {id:'evade',label:'💨 Уклоняться',desc:'Уйти от залпа.',base:8,div:8,random:3,fuelCost:{min:3,max:7},scale:'engine'},
+  {id:'talk',label:'🗣 Надавить',desc:'Уговорить или напугать.',base:10,div:10,random:3,scale:'mood'},
+  {id:'hold',label:'🛡 Держать строй',desc:'Принять огонь на себя. Не тратит ресурсы.',base:10,div:30,random:3,scale:'hold'},
   {id:'retreat',label:'🏃 Отступить',desc:'Выйти из боя. −10.',exits:true},
 ];
+const SHIP_SPECIALS={
+  'Грузовик Мул':{id:'weld',label:'🔧 Аварийная сварка',desc:'+20 очков и +20 корпуса.',apply:()=>{G.ship.hull=clamp(G.ship.hull+20,0,G.ship.hullMax);return {gain:20,log:'Завариваешь пробоину. +20 корпуса, +20 очков.'};}},
+  'Курьер Стриж':{id:'boost',label:'🚀 Форсаж',desc:'+25 очков, −10 топлива.',apply:()=>{G.ship.fuel=Math.max(0,G.ship.fuel-10);return {gain:25,log:'Форсаж. −10 топлива, +25 очков.'};}},
+  'Корвет Клинок':{id:'volley',label:'💥 Залп',desc:'+30 очков, −12 корпуса.',apply:()=>{G.ship.hull=Math.max(0,G.ship.hull-12);return {gain:30,log:'Залп из всех орудий. −12 корпуса, +30 очков.'};}},
+  'Рудовоз Крот':{id:'ram',label:'🛡 Тяжёлый удар',desc:'+25 очков.',apply:()=>({gain:25,log:'Ты идёшь на таран. +25 очков.'})},
+  'Шлюп Люмен':{id:'emp',label:'⚡ ЭМИ-импульс',desc:'+25 очков, −12 топлива.',apply:()=>{G.ship.fuel=Math.max(0,G.ship.fuel-12);return {gain:25,log:'ЭМИ бьёт по пиратам. −12 топлива, +25 очков.'};}},
+  'Мусорщик Гриф':{id:'dump',label:'🗑 Сброс мусора',desc:'+20 очков, −10 трюма.',apply:()=>{G.ship.cargo=Math.max(0,G.ship.cargo-10);return {gain:20,log:'Сбрасываешь обломки. −10 трюма, +20 очков.'};}},
+};
 const COMBAT_CONFIGS={
   pirates_main:{enemyName:'Пиратский перехватчик «Клык»',maxRounds:4,winScore:70,loseScore:40,rewards:{min:400,max:800},failDamage:{min:15,max:30},descs:['Первый залп. Каждый разворот отдаётся в костях.','Звук снарядов глухой. ЭМИ-индикатор пищит.','Механик ругается под нос.','Последний раунд. Пираты что-то кричат.']},
   alien_main:{enemyName:'Чужой крейсер Неизвестных',maxRounds:6,winScore:95,loseScore:60,rewards:{min:3000,max:8000},failDamage:{min:30,max:50},descs:['Крейсер больше твоего в три раза.','Луч неизвестной природы проходит сквозь щиты.','На мониторе — конструкция, которой не может быть.','На частоте — странный сигнал.','Гравитация искажается.','Последний раунд.']},
@@ -712,9 +734,9 @@ const ROUTINE=[
   'Кто-то всю ночь не спал и написал на стене: «Мы справимся». Утром никто не стёр.',
 ];
 const HULL_CLASSES={
-  small:{id:'small',multiplier:1,crew_max:10,hull_max:100,shields_max:100,name:'Малый',price:0},
-  medium:{id:'medium',multiplier:3,crew_max:30,hull_max:300,shields_max:300,name:'Средний',price:80000},
-  large:{id:'large',multiplier:9,crew_max:90,hull_max:900,shields_max:900,name:'Большой',price:800000},
+  small:{id:'small',multiplier:1,crew_max:3,hull_max:100,shields_max:100,name:'Малый',price:0},
+  medium:{id:'medium',multiplier:3,crew_max:4,hull_max:300,shields_max:300,name:'Средний',price:80000},
+  large:{id:'large',multiplier:9,crew_max:6,hull_max:900,shields_max:900,name:'Большой',price:800000},
 };
 const PROFESSIONS={
   scavenger:{id:'scavenger',name:'Мусорщик',base_salary:10000,study_months:0,free_access:true},
@@ -1956,7 +1978,7 @@ function startNewGame(){
   G={
     protagonist:{first,surname,name,age:0,lifespan:75+randInt(0,20),level:1,xp:0,axes:makeZeroAxes(),badges:[],transitions:{},isMain:true,nickname:null,brands:[]},
     ship:generateShip(),
-    crew:[makeCrewMember(true,undefined,undefined,[25,45]),makeCrewMember(true,undefined,undefined,[25,45])],
+    crew:[makeCrewMember(true,undefined,undefined,[25,45])],
     child:null,spouse:null,grandchild:null,inheritedProfPreview:null,pregnancy:null,
     dynastyName:surname,
     currentSystem:'sol',
@@ -2005,98 +2027,6 @@ function loadAndContinue(){
   try{loaded=JSON.parse(localStorage.getItem(SAVE_KEY));}catch(e){return;}
   if(!loaded) return;
   G=loaded;
-  if(!G.crew) G.crew=[];
-  for(const c of G.crew){
-    if(!c.transitions) c.transitions={};
-    if(!c.surname){const parts=(c.name||'').split(' ');c.first=parts[0];c.surname=parts[1]||pick(SURNAMES);c.name=`${c.first} ${c.surname}`;}
-    if(!c.role) c.role=pick(['Матрос','Боцман','Штурман','Связист','Оператор','Техник']);
-    if(!c.lifespan) c.lifespan=randInt(60,90);
-    if(!c.gender) c.gender=Math.random()<0.5?'м':'ж';
-  }
-  if(!G.protagonist.gender) G.protagonist.gender=Math.random()<0.5?'м':'ж';
-  if(G.spouse&&!G.spouse.gender) G.spouse.gender=Math.random()<0.5?'м':'ж';
-  if(G.child&&!G.child.gender) G.child.gender=Math.random()<0.5?'м':'ж';
-  if(G.grandchild&&!G.grandchild.gender) G.grandchild.gender=Math.random()<0.5?'м':'ж';
-  if(G.parents) for(const p of G.parents){if(!p.gender) p.gender=p.role==='мать'?'ж':'м';}
-  if(!G.ship.traits) G.ship.traits=makeZeroShipTraits();
-  if(!G.ship.shipTransitions) G.ship.shipTransitions={};
-  if(!G.ship.oldHulls) G.ship.oldHulls=[];
-  if(!G.ship.formerNames) G.ship.formerNames=[];
-  if(G.ship.firstBlood===undefined) G.ship.firstBlood=false;
-  if(G.ship.baptized===undefined) G.ship.baptized=false;
-  if(!G.ship.fuelToStation) G.ship.fuelToStation=randInt(15,25);
-  if(G.ship.stranded===undefined) G.ship.stranded=null;
-  if(!G.ship.className) G.ship.className='Грузовик Мул';
-  if(!G.ship.currentSystem) G.ship.currentSystem='sol';
-  if(!G.combat) G.combat=null;
-  if(G.combatDone===undefined) G.combatDone=false;
-  if(G.activeContract===undefined) G.activeContract=null;
-  if(!G.childEventsDone) G.childEventsDone=[];
-  if(G.actionCooldown===undefined) G.actionCooldown=0;
-  if(!G.contractUI) G.contractUI={profId:null,durId:'short'};
-  if(G.isCaptain===undefined) G.isCaptain=G.protagonist.age>=18;
-  if(G.childPirateDone===undefined) G.childPirateDone=false;
-  if(G.childFuelDone===undefined) G.childFuelDone=false;
-  if(G.docked===undefined) G.docked=false;
-  if(G.parentGiftTaken===undefined) G.parentGiftTaken=false;
-  if(G.majorityEventDone===undefined) G.majorityEventDone=false;
-  if(G.pilotingCooldown===undefined) G.pilotingCooldown=0;
-  if(G.spouseCooldown===undefined) G.spouseCooldown=0;
-  if(!G.pilotingCourse) G.pilotingCourse=null;
-  if(G.scafandryataGraduated===undefined) G.scafandryataGraduated=G.protagonist.age>=6;
-  if(!G.protagonist.brands) G.protagonist.brands=[];
-  if(!G.recentFlavor) G.recentFlavor=[];
-  if(!G.parents) G.parents=generateParents(G.protagonist.surname);
-  if(G.protagonist.wounded===undefined) G.protagonist.wounded=null;
-  for(const c of G.crew){ if(c.sick===undefined) c.sick=null; }
-  if(G.pregnancy===undefined) G.pregnancy=null;
-  if(G.child){
-    if(G.child.studyProf===undefined) G.child.studyProf=null;
-    if(G.child.studyMonthsLeft===undefined) G.child.studyMonthsLeft=null;
-    if(G.child.learnedProfession===undefined) G.child.learnedProfession=null;
-    if(G.child.profChoiceMade===undefined){
-      // ребёнок считается «прошёл выбор», только если реально учился/выучился
-      G.child.profChoiceMade=!!(G.child.learnedProfession||G.child.studyProf);
-    }
-    // страховка: если ребёнку 15+, а профессии нет и не учится — сбросить флаг, пусть ивент выстрелит
-    if(G.child.age>=15&&!G.child.learnedProfession&&!G.child.studyProf){
-      G.child.profChoiceMade=false;
-    }
-  }
-  if(G.pet===undefined) G.pet=null;
-  if(!G.learnedKnowledge) G.learnedKnowledge=[];
-  if(!G.workedEvents) G.workedEvents=[];
-  if(!G.stats) G.stats={decisions:0,successes:0,doubtful:0,combats:0,victories:0,defeats:0,crewHired:0,crewLost:0};
-  if(G.inheritedProfPreview===undefined) G.inheritedProfPreview=null;
-  if(!G.dynastyName) G.dynastyName=G.protagonist.surname;
-  if(!G.currentSystem) G.currentSystem='sol';
-  if(!G.visitedSystems) G.visitedSystems=['sol'];
-  if(G.dynastyCapital===undefined) G.dynastyCapital=null;
-  if(G.dynastyCapital&&!G.dynastyCapital.capitalName) G.dynastyCapital.capitalName=G.dynastyCapital.systemName;
-  if(G.capitalOpportunity===undefined) G.capitalOpportunity=false;
-  if(G.noCapital===undefined) G.noCapital=false;
-  if(!G.professions) G.professions={};
-  for(const id of Object.keys(PROFESSIONS)) if(G.professions[id]===undefined) G.professions[id]=false;
-  if(G.currentEvent&&G.currentEvent.id) G.currentEvent=findEventById(G.currentEvent.id);
-
-  (function fixDupNicknames(){
-    const members=[];
-    if(G.protagonist&&G.protagonist.nickname) members.push(G.protagonist);
-    if(G.spouse&&G.spouse.nickname) members.push(G.spouse);
-    if(G.child&&G.child.nickname) members.push(G.child);
-    for(const c of G.crew) if(c.nickname) members.push(c);
-    if(members.length<2) return;
-    const seen=new Set();
-    for(const m of members){if(seen.has(m.nickname)) m.nickname=null;else seen.add(m.nickname);}
-    const nowUsed=new Set(members.map(m=>m.nickname).filter(Boolean));
-    for(const m of members){
-      if(m.nickname===null){
-        const free=NICKNAMES.filter(n=>!nowUsed.has(n));
-        if(free.length){const nn=pick(free);m.nickname=nn;nowUsed.add(nn);}
-      }
-    }
-  })();
-
   document.getElementById('intro').classList.add('hidden');
   document.getElementById('game').classList.remove('hidden');
   document.getElementById('identityReveal').innerHTML=`<div class="name">${G.protagonist.name}</div><div class="ship">${G.ship.className} «${G.ship.name}» · ${Math.floor(G.protagonist.age)} лет</div><div class="gen">Поколение ${G.dynastyGeneration||1}</div>`;
@@ -2519,45 +2449,65 @@ function startCombat(configKey){
   if(!G.isCaptain){addLog('Ты ещё не капитан. Экипаж принимает решение.','sys');return;}
   const config=COMBAT_CONFIGS[configKey];
   if(!config) return;
-  G.combat={id:configKey,enemyName:config.enemyName,round:1,maxRounds:config.maxRounds,score:0,crewMood:55,log:[],resolved:false};
-  addLog(`⚔ Бой с ${config.enemyName}. Держись.`,'combat');
+  const morale=Math.max(0,Math.round(shipCombatBonus()/2));
+  G.combat={id:configKey,enemyName:config.enemyName,round:1,maxRounds:config.maxRounds,score:morale,crewMood:55,log:[],resolved:false,specialUsed:false};
+  if(morale>0) addLog(`⚔ Бой с ${config.enemyName}. Слава корабля даёт +${morale} к штурмовому духу.`,'combat');
+  else addLog(`⚔ Бой с ${config.enemyName}. Держись.`,'combat');
   timeSpeed=0;stopTimeFlow();renderTimeControls();
   saveGame();renderAll();renderPanel();
 }
 window.performCombatAction=function(actionId){
   if(!G.combat||G.combat.resolved) return;
   const c=G.combat;
+  
+  if(actionId==='special'){
+    if(c.specialUsed){addLog('Спецспособность уже использована в этом бою.','sys');return;}
+    const spec=SHIP_SPECIALS[G.ship.className];
+    if(!spec){addLog('У этого корабля нет спецспособности.','sys');return;}
+    c.specialUsed=true;
+    const res=spec.apply();
+    if(res.gain) c.score=clamp(c.score+res.gain,-100,300);
+    addLog(`✨ ${spec.label}: ${res.log}`,'combat');
+    saveGame();renderAll();renderPanel();
+    return;
+  }
+  
   const action=COMBAT_ACTIONS.find(a=>a.id===actionId);
   if(!action) return;
-  let gain=action.scoreGain||0;
-  let logEntry=`Раунд ${c.round}: ${action.label}`;
-  if(action.id==='attack'){
-    const cost=randInt(action.hullCost.min,action.hullCost.max);
-    G.ship.hull=Math.max(0,G.ship.hull-cost);
-    gain+=Math.round(shipCombatBonus());
-    logEntry+=` — попадание. −${cost} корпуса. +${gain}.`;
-  }
-  if(action.id==='evade'){
-    const cost=randInt(action.fuelCost.min,action.fuelCost.max);
-    G.ship.fuel=Math.max(0,G.ship.fuel-cost);
-    gain+=Math.round(shipEngineBonus());
-    logEntry+=` — манёвр. −${cost} топлива. +${gain}.`;
-  }
-  if(action.id==='talk'){
-    const moodBonus=Math.round(c.crewMood/10);
-    gain+=moodBonus;
-    c.crewMood=clamp(c.crewMood-5,0,100);
-    logEntry+=` — давление. +${gain}. Настрой −5.`;
-  }
+  
   if(action.id==='retreat'){
-    c.score=clamp(c.score-10,-100,200);
+    c.score=clamp(c.score-10,-100,300);
     c.log.push(`Раунд ${c.round}: отступление. −10.`);
     c.resolved=true;
     addLog('Ты выходишь из боя. −10.','combat');
     saveGame();renderAll();resolveCombat();
     return;
   }
-  c.score=clamp(c.score+gain,-100,200);
+  
+  let gain=0;
+  let logEntry=`Раунд ${c.round}: ${action.label}`;
+  const rnd=randInt(-action.random,action.random);
+  
+  if(action.id==='attack'){
+    gain=action.base+Math.round(G.ship.weapons/action.div)+rnd;
+    const cost=randInt(action.hullCost.min,action.hullCost.max);
+    G.ship.hull=Math.max(0,G.ship.hull-cost);
+    logEntry+=` — попадание. −${cost} корпуса. +${gain}.`;
+  } else if(action.id==='evade'){
+    gain=action.base+Math.round(G.ship.engine/action.div)+rnd;
+    const cost=randInt(action.fuelCost.min,action.fuelCost.max);
+    G.ship.fuel=Math.max(0,G.ship.fuel-cost);
+    logEntry+=` — манёвр. −${cost} топлива. +${gain}.`;
+  } else if(action.id==='talk'){
+    gain=action.base+Math.round(c.crewMood/action.div)+rnd;
+    c.crewMood=clamp(c.crewMood-5,0,100);
+    logEntry+=` — давление. +${gain}. Настрой −5.`;
+  } else if(action.id==='hold'){
+    gain=action.base+Math.round((G.ship.hull+G.ship.shields)/action.div)+rnd;
+    logEntry+=` — держишь строй. +${gain}.`;
+  }
+  
+  c.score=clamp(c.score+gain,-100,300);
   c.log.push(logEntry);
   addLog(logEntry,'combat');
   c.round++;
@@ -2574,7 +2524,7 @@ function resolveCombat(){
     if(c.score>=config.winScore) G.stats.victories++;
     else if(c.score<config.loseScore) G.stats.defeats++;
   }
-  addLog(`Бой окончен. Счёт: ${c.score} (порог ${config.winScore}).`,'combat');
+  addLog(`Бой окончен. Счёт: ${c.score} (порог ${config.winScore}, ничья от ${config.loseScore}).`,'combat');
   
   if(c.score>=config.winScore){
     const reward=randInt(config.rewards.min,config.rewards.max);
@@ -3075,13 +3025,18 @@ function renderShip(){
   const tags=resolveAllShipTags();
   const fuel=Math.floor(s.fuel);
   const need=s.fuelToStation;
-  let fuelColor='var(--success)';
-  if(fuel<need) fuelColor='var(--danger)';
-  else if(fuel<need*1.5) fuelColor='var(--warn)';
   const renameBtn=`<button class="icon-btn" onclick="renameShip()" title="Переименовать">✎</button>`;
   const currentSys=STAR_SYSTEMS.find(sy=>sy.id===s.currentSystem);
-  let html=`<h2>«${s.name}» ${renameBtn}</h2>`;
   const hullLabel=HULL_CLASSES[s.classId]?.name||'';
+  const stat=(label,cur,max,cls)=>{
+    const pct=max>0?clamp((cur/max)*100,0,100):0;
+    return `<div class="stat-row"><span class="stat-label">${label}</span><div class="stat-bar"><div class="stat-fill ${cls}" style="width:${pct}%"></div></div><span class="stat-val">${Math.round(cur)}/${Math.round(max)}</span></div>`;
+  };
+  const statFixed=(label,val,cls)=>{
+    const pct=clamp(val,0,100);
+    return `<div class="stat-row"><span class="stat-label">${label}</span><div class="stat-bar"><div class="stat-fill ${cls}" style="width:${pct}%"></div></div><span class="stat-val">${Math.round(val)}</span></div>`;
+  };
+  let html=`<h2>«${s.name}» ${renameBtn}</h2>`;
   html+=`<p>${s.className} · ${s.role||''} · <span style="color:var(--ship)">${hullLabel} корпус</span>${!G.isCaptain?' · под регентом':''}</p>`;
   html+=`<div class="kv" style="font-size:12px"><span>🌍 Система</span><b>${currentSys?.name||'?'}</b></div>`;
   html+=renderShipAxes();
@@ -3090,14 +3045,15 @@ function renderShip(){
   if(s.firstBlood) tagHtml+=`<span class="badge" style="background:#3d1f1f;border-color:#6c3b3b;color:#ffc8c8">Крещёный</span>`;
   if(s.baptized) tagHtml+=`<span class="badge" style="background:#3d2f1f;border-color:#6c5a3b;color:#ffe0c8">Названный</span>`;
   if(tagHtml) html+=`<div class="tag-line">${tagHtml}</div>`;
-  html+=`<div class="kv"><span>Корпус</span><b>${Math.round(s.hull)}/${s.hullMax}</b></div>`;
-  html+=`<div class="kv"><span>Щиты</span><b>${Math.round(s.shields)}/${s.shieldsMax}</b></div>`;
-  html+=`<div class="kv"><span>Топливо</span><b style="color:${fuelColor}">${fuel}/100</b></div>`;
+  html+=`<div style="margin-top:8px"></div>`;
+  html+=stat('Корпус',s.hull,s.hullMax,'hull');
+  html+=stat('Щиты',s.shields,s.shieldsMax,'shields');
+  html+=stat('Топливо',s.fuel,100,fuel<need?'fuellow':'fuel');
   html+=`<div class="kv"><span>До станции</span><b>${need}</b></div>`;
-  html+=`<div class="kv"><span>Двигатель</span><b>${Math.round(s.engine)}</b></div>`;
-  html+=`<div class="kv"><span>Оружие</span><b>${Math.round(s.weapons)}</b></div>`;
-  html+=`<div class="kv"><span>Трюм</span><b>${Math.round(s.cargo)}</b></div>`;
-  html+=`<div class="kv"><span>Экипаж</span><b>${G.crew.length+1}/${s.crewMax}</b></div>`;
+  html+=statFixed('Двигатель',s.engine,'engine');
+  html+=statFixed('Оружие',s.weapons,'weapons');
+  html+=stat('Трюм',s.cargo,100,'cargo');
+  html+=stat('Экипаж',G.crew.length+1,s.crewMax,'crew');
   document.getElementById('shipCard').innerHTML=html;
 }
 function renderCrew(){
@@ -3228,7 +3184,10 @@ function renderCombatPanel(el){
     <div class="combat-score-bar"><div class="combat-score-fill" style="width:${pct}%"></div></div>
     <div class="combat-stats"><span>Корпус: <b>${Math.round(G.ship.hull)}</b></span><span>Щиты: <b>${Math.round(G.ship.shields)}</b></span><span>Топливо: <b>${Math.round(G.ship.fuel)}</b></span><span>Экипаж: <b>${moodText}</b></span></div>
     <div class="combat-desc">${desc}</div>
-    <div class="choices">${COMBAT_ACTIONS.map(a=>`<button class="choice-btn combat-btn" onclick="performCombatAction('${a.id}')">${a.label} <span style="color:var(--muted);font-size:11px">— ${a.desc}</span></button>`).join('')}</div>
+    <div class="choices">
+      ${COMBAT_ACTIONS.map(a=>`<button class="choice-btn combat-btn" onclick="performCombatAction('${a.id}')">${a.label} <span style="color:var(--muted);font-size:11px">— ${a.desc}</span></button>`).join('')}
+      ${SHIP_SPECIALS[G.ship.className]?`<button class="choice-btn combat-btn" ${c.specialUsed?'disabled':''} onclick="performCombatAction('special')" style="${c.specialUsed?'':'border-color:#ffd37a;background:linear-gradient(180deg,#5c4a1a,#3a2a0d);color:#ffd9b8'}">✨ ${SHIP_SPECIALS[G.ship.className].label} <span style="color:var(--muted);font-size:11px">— ${SHIP_SPECIALS[G.ship.className].desc}${c.specialUsed?' (использовано)':''}</span></button>`:''}
+    </div>
     ${c.log.length?`<div class="combat-log">${c.log.slice(-4).map(l=>`• ${l}`).join('<br>')}</div>`:''}
   </div>`;
 }
