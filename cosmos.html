@@ -1792,8 +1792,8 @@ function generateShip(opts){
 }
 function generateParents(surname){
   return [
-    {name:`${pick(MALE_NAMES)} ${surname}`,gender:'м',age:randInt(28,45),relation:pick(['хорошие','ровные','напряжённые']),role:'отец',alive:true},
-    {name:`${pick(FEMALE_NAMES)} ${pick(SURNAMES)}`,gender:'ж',age:randInt(25,42),relation:pick(['хорошие','ровные','напряжённые']),role:'мать',alive:true},
+    {name:`${pick(MALE_NAMES)} ${surname}`,gender:'м',age:randInt(28,45),relation:pick(['хорошие','ровные','напряжённые']),role:'отец',alive:true,lifespan:75+randInt(0,20)},
+    {name:`${pick(FEMALE_NAMES)} ${pick(SURNAMES)}`,gender:'ж',age:randInt(25,42),relation:pick(['хорошие','ровные','напряжённые']),role:'мать',alive:true,lifespan:75+randInt(0,20)},
   ];
 }
 function openModal({title, placeholder, defaultValue, onConfirm}){
@@ -2151,6 +2151,15 @@ function advanceTime(months){
     }
     if(G.spouse) G.spouse.age=(G.spouse.age||30)+1/12;
     if(G.parents) for(const p of G.parents) if(p.alive!==false) p.age+=1/12;
+    // смерть родителей от старости
+    if(G.parents){
+      for(const p of G.parents){
+        if(p.alive!==false && p.age >= (p.lifespan || 80)){
+          p.alive = false;
+          addLog(`☠ ${p.name} (${Math.floor(p.age)} ${pluralYears(Math.floor(p.age))}) умирает — старость.`,'death');
+        }
+      }
+    }
     // нормализация float-дрейфа возраста
     G.protagonist.age = Math.round(G.protagonist.age*12)/12;
     for(const c of G.crew) c.age = Math.round(c.age*12)/12;
@@ -3214,7 +3223,7 @@ function resolvePilotingCourse(){
 
 function protagonistDies(reason){
   if(!G||G.over||G.pendingInheritance) return;
-  addLog(`☠ ${G.protagonist.name} (${Math.floor(G.protagonist.age)} лет) умирает — ${reason}.`,'death');
+  addLog(`☠ ${G.protagonist.name} (${Math.floor(G.protagonist.age)} ${pluralYears(Math.floor(G.protagonist.age))}) умирает — ${reason}.`,'death');
   stopTimeFlow();renderTimeControls();
   const heir=(G.child&&G.child.alive!==false)?G.child:null;
   if(heir){
