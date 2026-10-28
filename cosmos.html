@@ -1512,6 +1512,11 @@ function maybeLogFlavor(force){
     const r=Math.random();
     type=r<0.33?'joke':(r<0.66?'routine':'desc');
   }
+  // не больше одного подряд: если тип совпал с прошлым — перевыбираем
+  if(type===G.lastFlavorType){
+    const others=['joke','routine','desc'].filter(t=>t!==type);
+    type=pick(others);
+  }
   const pool=type==='joke'?JOKES:(type==='routine'?ROUTINE:DESCRIPTIONS);
   const used=G.recentFlavor||[];
   const available=pool.filter(t=>!used.includes(t));
@@ -1519,6 +1524,7 @@ function maybeLogFlavor(force){
   if(available.length){text=pick(available);}
   else{text=pick(pool);G.recentFlavor=[];}
   G.recentFlavor=[...(G.recentFlavor||[]),text].slice(-30);
+  G.lastFlavorType=type;
   addLog(`~ ${text}`,type);
 }
 function renderTimeControls(){
