@@ -3836,7 +3836,7 @@ function renderCrew(){
   for(const c of G.crew){roles[c.role||'Матрос']=(roles[c.role||'Матрос']||0)+1;}
   const rolesStr=Object.entries(roles).map(([r,n])=>`${r} ×${n}`).join(', ')||'пусто';
   let html=`<div class="crew-spoiler" onclick="toggleCrewCollapse()">
-    <h2>Экипаж (${G.crew.length}/${G.ship.crewMax-1}) ${collapsed?'▼':'▲'}</h2>
+    <h2>Экипаж (${G.crew.length + 1}/${G.ship.crewMax}) ${collapsed?'▼':'▲'}</h2>
     ${collapsed?`<span class="crew-summary">${rolesStr}</span>`:''}
   </div>`;
   if(!collapsed){
