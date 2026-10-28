@@ -2156,6 +2156,12 @@ function advanceTime(months){
     }
     if(G.spouse) G.spouse.age=(G.spouse.age||30)+1/12;
     if(G.parents) for(const p of G.parents) if(p.alive!==false) p.age+=1/12;
+    // смерть супруга от старости
+    if(G.spouse && G.spouse.age >= (G.spouse.lifespan || 80)){
+      addLog(`☠ ${G.spouse.name} (${Math.floor(G.spouse.age)} ${pluralYears(Math.floor(G.spouse.age))}) умирает — старость.`,'death');
+      G.spouse = null;
+      G.spouseCooldown = 24;
+    }
     // смерть родителей от старости
     if(G.parents){
       for(const p of G.parents){
@@ -2705,9 +2711,35 @@ function makeSpouseEvent(){
   const locName=SPOUSE_LOCATIONS[locId];
   return {id:'spouse_encounter',title:'💕 Встреча с возможным партнёром 💕',isLove:true,text:`В месте «${locName}» ты встречаешь человека. Разговор идёт легко. Сердце подсказывает — это может быть начало семьи.`,choices:[
     {label:'💕 Сблизиться (стать семьёй)',weight:50,axes:{risk:+1,initiative:+1},shipAxes:{warm:+2},log:'Вы решаете остаться вместе.',effects:{marry:true}},
-    {label:'Подождать',weight:25,axes:{tempo:-1,risk:-1},log:'Ты не торопишься.',effects:{spouseCooldown:36}},
-    {label:'Уйти',weight:25,axes:{risk:-1,tempo:-1},log:'Ты уходишь.',effects:{spouseCooldown:60}},
+    {label:'Подождать',weight:25,axes:{tempo:-1,risk:-1},log:'Ты не торопишься.',effects:{spouseCooldown:24}},
+    {label:'Уйти',weight:25,axes:{risk:-1,tempo:-1},log:'Ты уходишь.',effects:{spouseCooldown:36}},
   ]};
+}
+function makeDivorceEvent(){
+  const spouseName = G.spouse?.name || 'Супруг(а)';
+  return {
+    id:'divorce_event',
+    title:'💔 Трещина в семье',
+    isLove:true,
+    text:`${spouseName} всё чаще молчит. Разговоры превращаются в споры. Что-то не так.`,
+    choices:[
+      {label:'Попытаться спасти брак', weight:40, axes:{tempo:-1,initiative:+1},
+        check:()=>Math.random()<0.5,
+        okLog:`Вы говорите всю ночь. Утром легче. Пока что.`,
+        failLog:`Разговор не получается. ${spouseName} собирает вещи.`,
+        okEffects:{spouseCooldown:12},
+        failEffects:{divorce:true}},
+      {label:'Отпустить', weight:30, axes:{tempo:-1,risk:-1},
+        log:`Вы расходитесь. Тихо. Без скандала.`,
+        effects:{divorce:true}},
+      {label:'Сделать вид, что всё хорошо', weight:30, axes:{risk:-1,tempo:-1},
+        check:()=>Math.random()<0.4,
+        okLog:`Пока прокатывает.`,
+        failLog:`${spouseName} уходит, хлопнув дверью.`,
+        okEffects:{},
+        failEffects:{divorce:true}},
+    ]
+  };
 }
 function makeChildEvent(){
   return {id:'child_event',title:'Решение о ребёнке',text:'Вы с супругом говорите о будущем.',choices:[
@@ -2747,7 +2779,8 @@ function pickActionEvent(){
     if(!G.isCaptain&&G.protagonist.age>=15&&(!G.pilotingCooldown||G.pilotingCooldown<=0)&&Math.random()<0.30) return makePilotingCourseEvent();
     return null;
   }
-  if(!G.spouse&&G.protagonist.age>=20&&G.timeMonths>6&&(!G.spouseCooldown||G.spouseCooldown<=0)&&Math.random()<0.15) return makeSpouseEvent();
+  if(!G.spouse&&G.protagonist.age>=19&&G.timeMonths>6&&(!G.spouseCooldown||G.spouseCooldown<=0)&&Math.random()<0.15) return makeSpouseEvent();
+if(G.spouse&&G.protagonist.age>=19&&!G.recentEvents.includes('divorce_event')&&Math.random()<0.10) return makeDivorceEvent();
   if(G.spouse&&!G.child&&!G.pregnancy&&G.protagonist.age>=20&&G.protagonist.age<55&&Math.random()<0.18) return makeChildEvent();
   if(G.child&&G.child.age>=16&&!G.child.hasCrush&&Math.random()<0.10) return makeChildCrushEvent();
   if(G.child&&G.child.hasCrush&&G.child.age>=20&&!G.grandchild&&Math.random()<0.10) return makeGrandchildEvent();
@@ -2958,8 +2991,14 @@ function applyEffects(e){
     const surname=G.protagonist.surname;
     const spG=pickGender();
     const spFirst=spG==='м'?pick(CREW_MALE):pick(CREW_FEMALE);
-    G.spouse={name:`${spFirst} ${surname}`,gender:spG,age:G.protagonist.age,isSpouse:true,surname,relation:'хорошие'};
+    G.spouse={name:`${spFirst} ${surname}`,gender:spG,age:G.protagonist.age,isSpouse:true,surname,relation:'хорошие',lifespan:70+randInt(0,25)};
     addLog(`💕 ${G.spouse.name} теперь с тобой. Вы стали семьёй.`,'love');
+  }
+  if(e.divorce && G.spouse){
+    addLog(`💔 ${G.spouse.name} уходит. Брак расторгнут.`,'love');
+    G.spouse = null;
+    G.spouseCooldown = 12;
+    G.recentEvents = G.recentEvents.filter(x => x !== 'divorce_event');
   }
   if(e.haveChild){
     const months=randInt(7,9);
