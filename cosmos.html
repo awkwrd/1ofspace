@@ -1093,7 +1093,7 @@ const CHILD_EVENTS=[
   ]},
   {id:'child_5',ageMin:13,ageMax:16,title:'Выбор пути',text:'Пора решать.',choices:[
     {label:'Хочу быть капитаном',weight:40,axes:{firmness:+1,initiative:+1},log:'Это уже не детская игра.',effects:{}},
-    {label:'Хочу понимать корабли',weight:30,axes:{tempo:-1,certainty:+1},log:'Ты идёшь в инженеры.',effects:{}},
+    {label:'Хочу понимать корабли',weight:30,axes:{tempo:-1,certainty:+1},log:'Ты раз за разом пересобираешь двигатели корабля в VR симуляторе.',effects:{}},
     {label:'Не знаю. Хочу увидеть мир',weight:30,axes:{risk:+1,tempo:+1},log:'Ты хочешь странствовать.',effects:{}},
   ]},
   {id:'child_sport_4',ageMin:14,ageMax:16,title:'Космошахматы',text:'Шахматы в невесомости: фигуры плавают, доска вращается. Противник — старый навигатор.',choices:[
@@ -1239,11 +1239,70 @@ const EVENTS=[
     {label:'Нанести на карту',weight:40,axes:{tempo:-1,certainty:+1},log:'Картографы будут благодарны.',effects:{rep:+10,credits:+3000}},
     {label:'Пройти мимо',weight:20,axes:{risk:-1},log:'Ты не хочешь рисковать.',effects:{}},
   ]},
-  {id:'first_contact',title:'Первый контакт',text:'Из гиперпространства выходит корабль неизвестной конструкции.',ageMin:18,requiresCaptain:true,choices:[
+{id:'first_contact',title:'Первый контакт',text:'Из гиперпространства выходит корабль неизвестной конструкции.',ageMin:18,requiresCaptain:true,choices:[
     {label:'Связаться',weight:50,axes:{certainty:+1,tempo:-1},check:()=>Math.random()<0.5,okLog:'Вас понимают. Это исторический момент.',failLog:'Сигнал проигнорирован.',okEffects:{rep:+25,credits:+20000},failEffects:{}},
-    {label:'Сканировать',weight:30,axes:{risk:-1,tempo:-1},log:'Ты собираешь данные.',effects:{rep:+5}},
+    {label:'Сканировать издалека',weight:30,axes:{risk:-1,tempo:-1},
+      check:()=>Math.random()*100 < 55 + shipStealthBonus(),
+      okLog:'Ты держишь дистанцию. Сканеры работают тихо. Корабль не замечает: у тебя на руках уникальные данные — конструкция, энергетика, следы двигателя.',
+      failLog:'Активный сканер выдаёт тебя. Корабль вздрагивает, идёт на сближение. Ты глушишь сигнал. Он уходит. Но осадок остаётся.',
+      okEffects:{rep:+8},
+      failEffects:{rep:-2},
+      okShipAxes:{renowned:+1},
+      okFollowupEvent:'first_contact_aftermath',
+    },
     {label:'Открыть огонь',weight:20,axes:{risk:+1,firmness:+1},startCombat:'alien_main',log:'Ты атакуешь первым.'},
   ]},
+{id:'first_contact_aftermath',hidden:true,noTimeAdvance:true,title:'Данные о Неизвестных',
+  text:'Запись сканирования лежит в памяти корабля. Никто ещё не видел ничего подобного. Каждая деталь — открытие. Но данные — это и товар, и мишень. Что ты с ними сделаешь?',
+  choices:[
+    {label:'📡 Передать в научный институт',weight:40,axes:{risk:-1,initiative:+1},log:'Наука получает данные. Твоё имя попадает в отчёты. Скромно. Честно. Правильно.',effects:{credits:+15000,rep:+15},shipAxes:{renowned:+3}},
+    {label:'💰 Продать теневому брокеру',weight:30,axes:{risk:+1,firmness:+1},log:'Брокер платит щедро. Не задаёт вопросов. Но теперь он знает, что ты знаешь.',effects:{credits:+40000,rep:-10},shipAxes:{renowned:-2}},
+    {label:'📖 Изучить самому',weight:20,axes:{tempo:-1,certainty:+3},log:'Ты тратишь недели на расшифровку. Часть загадок проясняется. Ты начинаешь думать иначе.',effects:{rep:+3},shipAxes:{renowned:+1}},
+    {label:'🔥 Стереть запись',weight:10,axes:{risk:-1,tempo:-1},log:'Ты стираешь всё. Некоторые вещи лучше не знать. По крайней мере, сейчас.',effects:{},shipAxes:{renowned:-1}},
+  ]},
+
+  {id:'insurance_agent',title:'Страховой агент',ageMin:18,
+    text:'На станции к тебе подходит агент в мятом костюме: «Полис на случай гибели корабля. Всего 8 000 ⬡ SC в год. Подумайте о семье».',
+    choices:[
+      {label:'Оформить полис (−8000 ⬡ SC)',weight:40,axes:{risk:-1,firmness:-1},available:s=>s.credits>=8000,
+        log:'Ты подписываешь бумаги. Агент улыбается. Теперь у тебя есть бумажка, которая, возможно, что-то значит.',
+        effects:{credits:-8000,rep:+2},shipAxes:{maintained:+1}},
+      {label:'Отказаться',weight:35,axes:{risk:+1,firmness:+1},
+        log:'«Я сам себе страховка», — говоришь ты. Агент пожимает плечами.',effects:{}},
+      {label:'Продать данные о корабле',weight:25,axes:{risk:+1},
+        check:()=>Math.random()<0.6,
+        okLog:'Агент покупает данные о твоём корабле для оценки рисков. Платит немного, но платит.',
+        failLog:'Агент морщится: «С таким корпусом мы не работаем». Уходит.',
+        okEffects:{credits:+2000,rep:-2},failEffects:{}},
+    ]},
+
+  {id:'medical_policy',title:'Медицинский полис экипажа',ageMin:18,
+    text:'Клиника на станции предлагает годовой полис для экипажа: вакцины, диагностика, экстренная помощь.',
+    choices:[
+      {label:'Оплатить полис для всех (−6000 ⬡ SC)',weight:40,axes:{initiative:+1},available:s=>s.credits>=6000,
+        log:'Экипаж проходит обследование. Врач хвалит твою заботу.',effects:{credits:-6000,rep:+3},
+        shipAxes:{warm:+3,loyal:+2}},
+      {label:'Только для себя (−1500 ⬡ SC)',weight:30,axes:{risk:-1,firmness:-1},available:s=>s.credits>=1500,
+        log:'Ты платишь за себя. Остальные — как получится.',effects:{credits:-1500},shipAxes:{warm:-1}},
+      {label:'Отказаться',weight:30,axes:{risk:+1,firmness:+1},
+        log:'«Космос сам лечит», — думаешь ты. Или убивает. Как повезёт.',effects:{}},
+    ]},
+
+  {id:'ship_service',title:'Сервисное обслуживание',ageMin:18,
+    text:'Механики станции предлагают полное ТО корабля: диагностика, замена фильтров, калибровка двигателя.',
+    choices:[
+      {label:'Полное ТО (−4000 ⬡ SC)',weight:40,axes:{risk:-1,tempo:-1},available:s=>s.credits>=4000,
+        log:'Корабль возвращается как новый. Почти.',effects:{credits:-4000,hull:+15,shields:+10,engine:+5},
+        shipAxes:{maintained:+5}},
+      {label:'Частичное ТО (−1500 ⬡ SC)',weight:35,axes:{tempo:-1},available:s=>s.credits>=1500,
+        log:'Только самое необходимое. Механик ворчит.',effects:{credits:-1500,hull:+5},
+        shipAxes:{maintained:+2}},
+      {label:'Сделать самому',weight:25,axes:{risk:+1,initiative:+1},
+        check:()=>Math.random()<0.6,
+        okLog:'Ты справляешься сам. Экономия!',
+        failLog:'Ты что-то ломаешь. Придётся чинить.',
+        okEffects:{hull:+5},failEffects:{hull:-5,engine:-2}},
+    ]},
 ];
 
 const SHIP_EVENTS=[
@@ -2445,12 +2504,12 @@ function pickActionEvent(){
     G.recentEvents.push(ev.id);
     return ev;
   }
-  let pool=EVENTS.filter(e=>!G.recentEvents.includes(e.id)&&(!e.ageMin||G.protagonist.age>=e.ageMin)&&(!e.ageMax||G.protagonist.age<=e.ageMax)&&(!e.requiresCaptain||G.isCaptain));
+  let pool=EVENTS.filter(e=>!e.hidden&&!G.recentEvents.includes(e.id)&&(!e.ageMin||G.protagonist.age>=e.ageMin)&&(!e.ageMax||G.protagonist.age<=e.ageMax)&&(!e.requiresCaptain||G.isCaptain));
   // ухоженный корабль → поломки не выпадают из пула
   if(maintained>50) pool=pool.filter(e=>e.id!=='breakdown');
   if(pool.length===0){
     G.recentEvents=[];
-    pool=EVENTS.filter(e=>(!e.ageMin||G.protagonist.age>=e.ageMin)&&(!e.ageMax||G.protagonist.age<=e.ageMax)&&(!e.requiresCaptain||G.isCaptain));
+    pool=EVENTS.filter(e=>!e.hidden&&(!e.ageMin||G.protagonist.age>=e.ageMin)&&(!e.ageMax||G.protagonist.age<=e.ageMax)&&(!e.requiresCaptain||G.isCaptain));
   }
   if(pool.length===0) return null;
   const ev=pick(pool);
@@ -2523,6 +2582,10 @@ function applyChoice(choice,target){
     G.currentEvent=null;
     renderAll();renderPanel();saveGame();
     return;
+  } else if(G.currentEvent&&G.currentEvent.noTimeAdvance){
+    G.currentEvent=null;
+    renderAll();renderPanel();saveGame();
+    return;
   } else {
     advanceTime(1);
   }
@@ -2532,7 +2595,20 @@ function applyChoice(choice,target){
   if(choice.startCombat){startCombat(choice.startCombat);return;}
   if(choice.failCombat&&isOk===false){startCombat(choice.failCombat);return;}
   G.actionCooldown=randInt(8,14);
-
+  const followupId = isOk === true ? (choice.okFollowupEvent || null)
+                    : isOk === false ? (choice.failFollowupEvent || null)
+                    : (choice.followupEvent || null);
+  if(followupId){
+    const fu = EVENTS.find(e=>e.id===followupId)
+            || SHIP_EVENTS.find(e=>e.id===followupId)
+            || CHILD_EVENTS.find(e=>e.id===followupId);
+    if(fu){
+      G.currentEvent = fu;
+      addLog(`— ${fu.title||''} ${fu.text}`,'event');
+      renderAll();renderPanel();saveGame();
+      return;
+    }
+  }
   // если открыта возможность столицы — показать её сразу, не ждать тика
   if(G.capitalOpportunity&&!G.dynastyCapital&&!G.noCapital){
     G.capitalOpportunity=false;
@@ -3315,8 +3391,8 @@ function renderShip(){
   html+=renderShipAxes();
   let tagHtml='';
   for(const t of tags) tagHtml+=`<span class="badge shiptag">${t.name}</span>`;
-  if(s.firstBlood) tagHtml+=`<span class="badge" style="background:#3d1f1f;border-color:#6c3b3b;color:#ffc8c8">Крещёный</span>`;
-  if(s.baptized) tagHtml+=`<span class="badge" style="background:#3d2f1f;border-color:#6c5a3b;color:#ffe0c8">Названный</span>`;
+  if(s.firstBlood) tagHtml+=`<span class="badge" style="background:#3d1f1f;border-color:#6c3b3b;color:#ffc8c8">Боевое крещение</span>`;
+  if(s.baptized) tagHtml+=`<span class="badge" style="background:#3d2f1f;border-color:#6c5a3b;color:#ffe0c8">Личный позывной</span>`;
   if(tagHtml) html+=`<div class="tag-line">${tagHtml}</div>`;
   html+=`<div style="margin-top:8px"></div>`;
   html+=stat('Корпус',s.hull,s.hullMax,'hull');
