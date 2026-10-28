@@ -2051,10 +2051,17 @@ function loadAndContinue(){
   for(const c of G.crew){ if(c.sick===undefined) c.sick=null; }
   if(G.pregnancy===undefined) G.pregnancy=null;
   if(G.child){
-    if(G.child.profChoiceMade===undefined) G.child.profChoiceMade=G.child.age>=15;
     if(G.child.studyProf===undefined) G.child.studyProf=null;
     if(G.child.studyMonthsLeft===undefined) G.child.studyMonthsLeft=null;
     if(G.child.learnedProfession===undefined) G.child.learnedProfession=null;
+    if(G.child.profChoiceMade===undefined){
+      // ребёнок считается «прошёл выбор», только если реально учился/выучился
+      G.child.profChoiceMade=!!(G.child.learnedProfession||G.child.studyProf);
+    }
+    // страховка: если ребёнку 15+, а профессии нет и не учится — сбросить флаг, пусть ивент выстрелит
+    if(G.child.age>=15&&!G.child.learnedProfession&&!G.child.studyProf){
+      G.child.profChoiceMade=false;
+    }
   }
   if(G.pet===undefined) G.pet=null;
   if(!G.learnedKnowledge) G.learnedKnowledge=[];
@@ -2737,6 +2744,7 @@ window.inheritAndContinue=function(){
   G.pendingInheritance=false;G.deathRolled=false;G.over=false;
   G.activeContract=null;
   G.studying=null;
+  const parentProfs=Object.keys(G.professions).filter(k=>G.professions[k]);
   G.professions=Object.fromEntries(Object.keys(PROFESSIONS).map(k=>[k,false]));
   if(heir.learnedProfession){
     G.professions[heir.learnedProfession]=true;
@@ -2744,6 +2752,15 @@ window.inheritAndContinue=function(){
   } else if(G.inheritedProfPreview){
     G.professions[G.inheritedProfPreview]=true;
     addLog(`🪶 Наследие: ты помнишь уроки родителя. Профессия «${PROFESSIONS[G.inheritedProfPreview].name}» доступна.`,'level');
+  } else if(parentProfs.length){
+    const picked=pick(parentProfs);
+    G.professions[picked]=true;
+    addLog(`🎓 Ты наблюдал за родителем и перенял кое-что: «${PROFESSIONS[picked].name}».`,'level');
+  } else {
+    const fallbackPool=Object.keys(PROFESSIONS).filter(id=>!PROFESSIONS[id].requires);
+    const fallback=pick(fallbackPool);
+    G.professions[fallback]=true;
+    addLog(`🎓 В наследство — только опыт. Ты знаешь «${PROFESSIONS[fallback].name}» на базовом уровне.`,'sys');
   }
   G.inheritedProfPreview=null;
   G.childEventsDone=[];
@@ -2824,7 +2841,7 @@ function generateFinalReport(reason){
     <div class="kv"><span>Всего решений</span><b>${total}</b></div>
     <div class="kv"><span>Успешных</span><b style="color:#61d095">${succ}</b></div>
     <div class="kv"><span>Сомнительных</span><b style="color:#ff6b7a">${doubt}</b></div>
-    <div class="kv"><span>Точность</span><b>${winRate}%</b></div>
+    <div class="kv"><span>Точность (по броскам)</span><b>${winRate}% <span style="color:var(--muted);font-size:11px">(${succ}/${checkedCount})</span></b></div>
     <h4>⚔ Бои</h4>
     <div class="kv"><span>Сражений</span><b>${s.combats||0}</b></div>
     <div class="kv"><span>Побед</span><b style="color:#61d095">${s.victories||0}</b></div>
