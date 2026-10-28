@@ -410,13 +410,26 @@ const FIRST_NAMES=[...MALE_NAMES,...FEMALE_NAMES];
 const CREW_NAMES=[...CREW_MALE,...CREW_FEMALE];
 
 const SHIP_TEMPLATES=[
-  {className:'Грузовик Мул',role:'тяжёлый грузовик',hull:110,shields:90,engine:35,weapons:25,cargo:40},
-  {className:'Курьер Стриж',role:'быстрый курьер',hull:80,shields:100,engine:60,weapons:30,cargo:20},
-  {className:'Корвет Клинок',role:'боевой корвет',hull:100,shields:110,engine:50,weapons:60,cargo:25},
-  {className:'Рудовоз Крот',role:'промышленный рудовоз',hull:130,shields:80,engine:30,weapons:20,cargo:60},
-  {className:'Шлюп Люмен',role:'исследовательский шлюп',hull:90,shields:120,engine:55,weapons:25,cargo:30},
-  {className:'Мусорщик Гриф',role:'сборщик обломков',hull:95,shields:85,engine:40,weapons:20,cargo:55},
+  {className:'Сойка',role:'разведчик-курьер · лёгкий рейдер',name:'Сойка',classId:'small',crewMax:3,hull:95,shields:110,engine:58,weapons:22,cargo:35,cargoMax:60,fuel:80,fuelMax:80,fuelToStation:14,
+   traits:{sturdy:+2,jumpworthy:+3,loud:-2,maintained:+18,loyal:+22,warm:+8,renowned:+4}},
+  {className:'Овод',role:'перехватчик · сторожевой',name:'Овод',classId:'small',crewMax:3,hull:105,shields:85,engine:72,weapons:61,cargo:12,cargoMax:40,fuel:100,fuelMax:100,fuelToStation:31,
+   traits:{sturdy:-6,jumpworthy:+1,loud:+3,maintained:+52,loyal:+9,warm:+2,renowned:+17}},
+  {className:'Мотыль',role:'челнок-разведчик · тихий',name:'Мотыль',classId:'small',crewMax:3,hull:88,shields:120,engine:66,weapons:14,cargo:28,cargoMax:50,fuel:70,fuelMax:70,fuelToStation:9,
+   traits:{sturdy:-3,jumpworthy:+2,loud:-4,maintained:+37,loyal:+28,warm:+6,renowned:-5}},
+  {className:'Кречет',role:'корвет · рейдер',name:'Кречет',classId:'medium',crewMax:4,hull:310,shields:285,engine:64,weapons:128,cargo:145,cargoMax:320,fuel:260,fuelMax:300,fuelToStation:47,
+   traits:{sturdy:+11,jumpworthy:+2,loud:+1,maintained:+34,loyal:+26,warm:+14,renowned:+38}},
+  {className:'Скиталец',role:'исследователь · дальний рейс',name:'Скиталец',classId:'medium',crewMax:4,hull:285,shields:260,engine:49,weapons:42,cargo:290,cargoMax:420,fuel:340,fuelMax:340,fuelToStation:68,
+   traits:{sturdy:+19,jumpworthy:+4,loud:-1,maintained:+44,loyal:+31,warm:+27,renowned:+22}},
+  {className:'Кузнец',role:'ремонтник · плавучая мастерская',name:'Кузнец',classId:'medium',crewMax:4,hull:340,shields:230,engine:41,weapons:36,cargo:380,cargoMax:460,fuel:210,fuelMax:300,fuelToStation:54,
+   traits:{sturdy:+22,jumpworthy:+1,loud:+2,maintained:+67,loyal:+38,warm:+19,renowned:+29}},
+  {className:'Левиафан',role:'линкор · тяжёлый крейсер',name:'Левиафан',classId:'large',crewMax:6,hull:920,shields:880,engine:58,weapons:242,cargo:540,cargoMax:1000,fuel:780,fuelMax:900,fuelToStation:102,
+   traits:{sturdy:+24,jumpworthy:+2,loud:+5,maintained:+29,loyal:+41,warm:+18,renowned:+76}},
+  {className:'Молот',role:'штурмовой крейсер · осадный',name:'Молот',classId:'large',crewMax:6,hull:980,shields:720,engine:47,weapons:286,cargo:380,cargoMax:800,fuel:700,fuelMax:900,fuelToStation:88,
+   traits:{sturdy:+31,jumpworthy:+1,loud:+7,maintained:+36,loyal:+46,warm:+12,renowned:+81}},
+  {className:'Ковчег',role:'колонизатор · дальний хаулер',name:'Ковчег',classId:'large',crewMax:12,crewBaseMax:12,hull:840,shields:790,engine:44,weapons:92,cargo:960,cargoMax:1400,fuel:860,fuelMax:900,fuelToStation:141,
+   traits:{sturdy:+12,jumpworthy:+4,loud:0,maintained:+72,loyal:+58,warm:+41,renowned:+54}},
 ];
+
 const SHIP_NAMES_POOL=['Ночной Курьер','Тихий Шёпот','Последний Аргумент','Соль Пояса','Ржавый Кит','Серый Шанс','Пыль Цереры','Далёкий Свет','Клинок Фронтира','Пустой Стакан','Холодный Расчёт','Ветер Перемен','Тень Кометы','Угрюмый Странник','Зов Глубины','Золотая Пыль'];
 
 const STAR_SYSTEMS=[
@@ -487,12 +500,15 @@ const COMBAT_ACTIONS=[
   {id:'retreat',label:'🏃 Отступить',desc:'Выйти из боя. −10.',exits:true},
 ];
 const SHIP_SPECIALS={
-  'Грузовик Мул':{id:'weld',label:'🔧 Аварийная сварка',desc:'+20 очков и +20 корпуса.',apply:()=>{G.ship.hull=clamp(G.ship.hull+20,0,G.ship.hullMax);return {gain:20,log:'Завариваешь пробоину. +20 корпуса, +20 очков.'};}},
-  'Курьер Стриж':{id:'boost',label:'🚀 Форсаж',desc:'+25 очков, −10 топлива.',apply:()=>{G.ship.fuel=Math.max(0,G.ship.fuel-10);return {gain:25,log:'Форсаж. −10 топлива, +25 очков.'};}},
-  'Корвет Клинок':{id:'volley',label:'💥 Залп',desc:'+30 очков, −12 корпуса.',apply:()=>{G.ship.hull=Math.max(0,G.ship.hull-12);return {gain:30,log:'Залп из всех орудий. −12 корпуса, +30 очков.'};}},
-  'Рудовоз Крот':{id:'ram',label:'🛡 Тяжёлый удар',desc:'+25 очков.',apply:()=>({gain:25,log:'Ты идёшь на таран. +25 очков.'})},
-  'Шлюп Люмен':{id:'emp',label:'⚡ ЭМИ-импульс',desc:'+25 очков, −12 топлива.',apply:()=>{G.ship.fuel=Math.max(0,G.ship.fuel-12);return {gain:25,log:'ЭМИ бьёт по пиратам. −12 топлива, +25 очков.'};}},
-  'Мусорщик Гриф':{id:'dump',label:'🗑 Сброс мусора',desc:'+20 очков, −10 трюма.',apply:()=>{G.ship.cargo=Math.max(0,G.ship.cargo-10);return {gain:20,log:'Сбрасываешь обломки. −10 трюма, +20 очков.'};}},
+  'Сойка':{id:'birdstep',label:'🕊 Птичий шаг',desc:'+30 очков, без затрат.',apply:()=>({gain:30,log:'Короткий внеплановый джамп. +30 очков.'})},
+  'Овод':{id:'sting',label:'🐝 Укус',desc:'Пассивно: первый залп в раунде 1 бьёт сквозь щиты (+15).',passive:true},
+  'Мотыль':{id:'shadow',label:'🌑 Тень',desc:'+25 очков, без затрат.',apply:()=>({gain:25,log:'Исчезаешь со сканеров. +25 очков.'})},
+  'Кречет':{id:'raid',label:'⚡ Налёт',desc:'После атаки: уйти из боя, +10.',requiresAttackLanded:true,apply:()=>({gain:10,log:'Бьёшь и уходишь. +10 очков.',resolveCombat:true})},
+  'Скиталец':{id:'emergencyJump',label:'🚨 Аварийный джамп',desc:'Уйти из боя. −25 корпуса.',apply:()=>({gain:0,hullCost:25,log:'Аварийный джамп. −25 корпуса.',forceEscape:true})},
+  'Кузнец':{id:'fieldrepair',label:'🔧 Полевой ремонт',desc:'+300 корпуса (до макс). Раз за бой.',apply:()=>{const b=G.ship.hull;G.ship.hull=Math.min(G.ship.hullMax,G.ship.hull+300);return {gain:0,log:`Полевой ремонт: +${Math.round(G.ship.hull-b)} корпуса.`};}},
+  'Левиафан':{id:'undying',label:'🛡 Неубиваемый',desc:'Пассивно: при 0 корпуса — остаётся 1. Раз за бой, до ремонта.',passive:true},
+  'Молот':{id:'siege',label:'💥 Осадный залп',desc:'+50 очков, −50% щитов. Не два хода подряд.',cooldown:2,apply:()=>{const l=Math.round(G.ship.shields*0.5);G.ship.shields=Math.max(0,G.ship.shields-l);return {gain:50,log:`Осадный залп. −${l} щитов, +50 очков.`};}},
+  'Ковчег':{id:'shelter',label:'🏠 Убежище',desc:'Временно ×2 лимит экипажа. Переключается на вкладке «Корабль».',passive:true},
 };
 const COMBAT_CONFIGS={
   pirates_main:{enemyName:'Пиратский перехватчик «Клык»',maxRounds:4,winScore:70,loseScore:40,rewards:{min:400,max:800},failDamage:{min:15,max:30},descs:['Первый залп. Каждый разворот отдаётся в костях.','Звук снарядов глухой. ЭМИ-индикатор пищит.','Механик ругается под нос.','Последний раунд. Пираты что-то кричат.']},
@@ -1377,6 +1393,15 @@ const LOG_MAX=400;
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const randInt=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function applyShipDamage(amount){
+  if(!G.ship || amount<=0) return;
+  G.ship.hull = Math.max(0, G.ship.hull - amount);
+  if(G.ship.className==='Левиафан' && G.ship.hull<=0 && !G.ship.undyingUsed){
+    G.ship.undyingUsed=true;
+    G.ship.hull=1;
+    addLog('🛡 «Неубиваемый»: Левиафан держится на 1 корпуса!','combat');
+  }
+}
 const makeZeroAxes=()=>({tempo:0,risk:0,initiative:0,firmness:0,certainty:0});
 const makeZeroShipTraits=()=>({sturdy:0,jumpworthy:0,loud:0,maintained:0,loyal:0,warm:0,renowned:0});
 function getPilotNarration(){
@@ -1756,14 +1781,30 @@ function generateShip(opts){
     const filtered=templates.filter(t=>t.className!==opts.excludeClassName);
     if(filtered.length) templates=filtered;
   }
-  const t=pick(templates);
-  let names=SHIP_NAMES_POOL.slice();
-  if(opts.excludeName){
-    const filtered=names.filter(n=>n!==opts.excludeName);
-    if(filtered.length) names=filtered;
+  if(opts.classFilter){
+    const filtered=templates.filter(t=>t.classId===opts.classFilter);
+    if(filtered.length) templates=filtered;
   }
-  const name=pick(names);
-  return {name,formerNames:[],className:t.className,role:t.role,classId:'small',hull:t.hull,hullMax:t.hull,shields:t.shields,shieldsMax:t.shields,engine:t.engine+randInt(-5,5),weapons:t.weapons+randInt(-5,5),cargo:t.cargo+randInt(-5,5),fuel:60,fuelToStation:randInt(15,25),crewMax:HULL_CLASSES.small.crew_max,oldHulls:[],traits:makeZeroShipTraits(),shipTransitions:{},firstBlood:false,baptized:false,stranded:null,currentSystem:'sol'};
+  const t=pick(templates);
+  const name=t.name||pick(SHIP_NAMES_POOL);
+  const traits = t.traits ? {...t.traits} : makeZeroShipTraits();
+  const classId = t.classId || 'small';
+  const crewMax = t.crewMax || (HULL_CLASSES[classId]?.crew_max) || 3;
+  return {
+    name,formerNames:[],
+    className:t.className,role:t.role,classId,
+    hull:t.hull,hullMax:t.hull,
+    shields:t.shields,shieldsMax:t.shields,
+    engine:t.engine+randInt(-5,5),
+    weapons:t.weapons+randInt(-5,5),
+    cargo:t.cargo||0,cargoMax:t.cargoMax||100,
+    fuel:(t.fuel!=null?t.fuel:60),fuelMax:t.fuelMax||100,
+    fuelToStation:t.fuelToStation!=null?t.fuelToStation:randInt(15,25),
+    crewMax,crewBaseMax:t.crewBaseMax||null,shelterActive:false,
+    oldHulls:[],traits,shipTransitions:{},
+    firstBlood:false,baptized:false,stranded:null,currentSystem:'sol',
+    undyingUsed:false,
+  };
 }
 function generateParents(surname){
   return [
@@ -1798,6 +1839,26 @@ function openModal({title, placeholder, defaultValue, onConfirm}){
   overlay.addEventListener('click',e=>{if(e.target===overlay) close();});
   setTimeout(()=>{input.focus();input.select();},60);
 }
+window.toggleShelter=function(){
+  if(!G||G.over||G.pendingInheritance) return;
+  if(G.ship.className!=='Ковчег') return;
+  if(G.ship.shelterActive){
+    const base=G.ship.crewBaseMax||6;
+    G.ship.shelterActive=false;
+    G.ship.crewMax=base;
+    while(G.crew.length+1>base){
+      const r=G.crew.pop();
+      addLog(`🏠 «Убежище» сложено. ${r.name} покидает борт.`,'sys');
+    }
+    addLog(`🏠 Лимит: ${base}.`,'sys');
+  } else {
+    G.ship.crewBaseMax=G.ship.crewMax;
+    G.ship.shelterActive=true;
+    G.ship.crewMax*=2;
+    addLog(`🏠 «Убежище» активно. Лимит: ${G.ship.crewMax}.`,'sys');
+  }
+  saveGame();renderAll();renderPanel();
+};
 window.renameShip=function(){
   if(!G) return;
   if(!G.isCaptain){
@@ -1945,7 +2006,9 @@ function swapHull(newClassId){
       engine:nd.engine,
       weapons:nd.weapons,
       cargo:nd.cargo,
-      fuel:100,
+      cargoMax:nd.cargoMax,
+      fuel:nd.fuelMax,
+      fuelMax:nd.fuelMax,
       fuelToStation:randInt(15,25),
       crewMax:nc.crew_max,
       oldHulls:oldHulls,
@@ -2032,7 +2095,7 @@ window.goToShipyard=function(){
   advanceTime(2);
   if(G.over||G.pendingInheritance){saveGame();return;}
   const maintained=G.ship.traits.maintained||0;
-  G.ship.fuel=100;
+  G.ship.fuel=G.ship.fuelMax||100;
   G.ship.stranded=null;
   G.docked=true;
   if(maintained<-50){
@@ -2054,6 +2117,7 @@ window.goToShipyard=function(){
     applyShipDrift({sturdy: 15 - sturdyNow});
     addLog(`🔧 Верфь усиливает корпус: Крепкость → +15.`,'shipdrift');
   }
+  G.ship.undyingUsed=false;
   currentTab='shipyard';
   document.querySelectorAll('#tabs button').forEach(x=>{
     x.classList.toggle('active', x.dataset.tab==='shipyard');
@@ -2068,6 +2132,17 @@ window.goDrift=function(){
   G.ship.fuel=0;
   G.ship.stranded={monthsLeft:12,voluntary:true};
   addLog(`📡 Ты ложишься в дрейф. Топливо (${oldFuel}) сброшено. Спасательный маяк активен. До спасения: 12 мес.`,'death');
+  saveGame();renderAll();renderPanel();
+};
+window.emergencyJumpToStation=function(){
+  if(!G||G.over||G.pendingInheritance||G.combat||G.pilotingCourse) return;
+  if(G.ship.stranded){addLog('Ты уже в дрейфе.','sys');return;}
+  if(!G.isCaptain){addLog('Только капитан может принять решение.','sys');return;}
+  if(G.ship.className!=='Скиталец'){addLog('Этот корабль не умеет аварийный джамп.','sys');return;}
+  G.ship.hull=Math.max(1,G.ship.hull-25);
+  G.ship.fuel=0;
+  G.ship.stranded={monthsLeft:3,voluntary:true};
+  addLog('🚨 Аварийный джамп к станции. −25 корпуса. До спасения: 3 мес.','death');
   saveGame();renderAll();renderPanel();
 };
 
@@ -2706,6 +2781,8 @@ function applyEffects(e){
   if(e.cargo!==undefined) G.ship.cargo=clamp(G.ship.cargo+e.cargo,0,100);
   if(e.fuel!==undefined) G.ship.fuel=clamp(G.ship.fuel+e.fuel,0,100);
   if(e.lifespanLoss!==undefined){G.protagonist.lifespan=Math.max(G.protagonist.age,G.protagonist.lifespan-e.lifespanLoss);}
+  if(e.cargo!==undefined) G.ship.cargo=clamp(G.ship.cargo+e.cargo,0,G.ship.cargoMax||100);
+  if(e.fuel!==undefined) G.ship.fuel=clamp(G.ship.fuel+e.fuel,0,G.ship.fuelMax||100);
   if(e.crewLossChance!==undefined){
     const hasDoctor=G.crew.some(c=>c.role==='Врач');
     let effectiveChance=hasDoctor?e.crewLossChance*0.5:e.crewLossChance;
@@ -2884,7 +2961,7 @@ function startCombat(configKey){
   const config=COMBAT_CONFIGS[configKey];
   if(!config) return;
   const morale=Math.max(0,Math.round(shipCombatBonus()/2));
-  G.combat={id:configKey,enemyName:config.enemyName,round:1,maxRounds:config.maxRounds,score:morale,crewMood:55,log:[],resolved:false,specialUsed:false};
+  G.combat={id:configKey,enemyName:config.enemyName,round:1,maxRounds:config.maxRounds,score:morale,crewMood:55,log:[],resolved:false,specialUsed:false,firstActionDone:false,attackLanded:false,specLastUse:-999};
   if(morale>0) addLog(`⚔ Бой с ${config.enemyName}. Слава корабля даёт +${morale} к штурмовому духу.`,'combat');
   else addLog(`⚔ Бой с ${config.enemyName}. Держись.`,'combat');
   timeSpeed=0;stopTimeFlow();renderTimeControls();
@@ -2893,22 +2970,32 @@ function startCombat(configKey){
 window.performCombatAction=function(actionId){
   if(!G.combat||G.combat.resolved) return;
   const c=G.combat;
-  
+
   if(actionId==='special'){
-    if(c.specialUsed){addLog('Спецспособность уже использована в этом бою.','sys');return;}
     const spec=SHIP_SPECIALS[G.ship.className];
-    if(!spec){addLog('У этого корабля нет спецспособности.','sys');return;}
-    c.specialUsed=true;
+    if(!spec||spec.passive){addLog('У этого корабля нет активной спецспособности.','sys');return;}
+    if(spec.cooldown){
+      if(c.round-c.specLastUse<spec.cooldown){addLog(`⚡ Перезарядка: ${spec.cooldown-(c.round-c.specLastUse)}.`,'sys');return;}
+    } else if(c.specialUsed){addLog('Спецспособность уже использована.','sys');return;}
+    if(spec.requiresAttackLanded && !c.attackLanded){addLog('⚡ Нужна успешная атака.','sys');return;}
+    if(spec.cooldown) c.specLastUse=c.round; else c.specialUsed=true;
     const res=spec.apply();
     if(res.gain) c.score=clamp(c.score+res.gain,-100,300);
+    if(res.hullCost) applyShipDamage(res.hullCost);
     addLog(`✨ ${spec.label}: ${res.log}`,'combat');
-    saveGame();renderAll();renderPanel();
-    return;
+    saveGame();renderAll();
+    if(res.forceEscape){
+      const cfg=COMBAT_CONFIGS[c.id]||COMBAT_CONFIGS.pirates_main;
+      c.score=Math.max(c.score,cfg.loseScore);
+      c.resolved=true;resolveCombat();return;
+    }
+    if(res.resolveCombat){c.resolved=true;resolveCombat();return;}
+    renderPanel();return;
   }
-  
+
   const action=COMBAT_ACTIONS.find(a=>a.id===actionId);
   if(!action) return;
-  
+
   if(action.id==='retreat'){
     c.score=clamp(c.score-10,-100,300);
     c.log.push(`Раунд ${c.round}: отступление. −10.`);
@@ -2917,15 +3004,22 @@ window.performCombatAction=function(actionId){
     saveGame();renderAll();resolveCombat();
     return;
   }
-  
+
   let gain=0;
   let logEntry=`Раунд ${c.round}: ${action.label}`;
   const rnd=randInt(-action.random,action.random);
-  
+  const wasFirst = !c.firstActionDone;
+  c.firstActionDone = true;
+
   if(action.id==='attack'){
     gain=action.base+Math.round(G.ship.weapons/action.div)+rnd;
     const cost=randInt(action.hullCost.min,action.hullCost.max);
-    G.ship.hull=Math.max(0,G.ship.hull-cost);
+    applyShipDamage(cost);
+    c.attackLanded=true;
+    if(G.ship.className==='Овод' && c.round===1 && wasFirst){
+      gain+=15;
+      logEntry+=` 🐝 «Укус»: щиты пробиты.`;
+    }
     logEntry+=` — попадание. −${cost} корпуса. +${gain}.`;
   } else if(action.id==='evade'){
     gain=action.base+Math.round(G.ship.engine/action.div)+rnd;
@@ -2940,7 +3034,7 @@ window.performCombatAction=function(actionId){
     gain=action.base+Math.round((G.ship.hull+G.ship.shields)/action.div)+rnd;
     logEntry+=` — держишь строй. +${gain}.`;
   }
-  
+
   c.score=clamp(c.score+gain,-100,300);
   c.log.push(logEntry);
   addLog(logEntry,'combat');
@@ -3337,7 +3431,10 @@ function renderPointOfNoReturn(){
   if(fuel<=0){el.className='banner danger';el.textContent='⚠ ТОПЛИВО 0. Следующий тик — дрейф.';return;}
   if(fuel<need){
     el.className='banner danger';
-    el.innerHTML=`⚠ ТОЧКА НЕВОЗВРАТА: нужно ${need} топлива, у тебя ${fuel}.<br><button class="small" style="margin-top:6px" onclick="goDrift()">📡 Лечь в дрейф — вызвать спасателей</button>`;
+    const isSkitalec = G.ship.className==='Скиталец';
+    el.innerHTML=`⚠ ТОЧКА НЕВОЗВРАТА: нужно ${need} топлива, у тебя ${fuel}.<br>
+      <button class="small" style="margin-top:6px" onclick="goDrift()">📡 Дрейф — спасатели</button>
+      ${isSkitalec?`<button class="small" style="margin-top:6px;margin-left:6px" onclick="emergencyJumpToStation()">🚨 Аварийный джамп — 3 мес</button>`:''}`;
     return;
   }
   if(fuel<need*1.5){el.className='banner warn';el.textContent=`Приближается точка невозврата: топливо ${fuel}/${need}. Возьми «🛠 Курс на верфь».`;return;}
@@ -3480,9 +3577,16 @@ function renderShip(){
   if(s.baptized) tagHtml+=`<span class="badge" style="background:#3d2f1f;border-color:#6c5a3b;color:#ffe0c8">Личный позывной</span>`;
   if(tagHtml) html+=`<div class="tag-line">${tagHtml}</div>`;
   html+=`<div style="margin-top:8px"></div>`;
+    const shipSpec=SHIP_SPECIALS[s.className];
+  if(shipSpec){
+    const used = s.className==='Левиафан' && s.undyingUsed;
+    html+=`<div class="kv" style="font-size:12px;margin-top:6px"><span>✨ Способность</span><b>${shipSpec.label}${used?' <span style="color:#ff6b7a">(использовано)</span>':''}</b></div>`;
+    html+=`<div style="font-size:11px;color:var(--muted);margin-bottom:6px">${shipSpec.desc}</div>`;
+  }
   html+=stat('Корпус',s.hull,s.hullMax,'hull');
   html+=stat('Щиты',s.shields,s.shieldsMax,'shields');
-  html+=stat('Топливо',s.fuel,100,fuel<need?'fuellow':'fuel');
+  html+=stat('Топливо',s.fuel,s.fuelMax||100,fuel<need?'fuellow':'fuel');
+  html+=stat('Трюм',s.cargo,s.cargoMax||100,'cargo');
   html+=`<div class="kv"><span>До станции</span><b>${need}</b></div>`;
   html+=statFixed('Двигатель',s.engine,'engine');
   html+=statFixed('Оружие',s.weapons,'weapons');
@@ -3574,8 +3678,9 @@ function renderTime(){
   const monthInYear=Math.floor(p.age*12)%12;
   const yearPct=(monthInYear/12)*100;
   const fuel=G.ship.fuel;
+  const fuelMax=G.ship.fuelMax||100;
+  const fuelPct=clamp((fuel/fuelMax)*100,0,100);
   const need=G.ship.fuelToStation||15;
-  const fuelPct=clamp(fuel,0,100);
   let fuelGrad='linear-gradient(90deg,#4ea1ff,#61d095)';
   if(fuel<need) fuelGrad='linear-gradient(90deg,#ff6b7a,#ffd37a)';
   else if(fuel<need*1.5) fuelGrad='linear-gradient(90deg,#ffd37a,#61d095)';
@@ -3586,7 +3691,7 @@ function renderTime(){
   if(label) label.innerHTML=`Возраст Династии: <b>${dynYears} ${yWord} ${dynMonths} мес</b> &nbsp;·&nbsp; Мой возраст: <b class="age">${Math.floor(p.age)}</b>`;
   document.getElementById('yearNum').textContent=`${monthInYear}/12`;
   const fuelNum=document.getElementById('lifeNum');
-  if(fuelNum) fuelNum.textContent=`${Math.round(fuel)}/100`;
+  if(fuelNum) fuelNum.textContent=`${Math.round(fuel)}/${fuelMax}`;
   document.getElementById('yearFill').style.width=yearPct+'%';
   const lifeFill=document.getElementById('lifeFill');
   if(lifeFill){lifeFill.style.width=fuelPct+'%';lifeFill.style.background=fuelGrad;}
@@ -3627,7 +3732,17 @@ function renderCombatPanel(el){
     <div class="combat-desc">${desc}</div>
     <div class="choices">
       ${COMBAT_ACTIONS.map(a=>`<button class="choice-btn combat-btn" onclick="performCombatAction('${a.id}')">${a.label} <span style="color:var(--muted);font-size:11px">— ${a.desc}</span></button>`).join('')}
-      ${SHIP_SPECIALS[G.ship.className]?`<button class="choice-btn combat-btn" ${c.specialUsed?'disabled':''} onclick="performCombatAction('special')" style="${c.specialUsed?'':'border-color:#ffd37a;background:linear-gradient(180deg,#5c4a1a,#3a2a0d);color:#ffd9b8'}">✨ ${SHIP_SPECIALS[G.ship.className].label} <span style="color:var(--muted);font-size:11px">— ${SHIP_SPECIALS[G.ship.className].desc}${c.specialUsed?' (использовано)':''}</span></button>`:''}
+            ${SHIP_SPECIALS[G.ship.className] && !SHIP_SPECIALS[G.ship.className].passive?(()=>{
+        const sp=SHIP_SPECIALS[G.ship.className];
+        const cd=sp.cooldown||0;
+        const onCd=cd>0 && (c.round-c.specLastUse<cd);
+        const used=cd===0 && c.specialUsed;
+        const needAtk=sp.requiresAttackLanded && !c.attackLanded;
+        const dis=used||onCd||needAtk;
+        const hint=used?' (использовано)':(onCd?` (перезарядка ${cd-(c.round-c.specLastUse)})`:(needAtk?' (нужна атака)':''));
+        const style = dis ? '' : 'border-color:#ffd37a;background:linear-gradient(180deg,#5c4a1a,#3a2a0d);color:#ffd9b8';
+        return `<button class="choice-btn combat-btn" ${dis?'disabled':''} onclick="performCombatAction('special')" style="${style}">✨ ${sp.label} <span style="color:var(--muted);font-size:11px">— ${sp.desc}${hint}</span></button>`;
+      })():''}
     </div>
     ${c.log.length?`<div class="combat-log">${c.log.slice(-4).map(l=>`• ${l}`).join('<br>')}</div>`:''}
   </div>`;
@@ -3820,6 +3935,12 @@ function renderShipTabPanel(el){
   html+='<div style="font-size:12px;color:var(--muted);line-height:1.6">';
   html+=`Боевой бонус: <b>${shipCombatBonus().toFixed(1)}</b><br>Двигательный бонус: <b>${shipEngineBonus().toFixed(1)}</b><br>Стелс-бонус: <b>${shipStealthBonus().toFixed(1)}</b>`;
   html+='</div>';
+  if(G.ship.className==='Ковчег'){
+    const active=!!G.ship.shelterActive;
+    html+=`<h3 style="margin-top:14px">🏠 Убежище</h3>`;
+    html+=`<div style="font-size:12px;color:var(--muted);margin-bottom:6px">Лимит: <b>${G.ship.crewMax}</b>${active?' · <span style="color:#61d095">активно</span>':''}</div>`;
+    html+=`<button class="small" onclick="toggleShelter()">${active?'Сложить убежище':'Активировать убежище'}</button>`;
+  }  
   el.innerHTML=html+'</div>';
 }
 function renderMapPanel(el){
