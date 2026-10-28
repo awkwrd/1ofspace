@@ -2019,7 +2019,9 @@ window.hireSpecialist=function(id){
     if(axis==='shields') G.ship.shields=clamp(G.ship.shields+val,0,G.ship.shieldsMax);
     else if(axis==='shieldsMax'){G.ship.shieldsMax+=val;G.ship.shields+=val;}
     else if(SHIP_AXES.includes(axis)) applyShipDrift({[axis]:val});
-    else G.ship[axis]=clamp((G.ship[axis]||0)+val,0,100);
+    else if(axis==='engine') G.ship.engine=clamp(G.ship.engine+val,0,100);
+    else if(axis==='weapons') G.ship.weapons=clamp(G.ship.weapons+val,0,100);
+    else G.ship[axis]=clamp((G.ship[axis]||0)+val,0,G.ship[axis+'Max']||100);
   }
   addLog(`${spec.name} ${m.name} присоединяется к экипажу (${spec.desc}). −${spec.cost} ${SC}.`,'level');
   saveGame();renderAll();renderPanel();
@@ -2835,8 +2837,6 @@ function applyEffects(e){
   if(e.shields!==undefined) G.ship.shields=clamp(G.ship.shields+e.shields,0,G.ship.shieldsMax);
   if(e.engine!==undefined) G.ship.engine=clamp(G.ship.engine+e.engine,0,100);
   if(e.weapons!==undefined) G.ship.weapons=clamp(G.ship.weapons+e.weapons,0,100);
-  if(e.cargo!==undefined) G.ship.cargo=clamp(G.ship.cargo+e.cargo,0,100);
-  if(e.fuel!==undefined) G.ship.fuel=clamp(G.ship.fuel+e.fuel,0,100);
   if(e.lifespanLoss!==undefined){G.protagonist.lifespan=Math.max(G.protagonist.age,G.protagonist.lifespan-e.lifespanLoss);}
   if(e.cargo!==undefined) G.ship.cargo=clamp(G.ship.cargo+e.cargo,0,G.ship.cargoMax||100);
   if(e.fuel!==undefined) G.ship.fuel=clamp(G.ship.fuel+e.fuel,0,G.ship.fuelMax||100);
@@ -2920,10 +2920,9 @@ function applyEffects(e){
   if(e.forceShipyard){
     const cost = G.ship.fuelToStation || 15;
     if(G.ship.fuel >= cost){
-      G.ship.fuel -= cost;
       G.ship.hull = G.ship.hullMax;
       G.ship.shields = G.ship.shieldsMax;
-      G.ship.fuel = 100;
+      G.ship.fuel = G.ship.fuelMax||100;
       G.ship.stranded = null;
       addLog(`🛠 Регент ведёт корабль на верфь. Всё восстановлено.`,'level');
     } else {
