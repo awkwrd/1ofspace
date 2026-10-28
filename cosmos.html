@@ -299,7 +299,7 @@ select:focus{outline:none;border-color:#f0a742;box-shadow:0 0 0 3px rgba(240,167
       <button data-tab="study">Обучение</button>
       <button data-tab="shipyard">Верфь</button>
       <button data-tab="ship">Корабль</button>
-      <button data-tab="map">Карта</button>
+      <button data-tab="agency">Агентура</button>
     </div>
     <div id="pointOfNoReturn" class="banner hidden"></div>
     <div class="log" id="log"></div>
@@ -3787,7 +3787,8 @@ function renderPanel(){
   else if(currentTab==='study') renderStudyPanel(el);
   else if(currentTab==='shipyard') renderShipyardPanel(el);
   else if(currentTab==='ship') renderShipTabPanel(el);
-  else if(currentTab==='map') renderMapPanel(el);
+  else if(currentTab==='agency') renderAgencyPanel(el);
+  else if(currentTab==='map') currentTab='events', renderEventsPanel(el); // авто-фикс старых сейвов
 }
 function renderCombatPanel(el){
   const c=G.combat;
@@ -4020,6 +4021,44 @@ function renderShipTabPanel(el){
     html+=`<button class="small" onclick="toggleShelter()">${active?'Сложить убежище':'Активировать убежище'}</button>`;
   }
   el.innerHTML=html+'</div>';
+}
+function renderAgencyPanel(el){
+  let html='<div class="panel"><h3>🕵 Агентура и Фракции</h3>';
+
+  html+='<h4>Отношения с фракциями</h4>';
+  if(G.factions){
+    for(const key of ['fleet','volnitsa']){
+      const f=G.factions[key];
+      if(!f) continue;
+      const v=clamp(f.rep,-10,10);
+      const pct=Math.abs(v)/10*50;
+      const style=v>=0?`left:50%;width:${pct}%`:`right:50%;width:${pct}%`;
+      const color=v>=0?'#61d095':'#ff6b7a';
+      html+=`<div class="axis" style="margin-bottom:8px"><span class="axis-label" style="font-size:13px">${f.name}</span><div class="axis-bar" style="height:8px"><div class="axis-center"></div><div class="axis-fill" style="${style};background:${color}"></div></div><span class="axis-val" style="font-size:13px">${v>0?'+':''}${v} / 10</span></div>`;
+    }
+  }
+
+  html+='<h4 style="margin-top:16px">Агент</h4>';
+  if(!G.spy) G.spy = {name:'Агент',task:null,exposure:0};
+
+  if(G.spy.task){
+    const fac = G.factions[G.spy.task.faction] || {name:'?'};
+    const elapsed = G.spyMonthsElapsed || 0;
+    const duration = G.spy.task.duration || 48;
+    const pct = Math.min(100, Math.round((elapsed/duration)*100));
+
+    html+=`<div style="padding:12px;background:rgba(255,211,122,.08);border:1px solid var(--warn);border-radius:10px;margin-bottom:10px">`;
+    html+=`<div style="font-size:14px;margin-bottom:8px"><b>Внедрение: ${fac.name}</b></div>`;
+    html+=`<div class="kv"><span>Прогресс задания</span><b>${elapsed} / ${duration} мес (${pct}%)</b></div>`;
+    html+=`<div class="kv"><span>Риск раскрытия</span><b style="color:${G.spy.exposure>=7?'#ff6b7a':'#ffd37a'}">${G.spy.exposure} / 10</b></div>`;
+    html+=`<div style="font-size:11px;color:var(--muted);margin-top:8px">Риск растёт каждые 3 года. При 10 — агент раскрыт.</div>`;
+    html+=`</div>`;
+  } else {
+    html+=`<p style="font-size:13px;color:var(--muted)">Агент свободен. Ждите предложений о работе в событиях.</p>`;
+  }
+
+  html+='</div>';
+  el.innerHTML=html;
 }
 function renderMapPanel(el){
   const svg=buildMapSvg();
