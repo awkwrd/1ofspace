@@ -2427,11 +2427,27 @@ function addLog(text,cls=''){
   log.scrollTop=log.scrollHeight;
 }
 
+const BIRTH_ORIGINS = [
+  {id:'corp', text:'Твои родители — управленцы крупной корпорации. Ты вырос в достатке, но под гнётом ожиданий.', credits:50000, axes:{certainty:+10, firmness:+5, warm:-5}},
+  {id:'colonists', text:'Ты из семьи первых колонистов. Ты знаешь цену воздуху и умеешь работать руками.', credits:15000, axes:{firmness:+10, warm:+5}},
+  {id:'scavengers', text:'Ты родился в секторе свалке, среди тех, кто выживает на объедках. Деньги достаются потом и кровью.', credits:5000, axes:{risk:+10, initiative:+5, certainty:-5}},
+  {id:'military', text:'Династия военных. Строгая дисциплина, ранние подъёмы и целый арсенал семейных секретов.', credits:25000, axes:{tempo:+5, firmness:+5}},
+  {id:'refugees', text:'Вы бежали из уничтоженной системы. У вас нет ничего, кроме корабля и надежды.', credits:8000, axes:{risk:+15, certainty:-10}},
+  {id:'traders', text:'Семья вольных торговцев. Ты умеешь торговаться раньше, чем читать.', credits:35000, axes:{initiative:+10, tempo:+5}},
+];
+
 function startNewGame(){
   const {first,surname}=randomName();
   const name=`${first} ${surname}`;
+  
+  const origin = pick(BIRTH_ORIGINS);
+  const baseAxes = startingAxes();
+  for(const [k,v] of Object.entries(origin.axes)) {
+    baseAxes[k] = clamp((baseAxes[k]||0) + v, -100, 100);
+  }
+
   G={
-    protagonist:{first,surname,name,age:0,lifespan:75+randInt(0,20),level:1,xp:0,axes:startingAxes(),badges:[],transitions:{},isMain:true,nickname:null,brands:[]},
+    protagonist:{first,surname,name,age:0,lifespan:75+randInt(0,20),level:1,xp:0,axes:baseAxes,badges:[],transitions:{},isMain:true,nickname:null,brands:[]},
     ship:generateShip(),
     crew:[makeCrewMember(true,undefined,undefined,[25,45])],
     child:null,spouse:null,grandchild:null,inheritedProfPreview:null,pregnancy:null,
@@ -2443,7 +2459,7 @@ function startNewGame(){
     noCapital:false,
     parents:generateParents(surname),
     pet:null,
-    credits:20000,rep:0,timeMonths:0,
+    credits:origin.credits,rep:0,timeMonths:0,
     professions:Object.fromEntries(Object.keys(PROFESSIONS).map(k=>[k,false])),
     studying:null,activeContract:null,
     recentEvents:[],recentFlavor:[],currentEvent:null,combat:null,combatDone:false,
@@ -2475,6 +2491,7 @@ function startNewGame(){
   document.getElementById('game').classList.remove('hidden');
   document.getElementById('identityReveal').innerHTML=`<div class="name">${name}</div><div class="ship">Родился на борту: ${G.ship.className} «${G.ship.name}»</div><div class="gen">Поколение ${G.dynastyGeneration} · год 0</div>`;
   addLog(`Ты родился на борту ${G.ship.className} «${G.ship.name}».`,'reveal');
+  addLog(`📜 ${origin.text} (Стартовый капитал: ${origin.credits} ⬡ SC)`, 'start');
   addLog(`Экипаж — твои наставники. Лидер экипажа — регент до твоего совершеннолетия.`,'start');
   renderAll();
   saveGame();
