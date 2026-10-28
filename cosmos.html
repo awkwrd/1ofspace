@@ -3706,7 +3706,8 @@ function renderProtagonist(){
     ${factionsHtml}
     ${dynastyLine}
     ${familyLine}
-    <div class="kv"><span>Кредиты</span><b>${G.credits} ${SC}</b></div>`;
+    <div class="kv"><span>Кредиты</span><b>${G.credits} ${SC}</b></div>
+    <div class="kv"><span>Содержание</span><b style="color:#ff6b7a">−${getUpkeep()} ${SC}/мес</b></div>`;
 }
 function renderAxes(crew){
   let html='';
@@ -4007,7 +4008,9 @@ function renderContractsPanel(el){
       <div style="font-size:14px;margin-bottom:6px"><b>${p.name}</b> — активен</div>
       <div class="kv"><span>Прогресс</span><b>${elapsed}/${c.monthsTotal} мес (${pct}%)</b></div>
       <div class="kv"><span>Оплата</span><b>${c.payPerMonth} ${SC}/мес</b></div>
-      <div class="kv"><span>Осталось</span><b>${c.monthsLeft} мес · ${c.monthsLeft*c.payPerMonth} ${SC}</b></div>
+      <div class="kv"><span>Содержание</span><b style="color:#ff6b7a">−${getUpkeep()} ${SC}/мес</b></div>
+      <div class="kv"><span>Чистыми</span><b style="color:${c.payPerMonth - getUpkeep() >= 0 ? '#61d095' : '#ff6b7a'}">${c.payPerMonth - getUpkeep()} ${SC}/мес</b></div>
+      <div class="kv"><span>Осталось</span><b>${c.monthsLeft} мес · ${c.monthsLeft*(c.payPerMonth-getUpkeep())} ${SC}</b></div>
       <div style="margin-top:8px"><button class="small" onmousedown="abortContract()">Прервать (штраф ${c.payPerMonth*2} ${SC})</button></div>
     </div>`;
   } else if(G.protagonist.age<minAge){
