@@ -1480,9 +1480,11 @@ function timeTick(){
   if(Math.random()<0.04){
     const ev=pickActionEvent();
     if(ev){
+      G._prevTimeSpeed = timeSpeed;
       G.currentEvent=ev;
       G.actionCooldown=randInt(8,14);
       addLog(`— ${ev.title||''} ${ev.text}`,'event');
+      timeSpeed=0;stopTimeFlow();renderTimeControls();
       renderAll();renderPanel();saveGame();
       return;
     }
@@ -2796,10 +2798,12 @@ function applyChoice(choice,target){
       return;
     }
   }
+  // если открыта возможность столицы — показать её сразу, не ждать тика
   if(G.capitalOpportunity&&!G.dynastyCapital&&!G.noCapital){
     G.capitalOpportunity=false;
     const capEv=makeCapitalEvent();
     if(capEv){
+      G._prevTimeSpeed = timeSpeed > 0 ? timeSpeed : (G._prevTimeSpeed || 1);
       G.currentEvent=capEv;
       addLog(`— ${capEv.title} ${capEv.text}`,'event');
       timeSpeed=0;stopTimeFlow();renderTimeControls();
@@ -2808,6 +2812,11 @@ function applyChoice(choice,target){
     }
   }
 
+  if(!G.currentEvent && !G.over && !G.pendingInheritance && !G.combat && !G.pilotingCourse){
+    timeSpeed = G._prevTimeSpeed || 1;
+    startTimeFlow();
+    renderTimeControls();
+  }
   renderPanel();
   saveGame();
 }
@@ -3140,7 +3149,8 @@ function resolveCombat(){
 
   if(G.ship.hull<=0){
     G.combat=null;
-    timeSpeed=1;startTimeFlow();renderTimeControls();
+    timeSpeed=G._prevTimeSpeed||1;
+    startTimeFlow();renderTimeControls();
     saveGame();renderAll();
     endGame('Корабль разорвало в бою. Ты не успел покинуть борт.');
     return;
@@ -3148,7 +3158,8 @@ function resolveCombat(){
 
   G.combat=null;
   G.actionCooldown=randInt(8,14);
-  timeSpeed=1;startTimeFlow();renderTimeControls();
+  timeSpeed=G._prevTimeSpeed||1;
+  startTimeFlow();renderTimeControls();
   saveGame();renderAll();renderPanel();
 }
 
@@ -3197,7 +3208,8 @@ function resolvePilotingCourse(){
   }
   G.pilotingCourse=null;
   G.actionCooldown=randInt(8,14);
-  timeSpeed=1;startTimeFlow();renderTimeControls();
+  timeSpeed=G._prevTimeSpeed||1;
+  startTimeFlow();renderTimeControls();
   saveGame();renderAll();renderPanel();
 }
 
@@ -3300,7 +3312,8 @@ window.inheritAndContinue=function(){
   else addLog(`Ты — ${G.protagonist.name}. Корабль под регентом до твоего совершеннолетия.`,'reveal');
   document.getElementById('identityReveal').innerHTML=`<div class="name">${G.protagonist.name}</div><div class="ship">${G.ship.className} «${G.ship.name}» · ${Math.floor(G.protagonist.age)} лет${G.isCaptain?' · капитан':' · регент'}</div><div class="gen">Поколение ${G.dynastyGeneration}</div>`;
   saveGame();renderAll();renderPanel();
-  timeSpeed=1;startTimeFlow();renderTimeControls();
+  timeSpeed=G._prevTimeSpeed||1;
+  startTimeFlow();renderTimeControls();
 };
 
 function pickDeathSentence(stats,G){
