@@ -3017,10 +3017,18 @@ function renderCrew(){
       const c=G.crew[i];
       const tags=resolveAllTags(c),badges=resolveBadges(c);
       const isLeader=leader.type==='crew'&&leader.ref.id===c.id;
-      const roleColor=(()=>{const r=c.role||'';if(r==='Врач')return '#61d095';if(r==='Стрелок')return '#a83b47';if(r==='Кок')return '#ffd37a';if(r==='Механик')return '#4ea1ff';if(r==='Навигатор')return '#6b4a9c';if(r==='Инженер щитов')return '#7ee0d0';return '#3b6ca8';})();
+      const roleStyle=(()=>{const r=c.role||'';switch(r){
+        case 'Врач': return {bg:'#61d095', fg:'#0a2016'};
+        case 'Стрелок': return {bg:'#a83b47', fg:'#ffe0e4'};
+        case 'Кок': return {bg:'#ffd37a', fg:'#3a2400'};
+        case 'Механик': return {bg:'#4ea1ff', fg:'#0a1a33'};
+        case 'Навигатор': return {bg:'#6b4a9c', fg:'#f0e0ff'};
+        case 'Инженер щитов': return {bg:'#7ee0d0', fg:'#0a2622'};
+        default: return {bg:'#3b6ca8', fg:'#cfe5ff'};
+      }})();
       html+=`<div style="border-top:1px solid var(--border);padding:8px 0">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
-          <div><b>${c.name}</b> <span class="badge" style="background:${(c.gender==='ж')?'#5c2a45':'#1d3c68'};border-color:${(c.gender==='ж')?'#ff6ba8':'#4ea1ff'};color:${(c.gender==='ж')?'#ffd9e8':'#cfe5ff'}">${c.gender==='ж'?'♀':'♂'}</span> <span class="badge" style="background:${roleColor};border-color:${roleColor}">${c.role||'Матрос'}</span> <span style="color:var(--muted);font-size:12px">ур. ${c.level} · ${Math.floor(c.age||25)}</span>${c.nickname?`<span class="badge nick">«${c.nickname}»</span>`:''}${isLeader?'<span class="badge regent">Регент</span>':''}</div>
+          <div><b>${c.name}</b> <span class="badge" style="background:${(c.gender==='ж')?'#5c2a45':'#1d3c68'};border-color:${(c.gender==='ж')?'#ff6ba8':'#4ea1ff'};color:${(c.gender==='ж')?'#ffd9e8':'#cfe5ff'}">${c.gender==='ж'?'♀':'♂'}</span> <span class="badge" style="background:${roleStyle.bg};border-color:${roleStyle.bg};color:${roleStyle.fg}">${c.role||'Матрос'}</span> <span style="color:var(--muted);font-size:12px">ур. ${c.level} · ${Math.floor(c.age||25)}</span>${c.nickname?`<span class="badge nick">«${c.nickname}»</span>`:''}${isLeader?'<span class="badge regent">Регент</span>':''}</div>
           <button class="fire-btn" onclick="fireCrewMember(${i})" title="Уволить">✖ Уволить</button>
         </div>
         ${renderAxes(c)}${renderTagsBadges(c,tags,badges)}</div>`;
