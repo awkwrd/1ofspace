@@ -1403,6 +1403,11 @@ function repairCostMultiplier(){
   if(m < -50) return 1.3;
   return 1.0;
 }
+function getUpkeep(){
+  const shipUpkeep = {small: 500, medium: 2000, large: 5000}[G.ship.classId] || 1000;
+  const crewUpkeep = G.crew.reduce((sum, c) => sum + (c.level || 1) * 500, 0);
+  return shipUpkeep + crewUpkeep;
+}
 function getRepTier(rep){
   if(rep>=80) return {name:'Легенда',color:'#ffd700'};
   if(rep>=60) return {name:'Уважаемый',color:'#61d095'};
@@ -2256,6 +2261,22 @@ function advanceTime(months){
         G.credits=Math.max(0,G.credits-fee);
         addLog(`📡 Спасательная команда прибыла. −${fee} ${SC}. Бак заполнен до ${G.ship.fuel}.`,'sys');
       }
+    }
+
+    // ── Содержание корабля и экипажа ──
+    const totalUpkeep = getUpkeep();
+
+    G.credits -= totalUpkeep;
+
+    if (G.credits <= 0) {
+      G.credits = 0;
+      if (G.crew.length > 0 && !G.crewLeftDueToDebt) {
+        const removed = G.crew.pop();
+        addLog(`⚠ Долги! ${removed.name} (${removed.role}) уходит — зарплату платить нечем.`,'death');
+        G.crewLeftDueToDebt = true;
+      }
+    } else {
+      G.crewLeftDueToDebt = false;
     }
 
     if(G.activeContract){
@@ -3516,7 +3537,8 @@ function startContract(profId,durId){
   const maxMonths=Math.max(6,lifeMonths-24);
   const months=Math.min(randInt(dur.min,dur.max),maxMonths);
   const multiplier=learned?1.5:1.0;
-  const payPerMonth=Math.round(prof.base_salary*multiplier);
+  const lengthBonus=1+Math.min(0.30,Math.floor(months/12)*0.01);
+  const payPerMonth=Math.round(prof.base_salary*multiplier*lengthBonus);
   const totalPay=payPerMonth*months;
   const contractPool=CONTRACT_EVENTS[profId]||[];
   const chosenEvent=contractPool.length?pick(contractPool):null;
