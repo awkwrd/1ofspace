@@ -637,7 +637,7 @@ const EVENTS=[
   {id:'black_hole',title:'Чёрная дыра',text:'Впереди — чёрная дыра. Гравитация искажает звёзды.',ageMin:18,requiresCaptain:true,choices:[
     {label:'Пройти рядом',weight:30,axes:{risk:+1,certainty:+1},check:()=>Math.random()<0.55,okLog:'Данные бесценны.',failLog:'Корабль затягивает. Ты едва вырываешься.',okEffects:{rep:+25,credits:+15000},failEffects:{hull:-50,shields:-30,crewLossChance:0.35}},
     {label:'Обойти',weight:50,axes:{risk:-1,tempo:-1},log:'Безопасно, но скучно.',effects:{fuel:-20}},
-    {label:'Прыгнуть вслепую',weight:20,axes:{risk:+1,tempo:+1},check:()=>Math.random()<0.15,okLog:'Ты выходишь в неизвестной системе.',failLog:'Тебя разрывает на части.',okEffects:{rep:+50,credits:+50000},failEffects:{hull:-100}},
+    {label:'Прыгнуть вслепую',weight:20,axes:{risk:+1,tempo:+1},check:()=>Math.random()<0.15,okLog:'Ты выходишь в неизвестной системе.',failLog:'Тебя разрывает на части.',okEffects:{rep:+50,credits:+50000},failEffects:{hull:-100,deathReason:'Корабль разорвало гравитацией чёрной дыры. Тебя больше нет.'}},
   ]},
   {id:'new_planet',title:'Новая планета',text:'Сканеры показывают планету в обитаемой зоне. Атмосфера пригодна.',ageMin:18,requiresCaptain:true,choices:[
     {label:'Высадиться',weight:40,axes:{risk:+1,initiative:+1},check:()=>Math.random()<0.7,okLog:'Ты ступаешь на землю нового мира.',failLog:'Фауна агрессивна.',okEffects:{rep:+30,credits:+10000},failEffects:{hull:-5,crewLossChance:0.15,rep:+5}},
@@ -1606,6 +1606,15 @@ function applyChoice(choice,target){
     gainXP(actor,8);
     addLog(`▸ ${actor.name} решает: «${choice.label}». ${logText}`,'choice');
   }
+
+  if(G._impendingDeath){
+    const reason=G._impendingDeath;
+    G._impendingDeath=null;
+    endGame(reason);
+    saveGame();
+    return;
+  }
+
   if(G.currentEvent&&G.currentEvent.isChild){
     G.childEventsDone=G.childEventsDone||[];
     if(!G.childEventsDone.includes(G.currentEvent.id)) G.childEventsDone.push(G.currentEvent.id);
@@ -1721,7 +1730,9 @@ function applyEffects(e){
   }
   if(e.capitalOpportunity){G.capitalOpportunity=true;}
   if(e.noCapital){G.noCapital=true;}
-  if(G.ship.hull<=0){endGame('Корпус не выдержал. Корабль становится обломком.');}
+  if(G.ship.hull<=0 && !G._impendingDeath){
+    G._impendingDeath = e.deathReason || 'Корпус не выдержал. Корабль становится обломком.';
+  }
 }
 function describeAxesShort(m){
   const parts=[];
