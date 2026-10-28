@@ -2453,8 +2453,8 @@ function renderLog(){
   }
 }
 const BIRTH_ORIGINS = [
-  {id:'corp', text:'Твои родители — управленцы крупной корпорации. Ты вырос в достатке, но под гнётом ожиданий.', credits:50000, axes:{certainty:+10, firmness:+5, warm:-5}},
-  {id:'colonists', text:'Ты из семьи первых колонистов. Ты знаешь цену воздуху и умеешь работать руками.', credits:15000, axes:{firmness:+10, warm:+5}},
+  {id:'corp', text:'Твои родители — управленцы крупной корпорации. Ты вырос в достатке, но под гнётом ожиданий.', credits:50000, axes:{certainty:+10, firmness:+5, tempo:-5}},
+  {id:'colonists', text:'Ты из семьи первых колонистов. Ты знаешь цену воздуху и умеешь работать руками.', credits:15000, axes:{firmness:+10, tempo:+5}},
   {id:'scavengers', text:'Ты родился в секторе свалке, среди тех, кто выживает на объедках. Деньги достаются потом и кровью.', credits:5000, axes:{risk:+10, initiative:+5, certainty:-5}},
   {id:'military', text:'Династия военных. Строгая дисциплина, ранние подъёмы и целый арсенал семейных секретов.', credits:25000, axes:{tempo:+5, firmness:+5}},
   {id:'refugees', text:'Вы бежали из уничтоженной системы. У вас нет ничего, кроме корабля и надежды.', credits:8000, axes:{risk:+15, certainty:-10}},
@@ -2846,7 +2846,7 @@ function applyChoice(choice,target){
     if(!G.childEventsDone.includes(G.currentEvent.id)) G.childEventsDone.push(G.currentEvent.id);
     G.currentEvent=null;
     if(!G.over && !G.pendingInheritance && !G.combat && !G.pilotingCourse){
-      timeSpeed = G._prevTimeSpeed || 1;
+      timeSpeed = (G._prevTimeSpeed !== undefined) ? G._prevTimeSpeed : 1;
       startTimeFlow();renderTimeControls();
     }
     renderAll();renderPanel();saveGame();
@@ -2854,7 +2854,7 @@ function applyChoice(choice,target){
   } else if(G.currentEvent&&G.currentEvent.noTimeAdvance){
     G.currentEvent=null;
     if(!G.over && !G.pendingInheritance && !G.combat && !G.pilotingCourse){
-      timeSpeed = G._prevTimeSpeed || 1;
+      timeSpeed = (G._prevTimeSpeed !== undefined) ? G._prevTimeSpeed : 1;
       startTimeFlow();renderTimeControls();
     }
     renderAll();renderPanel();saveGame();
