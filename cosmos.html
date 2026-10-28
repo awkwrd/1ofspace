@@ -1281,7 +1281,11 @@ window.goToShipyard=function(){
   G.ship.stranded=null;
   G.docked=true;
   addLog(`Верфь. Всё восстановлено. Корабль пристыкован — доступны смена корпуса и наём.`,'level');
-  renderAll();saveGame();
+  currentTab='shipyard';
+  document.querySelectorAll('#tabs button').forEach(x=>{
+    x.classList.toggle('active', x.dataset.tab==='shipyard');
+  });
+  renderAll();renderPanel();saveGame();
 };
 window.goDrift=function(){
   if(!G||G.over||G.pendingInheritance||G.combat||G.pilotingCourse) return;
