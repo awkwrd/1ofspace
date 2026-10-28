@@ -810,6 +810,15 @@ const DESCRIPTIONS=[
   'В дальнем секторе видна галактика, которая удаляется слишком быстро.',
   'На самом краю снимка появилась галактика, которой там быть не должно.',
 ];
+
+const SOLO_DESCRIPTIONS=[
+  'Сейчас ты один на корабле, можно официально ходить голым. В случае нападения — одеться!',
+  'Тишина. Только ты, гул двигателя и свои мысли. И никто не осудит, если ты заговоришь с собой.',
+  'Экипаж — это опция. Ты решил, что тебе не нужна. Корабль не спорит.',
+  'В кают-компании непривычно тихо. Ты сам себе и капитан, и кок, и тот, кто моет посуду.',
+  'Можно включить музыку на полную. Никто не пожалуется. Даже сосед по каюте — его нет.',
+];
+
 const ROUTINE=[
   'Кто-то снова оставил кружку в шлюзе. Она третьи сутки летает по коридору и пугает новичков.',
   'В кают-компании спорят, чей носок нашли на фильтре вентиляции. Все молчат, но все уже знают.',
@@ -1506,8 +1515,13 @@ function getMandatoryEvent(){
 }
 function canAdultEvents(){return G.isCaptain?G.protagonist.age>=15:G.protagonist.age>=18;}
 function maybeLogFlavor(force){
+  const soloOnBoard = (!G.crew || G.crew.length===0);
   let type;
-  if(!force){
+
+  if(soloOnBoard){
+    // когда экипажа нет — выпадают только «одиночные» описания
+    type='desc';
+  } else if(!force){
     const roll=Math.random();
     if(roll>=0.133) return;
     if(roll<0.033) type='joke';
@@ -1517,25 +1531,20 @@ function maybeLogFlavor(force){
     const r=Math.random();
     type=r<0.33?'joke':(r<0.66?'routine':'desc');
   }
-  // не больше одного подряд: если тип совпал с прошлым — перевыбираем
-  if(type===G.lastFlavorType){
+
+  // не больше одного подряд (для одиночных не применяем — пул и так узкий)
+  if(!soloOnBoard && type===G.lastFlavorType){
     const others=['joke','routine','desc'].filter(t=>t!==type);
     type=pick(others);
   }
 
-  // ── Один на корабле ──
-  // Если экипажа не осталось (все умерли/уволены) — desc подменяется.
-  let text=null;
-  if(type==='desc' && (!G.crew || G.crew.length===0)){
-    const soloDescs=[
-      'Сейчас ты один на корабле, можно официально ходить голым. В случае нападения — одеться!',
-      'Тишина. Только ты, корабль и гул двигателя. И никто не осудит.',
-      'Экипаж — это опция. Ты решил, что тебе не нужна.',
-    ];
-    text=pick(soloDescs);
-  }
-
-  if(!text){
+  let text;
+  if(soloOnBoard){
+    const used=G.recentFlavor||[];
+    const available=SOLO_DESCRIPTIONS.filter(t=>!used.includes(t));
+    text = available.length ? pick(available) : pick(SOLO_DESCRIPTIONS);
+    if(!available.length) G.recentFlavor=[];
+  } else {
     const pool=type==='joke'?JOKES:(type==='routine'?ROUTINE:DESCRIPTIONS);
     const used=G.recentFlavor||[];
     const available=pool.filter(t=>!used.includes(t));
