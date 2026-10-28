@@ -2102,7 +2102,7 @@ function renderPointOfNoReturn(){
     el.innerHTML=`⚠ ТОЧКА НЕВОЗВРАТА: нужно ${need} топлива, у тебя ${fuel}.<br><button class="small" style="margin-top:6px" onclick="goDrift()">📡 Лечь в дрейф — вызвать спасателей</button>`;
     return;
   }
-  if(fuel<need*1.5){el.className='banner warn';el.textContent=`Приближается точка невозврата: топливо ${fuel}/${need}.`;return;}
+  if(fuel<need*1.5){el.className='banner warn';el.textContent=`Приближается точка невозврата: топливо ${fuel}/${need}. Возьми «🛠 Курс на верфь».`;return;}
   el.className='banner hidden';el.textContent='';
 }
 function renderProtagonist(){
