@@ -1378,11 +1378,29 @@ window.foundCapitalNow=function(){
     defaultValue:system?.name||'Новая столица',
     onConfirm:()=>{
       G.credits-=CAPITAL_COST;
-      G.dynastyCapital={system:G.ship.currentSystem,systemName:system?.name||'Неизвестная',foundedAt:G.timeMonths,generation:G.dynastyGeneration||1,costPaid:CAPITAL_COST};
+      const sysName=system?.name||'Неизвестная';
+      G.dynastyCapital={system:G.ship.currentSystem,systemName:sysName,capitalName:sysName,foundedAt:G.timeMonths,generation:G.dynastyGeneration||1,costPaid:CAPITAL_COST};
       G.capitalOpportunity=false;
       G.rep=clamp(G.rep+10,-100,100);
       addLog(`🏛 Столица династии основана: ${G.dynastyCapital.systemName}. −${costStr} ${SC}, +10 репутации, +3000 ${SC}/мес.`,'reveal');
       saveGame();renderAll();renderPanel();
+    }
+  });
+};
+window.renameCapital=function(){
+  if(!G||G.over||!G.dynastyCapital) return;
+  const current=G.dynastyCapital.capitalName||G.dynastyCapital.systemName;
+  openModal({
+    title:'Новое имя столицы',
+    defaultValue:current,
+    onConfirm:(newName)=>{
+      if(!newName) return;
+      const trimmed=newName.trim().slice(0,40);
+      if(!trimmed||trimmed===current) return;
+      const oldName=current;
+      G.dynastyCapital.capitalName=trimmed;
+      addLog(`🏛 Столица «${oldName}» отныне носит имя «${trimmed}».`,'reveal');
+      saveGame();renderAll();
     }
   });
 };
@@ -1853,6 +1871,7 @@ function loadAndContinue(){
   if(!G.currentSystem) G.currentSystem='sol';
   if(!G.visitedSystems) G.visitedSystems=['sol'];
   if(G.dynastyCapital===undefined) G.dynastyCapital=null;
+  if(G.dynastyCapital&&!G.dynastyCapital.capitalName) G.dynastyCapital.capitalName=G.dynastyCapital.systemName;
   if(G.capitalOpportunity===undefined) G.capitalOpportunity=false;
   if(G.noCapital===undefined) G.noCapital=false;
   if(!G.professions) G.professions={};
@@ -2186,9 +2205,10 @@ function applyEffects(e){
     } else {
       const system=STAR_SYSTEMS.find(s=>s.id===G.ship.currentSystem);
       G.credits-=CAPITAL_COST;
-      G.dynastyCapital={system:G.ship.currentSystem,systemName:system?.name||'Неизвестная',foundedAt:G.timeMonths,generation:G.dynastyGeneration||1,costPaid:CAPITAL_COST};
+      const sysName=system?.name||'Неизвестная';
+      G.dynastyCapital={system:G.ship.currentSystem,systemName:sysName,capitalName:sysName,foundedAt:G.timeMonths,generation:G.dynastyGeneration||1,costPaid:CAPITAL_COST};
       G.rep=clamp(G.rep+10,-100,100);
-      addLog(`🏛 Столица династии основана: ${G.dynastyCapital.systemName}. −${CAPITAL_COST.toLocaleString('ru-RU')} ${SC}, +10 репутации, +3000 ${SC}/мес.`,'reveal');
+      addLog(`🏛 Столица династии основана: ${G.dynastyCapital.capitalName} (система ${sysName}). −${CAPITAL_COST.toLocaleString('ru-RU')} ${SC}, +10 репутации, +3000 ${SC}/мес.`,'reveal');
     }
   }
   if(e.forceShipyard){
@@ -2686,7 +2706,8 @@ function renderProtagonist(){
   // династия + столица
   let dynastyLine=`<div class="kv" style="font-size:12px;color:var(--muted);margin-top:6px;border-top:1px solid var(--border);padding-top:6px"><span>Династия</span><b>${G.dynastyName||p.surname} <button class="icon-btn" onclick="renameDynasty()" title="Переименовать династию">✎</button></b></div>`;
   if(G.dynastyCapital){
-    dynastyLine+=`<div class="kv" style="font-size:12px"><span>🏛 Столица</span><b>${G.dynastyCapital.systemName} (пок. ${G.dynastyCapital.generation})</b></div>`;
+    const capName=G.dynastyCapital.capitalName||G.dynastyCapital.systemName;
+    dynastyLine+=`<div class="kv" style="font-size:12px"><span>🏛 Столица</span><b>${capName} <button class="icon-btn" onclick="renameCapital()" title="Переименовать столицу">✎</button> <span style="color:var(--muted);font-size:10px">· ${G.dynastyCapital.systemName} · пок. ${G.dynastyCapital.generation}</span></b></div>`;
   } else if(G.capitalOpportunity){
     const canAfford=G.credits>=CAPITAL_COST;
     dynastyLine+=`<div class="kv" style="font-size:12px"><span>🏛 Столица</span><b style="color:${canAfford?'#61d095':'#ff6b7a'}">можно основать за ${CAPITAL_COST.toLocaleString('ru-RU')} ${SC} <button class="icon-btn" onclick="foundCapitalNow()" title="Основать столицу">▶</button></b></div>`;
