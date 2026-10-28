@@ -2251,7 +2251,9 @@ function advanceTime(months){
       if(!c.eventFired && c.eventId){
         const pool=CONTRACT_EVENTS[c.profId]||[];
         const w=pool.find(k=>k.id===c.eventId);
-        if(w && Math.random()<0.25){
+        const elapsed = c.monthsTotal - c.monthsLeft;
+        const targetMonth = c.eventTargetMonth || Math.floor(c.monthsTotal * 0.5);
+        if(w && elapsed >= targetMonth){
           c.eventFired=true;
           G.workedEvents=[...(G.workedEvents||[]),w.id];
           addLog(`⚙ ${PROFESSIONS[c.profId].name}: ${w.text}`,'work');
@@ -3416,7 +3418,9 @@ function startContract(profId,durId){
   const totalPay=payPerMonth*months;
   const contractPool=CONTRACT_EVENTS[profId]||[];
   const chosenEvent=contractPool.length?pick(contractPool):null;
-  G.activeContract={profId,monthsTotal:months,monthsLeft:months,payPerMonth,totalPay,eventId:chosenEvent?chosenEvent.id:null,eventFired:false};
+  // Событие произойдёт на 40-80% срока контракта (ближе к концу)
+  const eventTargetMonth = Math.floor(months * (0.4 + Math.random() * 0.4));
+  G.activeContract={profId,monthsTotal:months,monthsLeft:months,payPerMonth,totalPay,eventId:chosenEvent?chosenEvent.id:null,eventFired:false,eventTargetMonth};
   G.docked=false;
   const otherSystems=STAR_SYSTEMS.filter(s=>s.id!==G.ship.currentSystem);
   if(otherSystems.length){const dest=pick(otherSystems);travelToSystem(dest.id);}
