@@ -1327,6 +1327,7 @@ function startNewGame(){
     scafandryataGraduated:false,
     isCaptain:false,
     childPirateDone:false,
+    childFuelDone:false,
     parentGiftTaken:false,
     majorityEventDone:false,
     pilotingCooldown:0,
@@ -1376,6 +1377,7 @@ function loadAndContinue(){
   if(!G.contractUI) G.contractUI={profId:null,durId:'short'};
   if(G.isCaptain===undefined) G.isCaptain=G.protagonist.age>=18;
   if(G.childPirateDone===undefined) G.childPirateDone=false;
+  if(G.childFuelDone===undefined) G.childFuelDone=false;
   if(G.parentGiftTaken===undefined) G.parentGiftTaken=false;
   if(G.majorityEventDone===undefined) G.majorityEventDone=false;
   if(G.pilotingCooldown===undefined) G.pilotingCooldown=0;
@@ -1439,6 +1441,19 @@ function makeChildPirateEvent(){
     choices.push({label:'Взять командование',weight:30,axes:{risk:+1,firmness:+1},log:'Ты встаёшь у штурвала.',effects:{brand:'captain_by_force',becomeCaptain:true}});
   }
   return {id:'child_pirate',title:'Пираты атакуют',text:'Пираты атакуют! Экипаж бежит по тревоге. Ты — ребёнок на борту. Что ты делаешь?',choices};
+}
+function makeChildFuelEvent(){
+  const leader = getCurrentLeader();
+  const regentName = leader.ref.name || 'регент';
+  return {
+    id:'child_fuel_warning', title:'Топливо на исходе',
+    text:`Ты замечаешь, что индикатор топлива мигает красным. ${regentName}, похоже, не обращает внимания. До следующей станции может не хватить.`,
+    choices:[
+      {label:'Предупредить регента', weight:60, axes:{initiative:+1,certainty:+1}, log:`Ты говоришь ${regentName} о топливе. Он хмурится, проверяет приборы и благодарит тебя. Курс на верфь.`, effects:{forceShipyard:true}},
+      {label:'Промолчать', weight:20, axes:{risk:-1,tempo:-1}, log:'Ты не вмешиваешься. Взрослые сами разберутся. (Возможно, зря.)', effects:{}},
+      {label:'Самому покрутить вентиль', weight:20, axes:{risk:+1,firmness:+1}, log:'Ты лезешь в топливную систему. Регент застаёт тебя за этим, но вместо ругани — благодарит. Утечка найдена.', effects:{forceShipyard:true, rep:+1}},
+    ]
+  };
 }
 function makeParentGiftEvent(){
   G.parentGiftTaken=true;
@@ -1512,6 +1527,10 @@ function makeChildEvent(){
 
 function pickActionEvent(){
   if(!canAdultEvents()){
+    if(!G.childFuelDone && G.ship.fuel < (G.ship.fuelToStation||15) * 1.5 && G.protagonist.age >= 6 && Math.random()<0.5){
+      G.childFuelDone = true;
+      return makeChildFuelEvent();
+    }
     if(!G.childPirateDone&&G.protagonist.age>=10&&Math.random()<0.10) return makeChildPirateEvent();
     if(!G.parentGiftTaken&&!G.isCaptain&&G.protagonist.age>=15&&Math.random()<0.25) return makeParentGiftEvent();
     if(!G.isCaptain&&G.protagonist.age>=15&&(!G.pilotingCooldown||G.pilotingCooldown<=0)&&Math.random()<0.30) return makePilotingCourseEvent();
@@ -1685,6 +1704,19 @@ function applyEffects(e){
       G.dynastyCapital={system:G.ship.currentSystem,systemName:system?.name||'Неизвестная',foundedAt:G.timeMonths,generation:G.dynastyGeneration||1,costPaid:CAPITAL_COST};
       G.rep=clamp(G.rep+10,-100,100);
       addLog(`🏛 Столица династии основана: ${G.dynastyCapital.systemName}. −${CAPITAL_COST.toLocaleString('ru-RU')} ${SC}, +10 репутации, +3000 ${SC}/мес.`,'reveal');
+    }
+  }
+  if(e.forceShipyard){
+    const cost = G.ship.fuelToStation || 15;
+    if(G.ship.fuel >= cost){
+      G.ship.fuel -= cost;
+      G.ship.hull = G.ship.hullMax;
+      G.ship.shields = G.ship.shieldsMax;
+      G.ship.fuel = 100;
+      G.ship.stranded = null;
+      addLog(`🛠 Регент ведёт корабль на верфь. Всё восстановлено.`,'level');
+    } else {
+      addLog(`Даже с предупреждением топлива не хватает. Корабль дрейфует.`,'sys');
     }
   }
   if(e.capitalOpportunity){G.capitalOpportunity=true;}
@@ -1916,6 +1948,7 @@ window.inheritAndContinue=function(){
   G.learnedKnowledge=[];
   G.workedEvents=[];
   G.childPirateDone=false;
+  G.childFuelDone=false;
   G.parentGiftTaken=false;
   G.majorityEventDone=false;
   G.pilotingCooldown=0;
