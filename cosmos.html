@@ -1135,7 +1135,7 @@ const EVENTS=[
     {label:'Нанять механика',weight:30,axes:{initiative:+1,firmness:+1},shipAxes:{warm:+1,loyal:+1},available:s=>s.credits>=10000,log:'Новый механик.',effects:{credits:-10000,engine:+10,addCrew:1,dockNow:true}},
   ]},
   {id:'derelict',title:'Заброшенный корабль',text:'Дрейфующий корпус без опознавательных знаков.',choices:[
-    {label:'Высадиться на борт',weight:40,axes:{risk:+1,initiative:+1},shipAxes:{renowned:+1},check:()=>Math.random()<0.7,okLog:'Находите ящик.',failLog:'Ловушка.',okEffects:{credits:+6000,hull:-5,rep:+2},failEffects:{hull:-15,crewLossChance:0.08,rep:-2}},
+    {label:'Высадиться на борт',weight:40,axes:{risk:+1,initiative:+1},shipAxes:{renowned:+1},check:()=>Math.random()<0.7,okLog:'Находите ящик. Ветхий планшет слегка искрится, пересказывая последние дни боцмана Микки У.',failLog:'Ловушка.',okEffects:{credits:+6000,hull:-5,rep:+2},failEffects:{hull:-15,crewLossChance:0.08,rep:-2}},
     {label:'Сканировать издалека',weight:30,axes:{risk:-1},log:'Фиксируешь данные.',effects:{fuel:-3,rep:+1}},
     {label:'Уйти',weight:30,axes:{risk:-1,tempo:-1},log:'Мёртвые корабли не всегда молчат.',effects:{}},
   ]},
@@ -2786,8 +2786,30 @@ function delegateTo(memberIdx){
   const ev=G.currentEvent;
   const dominant=AXES.map(a=>({axis:a,score:member.axes[a]||0})).sort((a,b)=>Math.abs(b.score)-Math.abs(a.score)).slice(0,2).filter(x=>Math.abs(x.score)>10);
   let matches=ev.choices.filter(ch=>dominant.some(d=>{const dir=(ch.axes||{})[d.axis];return dir&&Math.sign(dir)===Math.sign(d.score);}));
+
+  // ── Эмпатия ──
+  // Если член экипажа не "чёрствый", он не творит зло и с большей
+  // вероятностью помогает, если есть явно добрый выбор (rep ≥ +5).
+  const isHarsh = (member.axes.risk > 60 && member.axes.firmness > 40)
+               || (G.ship.traits.warm||0) < -40;
+  if(!isHarsh){
+    // 1) Добрые варианты доступны любому — не только рисковым
+    const goodChoices = ev.choices.filter(ch => ((ch.effects && ch.effects.rep) || 0) >= 5);
+    const rest = matches.filter(m => !goodChoices.includes(m));
+    matches = [...goodChoices, ...rest];
+    // 2) Пересчёт весов: добро — в приоритете, зло — почти не выбирается
+    matches = matches.map(m => {
+      const rep = (m.effects && m.effects.rep) || 0;
+      let factor = 1;
+      if(rep >= 5) factor = 2.5;      // спасти, помочь — приоритет
+      else if(rep <= -5) factor = 0.2; // ограбить, убить — редко
+      else if(rep < 0) factor = 0.7;   // пройти мимо — реже
+      return {...m, weight:(m.weight||50) * factor};
+    });
+  }
+
   if(matches.length===0){matches=[{label:'Отказаться',weight:10,axes:Object.fromEntries(dominant.map(d=>[d.axis,Math.sign(d.score)])),log:'Ничего не происходит.'}];}
-  matches=matches.slice(0,3);
+  matches=matches.slice(0,4);
   const total=matches.reduce((s,c)=>s+(c.weight||50),0);
   let r=Math.random()*total,chosen=matches[0];
   for(const m of matches){r-=(m.weight||50);if(r<=0){chosen=m;break;}}
