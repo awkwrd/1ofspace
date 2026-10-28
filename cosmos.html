@@ -130,6 +130,12 @@ label.form{display:block;font-size:12px;color:var(--muted);margin:6px 0 3px}
 .crew-spoiler{display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;padding:4px 0}
 .crew-spoiler h2{margin:0}
 .crew-summary{font-size:11px;color:var(--muted);margin-top:4px}
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(3,5,10,.85);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px);animation:fadeIn .2s ease}
+.modal-box{background:linear-gradient(180deg,#1a2540,#101b2d);border:1px solid #3b6ca8;border-radius:16px;padding:20px 22px;max-width:460px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.7);animation:fadeIn .25s ease}
+.modal-box h3{margin:0 0 12px;font-size:16px;color:#9fd3ff}
+.modal-box input{font:inherit;background:#0a1222;color:var(--text);border:1px solid #2c4266;border-radius:10px;padding:12px 14px;width:100%;font-size:16px;margin-bottom:14px;min-height:48px}
+.modal-box input:focus{outline:none;border-color:#73b8ff;box-shadow:0 0 0 3px rgba(115,184,255,.2)}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
 </style>
 </head>
 <body>
@@ -156,8 +162,20 @@ label.form{display:block;font-size:12px;color:var(--muted);margin:6px 0 3px}
       <div class="card" id="protagonistCard"></div>
       <div class="card" id="shipCard"></div>
     </div>
-    <div class="card" id="familyCard" style="margin-bottom:12px"></div>
     <div class="card" id="crewCard" style="margin-bottom:12px"></div>
+    <div class="time-block">
+      <div class="time-label" id="timeLabel"></div>
+      <div class="time-row-mini"><span>Год жизни: <span id="yearNum">0/12</span></span><span>Топливо: <span id="lifeNum">0/100</span></span></div>
+      <div class="time-bar-mini"><div class="time-fill-mini" id="yearFill"></div></div>
+      <div class="time-bar"><div class="time-fill" id="lifeFill"></div></div>
+      <div class="time-controls">
+        <button id="playBtn" onclick="toggleTime()">▶ Играть</button>
+        <button id="x1Btn" class="active" onclick="setSpeed(1)">×1</button>
+        <button id="x2Btn" onclick="setSpeed(2)">×2</button>
+        <button id="x16Btn" onclick="setSpeed(16)">×16</button>
+        <span id="timeMode">время: пауза</span>
+      </div>
+    </div>
     <div class="tabs" id="tabs">
       <button data-tab="events" class="active">События</button>
       <button data-tab="contracts">Контракты</button>
@@ -173,19 +191,6 @@ label.form{display:block;font-size:12px;color:var(--muted);margin:6px 0 3px}
       <div class="spacer"></div>
       <button id="shipyardBtn" class="secondary small" onclick="goToShipyard()">🛠 Курс на верфь</button>
       <button id="retireBtn" class="secondary small">Завершить рейс</button>
-    </div>
-    <div class="time-block">
-      <div class="time-label" id="timeLabel"></div>
-      <div class="time-row-mini"><span>Год жизни: <span id="yearNum">0/12</span></span><span>Топливо: <span id="lifeNum">0/100</span></span></div>
-      <div class="time-bar-mini"><div class="time-fill-mini" id="yearFill"></div></div>
-      <div class="time-bar"><div class="time-fill" id="lifeFill"></div></div>
-      <div class="time-controls">
-        <button id="playBtn" onclick="toggleTime()">▶ Играть</button>
-        <button id="x1Btn" class="active" onclick="setSpeed(1)">×1</button>
-        <button id="x2Btn" onclick="setSpeed(2)">×2</button>
-        <button id="x16Btn" onclick="setSpeed(16)">×16</button>
-        <span id="timeMode">время: пауза</span>
-      </div>
     </div>
   </div>
 </div>
@@ -744,6 +749,20 @@ function startTimeFlow(){stopTimeFlow();if(timeSpeed<=0)return;timeTimer=setInte
 function stopTimeFlow(){if(timeTimer){clearInterval(timeTimer);timeTimer=null;}}
 function timeTick(){
   if(!G||G.over||G.pendingInheritance){stopTimeFlow();renderTimeControls();return;}
+
+  // столица — в первую очередь, до любого тика
+  if(!G.currentEvent&&G.capitalOpportunity&&!G.dynastyCapital&&!G.noCapital){
+    G.capitalOpportunity=false;
+    const capEv=makeCapitalEvent();
+    if(capEv){
+      G.currentEvent=capEv;
+      addLog(`— ${capEv.title} ${capEv.text}`,'event');
+      timeSpeed=0;stopTimeFlow();renderTimeControls();
+      renderAll();renderPanel();saveGame();
+      return;
+    }
+  }
+
   advanceTime(1);
   if(!G||G.over||G.pendingInheritance){stopTimeFlow();renderTimeControls();renderAll();return;}
   if(G.combat||G.pilotingCourse){renderAll();saveGame();return;}
@@ -1009,6 +1028,33 @@ function generateParents(surname){
     {name:`${pick(FIRST_NAMES)} ${pick(SURNAMES)}`,age:randInt(25,42),relation:pick(['хорошие','ровные','напряжённые']),role:'мать',alive:true},
   ];
 }
+function openModal({title, placeholder, defaultValue, onConfirm}){
+  const overlay=document.createElement('div');
+  overlay.className='modal-overlay';
+  const esc=(defaultValue||'').replace(/"/g,'&quot;');
+  overlay.innerHTML=`
+    <div class="modal-box">
+      <h3>${title}</h3>
+      <input id="modalInput" type="text" value="${esc}" placeholder="${placeholder||''}" autocomplete="off"/>
+      <div class="modal-actions">
+        <button class="secondary small" id="modalCancel">Отмена</button>
+        <button class="small" id="modalOk">Готово</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  const input=overlay.querySelector('#modalInput');
+  const close=()=>overlay.remove();
+  const submit=()=>{const v=input.value;close();onConfirm(v);};
+  overlay.querySelector('#modalCancel').onclick=close;
+  overlay.querySelector('#modalOk').onclick=submit;
+  input.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){e.preventDefault();submit();}
+    if(e.key==='Escape'){e.preventDefault();close();}
+  });
+  overlay.addEventListener('click',e=>{if(e.target===overlay) close();});
+  setTimeout(()=>{input.focus();input.select();},60);
+}
 window.renameShip=function(){
   if(!G) return;
   if(!G.isCaptain){
@@ -1017,46 +1063,83 @@ window.renameShip=function(){
     return;
   }
   const current=G.ship.name;
-  const newName=prompt('Новое имя корабля:',current);
-  if(!newName) return;
-  const trimmed=newName.trim().slice(0,40);
-  if(!trimmed||trimmed===current) return;
-  G.ship.formerNames=G.ship.formerNames||[];
-  G.ship.formerNames.push(current);
-  G.ship.name=trimmed;
-  G.ship.baptized=true;
-  addLog(`«${current}» получает новое имя: «${trimmed}».`,'shipdrift');
-  saveGame();renderAll();
+  openModal({
+    title:'Новое имя корабля',
+    defaultValue:current,
+    onConfirm:(newName)=>{
+      if(!newName) return;
+      const trimmed=newName.trim().slice(0,40);
+      if(!trimmed||trimmed===current) return;
+      G.ship.formerNames=G.ship.formerNames||[];
+      G.ship.formerNames.push(current);
+      G.ship.name=trimmed;
+      G.ship.baptized=true;
+      addLog(`«${current}» получает новое имя: «${trimmed}».`,'shipdrift');
+      saveGame();renderAll();
+    }
+  });
+};
+window.foundCapitalNow=function(){
+  if(!G||G.over||!G.capitalOpportunity||G.dynastyCapital||G.noCapital) return;
+  const system=STAR_SYSTEMS.find(s=>s.id===G.ship.currentSystem);
+  const costStr=CAPITAL_COST.toLocaleString('ru-RU');
+  if(G.credits<CAPITAL_COST){
+    addLog(`Основание столицы стоит ${costStr} ${SC}. У тебя ${G.credits.toLocaleString('ru-RU')} ${SC}. Нужно накопить ещё ${(CAPITAL_COST-G.credits).toLocaleString('ru-RU')} ${SC}.`,'sys');
+    return;
+  }
+  openModal({
+    title:`🏛 Основать столицу в ${system?.name||'текущей системе'}?`,
+    placeholder:`Стоимость: ${costStr} ${SC}`,
+    defaultValue:system?.name||'Новая столица',
+    onConfirm:()=>{
+      G.credits-=CAPITAL_COST;
+      G.dynastyCapital={system:G.ship.currentSystem,systemName:system?.name||'Неизвестная',foundedAt:G.timeMonths,generation:G.dynastyGeneration||1,costPaid:CAPITAL_COST};
+      G.capitalOpportunity=false;
+      G.rep=clamp(G.rep+10,-100,100);
+      addLog(`🏛 Столица династии основана: ${G.dynastyCapital.systemName}. −${costStr} ${SC}, +10 репутации, +3000 ${SC}/мес.`,'reveal');
+      saveGame();renderAll();renderPanel();
+    }
+  });
 };
 window.renameDynasty=function(){
   if(!G||G.over) return;
   const current=G.dynastyName||G.protagonist.surname;
-  const newName=prompt('Новое имя династии:',current);
-  if(!newName) return;
-  const trimmed=newName.trim().slice(0,30);
-  if(!trimmed||trimmed===current) return;
-  const oldName=current;
-  G.dynastyName=trimmed;
-  G.protagonist.surname=trimmed;
-  G.protagonist.name=`${G.protagonist.first} ${trimmed}`;
-  if(G.spouse){G.spouse.surname=trimmed;G.spouse.name=`${G.spouse.name.split(' ')[0]} ${trimmed}`;}
-  if(G.child){G.child.surname=trimmed;G.child.name=`${G.child.first} ${trimmed}`;}
-  if(G.grandchild){G.grandchild.surname=trimmed;G.grandchild.name=`${G.grandchild.first} ${trimmed}`;}
-  if(G.parents){for(const p of G.parents){if(p.alive!==false){p.name=`${p.name.split(' ')[0]} ${trimmed}`;}}}
-  addLog(`🏛 Династия «${oldName}» отныне носит имя «${trimmed}».`,'reveal');
-  const rev=document.getElementById('identityReveal');
-  if(rev) rev.innerHTML=`<div class="name">${G.protagonist.name}</div><div class="ship">${G.ship.className} «${G.ship.name}» · ${Math.floor(G.protagonist.age)} лет${G.isCaptain?' · капитан':' · регент'}</div><div class="gen">Поколение ${G.dynastyGeneration||1} · Династия ${trimmed}</div>`;
-  saveGame();renderAll();
+  openModal({
+    title:'Новое имя династии',
+    defaultValue:current,
+    onConfirm:(newName)=>{
+      if(!newName) return;
+      const trimmed=newName.trim().slice(0,30);
+      if(!trimmed||trimmed===current) return;
+      const oldName=current;
+      G.dynastyName=trimmed;
+      G.protagonist.surname=trimmed;
+      G.protagonist.name=`${G.protagonist.first} ${trimmed}`;
+      if(G.spouse){G.spouse.surname=trimmed;G.spouse.name=`${G.spouse.name.split(' ')[0]} ${trimmed}`;}
+      if(G.child){G.child.surname=trimmed;G.child.name=`${G.child.first} ${trimmed}`;}
+      if(G.grandchild){G.grandchild.surname=trimmed;G.grandchild.name=`${G.grandchild.first} ${trimmed}`;}
+      if(G.parents){for(const p of G.parents){if(p.alive!==false){p.name=`${p.name.split(' ')[0]} ${trimmed}`;}}}
+      addLog(`🏛 Династия «${oldName}» отныне носит имя «${trimmed}».`,'reveal');
+      const rev=document.getElementById('identityReveal');
+      if(rev) rev.innerHTML=`<div class="name">${G.protagonist.name}</div><div class="ship">${G.ship.className} «${G.ship.name}» · ${Math.floor(G.protagonist.age)} лет${G.isCaptain?' · капитан':' · регент'}</div><div class="gen">Поколение ${G.dynastyGeneration||1} · Династия ${trimmed}</div>`;
+      saveGame();renderAll();
+    }
+  });
 };
 window.buyPet=function(type){
   const names=type==='cat'?['Барсик','Мурка','Лео','Пушок','Киса','Дымка']:['Шарик','Рекс','Бим','Тузик','Джек','Бублик'];
-  const input=prompt(type==='cat'?'🐱 Как назовёшь кошку?':'🐶 Как назовёшь собаку?',pick(names));
-  if(!input) return;
-  const name=input.trim().slice(0,20);
-  if(!name) return;
-  G.pet={type,name,since:G.timeMonths};
-  addLog(`${type==='cat'?'🐱 Кошка':'🐶 Собака'} «${name}» теперь с тобой.`,'love');
-  saveGame();renderAll();
+  openModal({
+    title:type==='cat'?'🐱 Как назовёшь кошку?':'🐶 Как назовёшь собаку?',
+    defaultValue:pick(names),
+    onConfirm:(input)=>{
+      if(!input) return;
+      const name=input.trim().slice(0,20);
+      if(!name) return;
+      G.pet={type,name,since:G.timeMonths};
+      addLog(`${type==='cat'?'🐱 Кошка':'🐶 Собака'} «${name}» теперь с тобой.`,'love');
+      saveGame();renderAll();
+    }
+  });
 };
 function canSwapHull(newClassId){
   const nc=HULL_CLASSES[newClassId];
@@ -1137,19 +1220,24 @@ window.fireCrewMember=function(idx){
   const c=G.crew[idx];
   if(!c) return;
   const role=c.role||'Матрос';
-  const reason=prompt(`Уволить ${c.name} (${role}, ур. ${c.level})?\n\nПричина (можно пустым):`,'');
-  if(reason===null) return;
-  const trimmedReason=(reason||'').trim().slice(0,120);
-  G.crew.splice(idx,1);
-  const suffix=trimmedReason?` Причина: «${trimmedReason}»`:'';
-  addLog(`📤 ${c.name} (${role}, ур. ${c.level}) покидает борт.${suffix}`,'sys');
-  if(G.crew.length===0&&!G.isCaptain){
-    G.isCaptain=true;
-    addLog('Экипажа не осталось. Ты один у штурвала.','reveal');
-    const rev=document.getElementById('identityReveal');
-    if(rev) rev.innerHTML=`<div class="name">${G.protagonist.name}</div><div class="ship">${G.ship.className} «${G.ship.name}» · капитан</div><div class="gen">Поколение ${G.dynastyGeneration||1}</div>`;
-  }
-  saveGame();renderAll();renderPanel();
+  openModal({
+    title:`Уволить ${c.name} (${role}, ур. ${c.level})?`,
+    placeholder:'Причина (можно пустым)',
+    defaultValue:'',
+    onConfirm:(reason)=>{
+      const trimmedReason=(reason||'').trim().slice(0,120);
+      G.crew.splice(idx,1);
+      const suffix=trimmedReason?` Причина: «${trimmedReason}»`:'';
+      addLog(`📤 ${c.name} (${role}, ур. ${c.level}) покидает борт.${suffix}`,'sys');
+      if(G.crew.length===0&&!G.isCaptain){
+        G.isCaptain=true;
+        addLog('Экипажа не осталось. Ты один у штурвала.','reveal');
+        const rev=document.getElementById('identityReveal');
+        if(rev) rev.innerHTML=`<div class="name">${G.protagonist.name}</div><div class="ship">${G.ship.className} «${G.ship.name}» · капитан</div><div class="gen">Поколение ${G.dynastyGeneration||1}</div>`;
+      }
+      saveGame();renderAll();renderPanel();
+    }
+  });
 };
 
 function travelToSystem(systemId){
@@ -1694,6 +1782,20 @@ function applyChoice(choice,target){
   if(choice.startCombat){startCombat(choice.startCombat);return;}
   if(choice.failCombat&&isOk===false){startCombat(choice.failCombat);return;}
   G.actionCooldown=randInt(8,14);
+
+  // если открыта возможность столицы — показать её сразу, не ждать тика
+  if(G.capitalOpportunity&&!G.dynastyCapital&&!G.noCapital){
+    G.capitalOpportunity=false;
+    const capEv=makeCapitalEvent();
+    if(capEv){
+      G.currentEvent=capEv;
+      addLog(`— ${capEv.title} ${capEv.text}`,'event');
+      timeSpeed=0;stopTimeFlow();renderTimeControls();
+      renderAll();renderPanel();saveGame();
+      return;
+    }
+  }
+
   renderPanel();
   saveGame();
 }
@@ -2204,7 +2306,7 @@ function startStudy(profId){
 
 function renderAll(){
   if(!G) return;
-  renderProtagonist();renderShip();renderCrew();renderFamily();renderTime();renderPointOfNoReturn();
+  renderProtagonist();renderShip();renderCrew();renderTime();renderPointOfNoReturn();
   const sb=document.getElementById('shipyardBtn');
   if(sb) sb.style.display=G.isCaptain?'':'none';
 }
@@ -2240,10 +2342,41 @@ function renderProtagonist(){
     for(const b of p.brands){brandsHtml+=`<span class="badge brand" title="${b.desc}">${b.name}</span>`;}
     brandsHtml+='</div>';
   }
+
+  // компактная строка семьи
+  const famParts=[];
+  if(G.parents&&G.parents.length){
+    for(const par of G.parents){
+      if(par.alive===false) continue;
+      const icon=par.role==='мать'?'👩':'👨';
+      famParts.push(`${icon} ${par.name.split(' ')[0]} (${Math.floor(par.age)})`);
+    }
+  }
+  if(G.spouse) famParts.push(`❤️ ${G.spouse.name.split(' ')[0]} (${Math.floor(G.spouse.age||30)})`);
+  if(G.child) famParts.push(`👶 ${G.child.name.split(' ')[0]} (${Math.floor(G.child.age)})${G.child.hasCrush?' 💕':''}`);
+  if(G.grandchild) famParts.push(`👶 ${G.grandchild.name.split(' ')[0]} (${Math.floor(G.grandchild.age)})`);
+  if(G.pet) famParts.push(`${G.pet.type==='cat'?'🐱':'🐶'} ${G.pet.name}`);
+  const familyLine=famParts.length
+    ? `<div style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.6;border-top:1px solid var(--border);padding-top:6px">${famParts.join(' · ')}</div>`
+    : '';
+
+  // династия + столица
+  let dynastyLine=`<div class="kv" style="font-size:12px;color:var(--muted);margin-top:6px;border-top:1px solid var(--border);padding-top:6px"><span>Династия</span><b>${G.dynastyName||p.surname} <button class="icon-btn" onclick="renameDynasty()" title="Переименовать династию">✎</button></b></div>`;
+  if(G.dynastyCapital){
+    dynastyLine+=`<div class="kv" style="font-size:12px"><span>🏛 Столица</span><b>${G.dynastyCapital.systemName} (пок. ${G.dynastyCapital.generation})</b></div>`;
+  } else if(G.capitalOpportunity){
+    const canAfford=G.credits>=CAPITAL_COST;
+    dynastyLine+=`<div class="kv" style="font-size:12px"><span>🏛 Столица</span><b style="color:${canAfford?'#61d095':'#ff6b7a'}">можно основать за ${CAPITAL_COST.toLocaleString('ru-RU')} ${SC} <button class="icon-btn" onclick="foundCapitalNow()" title="Основать столицу">▶</button></b></div>`;
+  }
+
   document.getElementById('protagonistCard').innerHTML=`
     <h2>${p.name} ${p.nickname?`<span class="badge nick">«${p.nickname}»</span>`:''} <span style="color:var(--muted);font-size:12px">ур. ${p.level} · ${stage}</span></h2>
     <p>Возраст: ${Math.floor(p.age)} · Поколение ${G.dynastyGeneration||1} ${captainLabel}</p>
-    ${renderAxes(p)}${renderTagsBadges(p,tags,badges)}${brandsHtml}`;
+    ${renderAxes(p)}${renderTagsBadges(p,tags,badges)}${brandsHtml}
+    ${dynastyLine}
+    ${familyLine}
+    <div class="kv"><span>Кредиты</span><b>${G.credits} ${SC}</b></div>
+    <div class="kv"><span>Репутация</span><b>${G.rep}</b></div>`;
 }
 function renderAxes(crew){
   let html='';
@@ -2344,6 +2477,7 @@ window.toggleCrewCollapse=function(){
 };
 function renderFamily(){
   const el=document.getElementById('familyCard');
+  if(!el) return;
   let html=`<h2>Семья <button class="icon-btn" onclick="renameDynasty()" title="Переименовать династию">✎</button></h2>`;
   html+=`<div class="kv" style="font-size:12px;color:var(--muted)"><span>Династия</span><b>${G.dynastyName||G.protagonist.surname}</b></div>`;
   if(G.dynastyCapital){
