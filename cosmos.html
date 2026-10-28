@@ -990,7 +990,12 @@ function generateParents(surname){
   ];
 }
 window.renameShip=function(){
-  if(!G||!G.isCaptain) return;
+  if(!G) return;
+  if(!G.isCaptain){
+    const leader=getCurrentLeader();
+    addLog(`Корабль под управлением регента (${leader.ref.name}). Переименовать может только капитан после совершеннолетия.`,'sys');
+    return;
+  }
   const current=G.ship.name;
   const newName=prompt('Новое имя корабля:',current);
   if(!newName) return;
@@ -1948,6 +1953,13 @@ function generateFinalReport(reason){
   if(G.spouse) strengths.push('💕 Нашёл половинку');
   if(G.dynastyCapital) strengths.push('🏛 Основал столицу');
   const mourners=[];
+  if(G.parents&&G.parents.length){
+    for(const p of G.parents){
+      if(p.alive===false) continue;
+      const role=p.role==='мать'?'мать':'отец';
+      mourners.push(`👵 ${p.name} — ${role}, ${p.relation} отношения`);
+    }
+  }
   if(G.spouse) mourners.push(`❤️ ${G.spouse.name} — супруг(а)`);
   if(G.child&&G.child.alive!==false) mourners.push(`👶 ${G.child.name} — наследник`);
   if(G.grandchild) mourners.push(`👶 ${G.grandchild.name} — внук(внучка)`);
@@ -2144,7 +2156,7 @@ function renderShip(){
   let fuelColor='var(--success)';
   if(fuel<need) fuelColor='var(--danger)';
   else if(fuel<need*1.5) fuelColor='var(--warn)';
-  const renameBtn=G.isCaptain?`<button class="icon-btn" onclick="renameShip()" title="Переименовать">✎</button>`:'';
+  const renameBtn=`<button class="icon-btn" onclick="renameShip()" title="Переименовать">✎</button>`;
   const currentSys=STAR_SYSTEMS.find(sy=>sy.id===s.currentSystem);
   let html=`<h2>«${s.name}» ${renameBtn}</h2>`;
   html+=`<p>${s.className} · ${s.role||''}${!G.isCaptain?' · под регентом':''}</p>`;
