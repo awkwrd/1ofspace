@@ -2154,7 +2154,8 @@ function advanceTime(months){
       for(const p of G.parents){
         if(p.alive!==false && p.age >= (p.lifespan || 80)){
           p.alive = false;
-          addLog(`☠ ${p.name} (${Math.floor(p.age)} ${pluralYears(Math.floor(p.age))}) умирает — старость.`,'death');
+          const roleStr = p.role === 'мать' ? 'Мать' : (p.role === 'отец' ? 'Отец' : 'Родитель');
+          addLog(`☠ ${roleStr} ${p.name} (${Math.floor(p.age)} ${pluralYears(Math.floor(p.age))}) умирает — старость.`,'death');
         }
       }
     }
