@@ -1517,12 +1517,27 @@ function maybeLogFlavor(force){
     const others=['joke','routine','desc'].filter(t=>t!==type);
     type=pick(others);
   }
-  const pool=type==='joke'?JOKES:(type==='routine'?ROUTINE:DESCRIPTIONS);
-  const used=G.recentFlavor||[];
-  const available=pool.filter(t=>!used.includes(t));
-  let text;
-  if(available.length){text=pick(available);}
-  else{text=pick(pool);G.recentFlavor=[];}
+
+  // ── Один на корабле ──
+  // Если экипажа не осталось (все умерли/уволены) — desc подменяется.
+  let text=null;
+  if(type==='desc' && (!G.crew || G.crew.length===0)){
+    const soloDescs=[
+      'Сейчас ты один на корабле, можно официально ходить голым. В случае нападения — одеться!',
+      'Тишина. Только ты, корабль и гул двигателя. И никто не осудит.',
+      'Экипаж — это опция. Ты решил, что тебе не нужна.',
+    ];
+    text=pick(soloDescs);
+  }
+
+  if(!text){
+    const pool=type==='joke'?JOKES:(type==='routine'?ROUTINE:DESCRIPTIONS);
+    const used=G.recentFlavor||[];
+    const available=pool.filter(t=>!used.includes(t));
+    if(available.length){text=pick(available);}
+    else{text=pick(pool);G.recentFlavor=[];}
+  }
+
   G.recentFlavor=[...(G.recentFlavor||[]),text].slice(-30);
   G.lastFlavorType=type;
   addLog(`~ ${text}`,type);
@@ -2014,6 +2029,12 @@ window.goToShipyard=function(){
     G.ship.shields=G.ship.shieldsMax;
     addLog(`Верфь. Всё восстановлено. Корабль пристыкован — доступны смена корпуса и наём.`,'level');
   }
+    // Верфь усиливает крепкость до +15 (если ниже)
+  const sturdyNow = G.ship.traits.sturdy || 0;
+  if(sturdyNow < 15){
+    applyShipDrift({sturdy: 15 - sturdyNow});
+    addLog(`🔧 Верфь усиливает корпус: Крепкость → +15.`,'shipdrift');
+  }
   currentTab='shipyard';
   document.querySelectorAll('#tabs button').forEach(x=>{
     x.classList.toggle('active', x.dataset.tab==='shipyard');
@@ -2127,15 +2148,6 @@ function advanceTime(months){
       }
     }
 
-    if(!G.ship.stranded){
-      G.ship.fuel=Math.max(0,G.ship.fuel-0.15);
-      if(G.ship.fuel<=0){
-        G.ship.fuel=0;
-        G.ship.stranded={monthsLeft:18};
-        addLog('⚠ Топливо кончилось. Дрейф. Спасательный маяк активирован.','death');
-        stopTimeFlow();
-      }
-    } else {
     if(!G.ship.stranded){
       G.ship.fuel=Math.max(0,G.ship.fuel-0.15);
       if(G.ship.fuel<=0){
