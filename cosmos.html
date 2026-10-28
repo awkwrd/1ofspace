@@ -1967,6 +1967,11 @@ window.fireCrewMember=function(idx){
   if(!G||G.over||G.pendingInheritance) return;
   const c=G.crew[idx];
   if(!c) return;
+  if(!G.isCaptain){
+    const leader=getCurrentLeader();
+    addLog(`📤 Ты не капитан. Командует регент (${leader.ref.name}). Уволить никого не выйдет — пока не вырастешь.`,'sys');
+    return;
+  }
   const role=c.role||'Матрос';
   openModal({
     title:`Уволить ${c.name} (${role}, ур. ${c.level})?`,
