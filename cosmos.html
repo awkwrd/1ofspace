@@ -1127,6 +1127,34 @@ const randInt=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const makeZeroAxes=()=>({tempo:0,risk:0,initiative:0,firmness:0,certainty:0});
 const makeZeroShipTraits=()=>({sturdy:0,jumpworthy:0,loud:0,maintained:0,loyal:0,warm:0,renowned:0});
+function getPilotNarration(){
+  const P=G.professions||{};
+  if(P['pilot_cruiser']) return {label:'Пилот Крейсера',lines:[
+    'Девяносто человек работают как один механизм. Твой голос — приказ. Перехватчики кажутся игрушками.',
+    'Ты думаешь не о себе — о корабле. Каждое решение отдаётся эхом по всем палубам.',
+    'Крейсер разворачивается медленно, но неотвратимо. Пираты начинают понимать масштаб.',
+    'Ты ощущаешь крейсер как собственное тело. Каждая пробоина — твоя рана.',
+    'Крейсер дрожит, но держится. Экипаж смотрит на тебя. Ты не подведёшь.',
+    'Финальный раунд. Ты отдаёшь приказ — и мир вокруг превращается в огонь.'
+  ]};
+  if(P['pilot_bomber']) return {label:'Пилот Бомбардировщика',lines:[
+    'Бомбардировщик — это про терпение. Ты ждёшь, пока враг ошибётся. Время работает на тебя.',
+    'Тяжёлый корабль разворачивается медленно. Ты рассчитываешь траекторию на три хода вперёд.',
+    'Перехватчики суетятся. Ты спокоен. Главное — не промахнуться в нужный момент.',
+    'Ты видишь их траекторию за секунду до того, как они её начнут. Расчёт и опыт.',
+    'Один точный удар может решить всё. Ты ждёшь этого удара.',
+    'Сейчас. Ты нажимаешь гашетку.'
+  ]};
+  if(P['pilot_corvette']) return {label:'Пилот Корвета',lines:[
+    'Корвет — твоё продолжение. Ты чувствуешь каждую перегрузку. Перехватчики обходят с флангов — ты уже там.',
+    'Скорость — это жизнь. Ты уходишь от залпа за миг до попадания. Пираты теряют тебя из вида.',
+    'Корпус звенит. Инстинкт подсказывает: следующая атака — справа. Ты разворачиваешься раньше.',
+    'Ты на грани. Каждый манёвр — на пределе возможностей корвета. Пираты начинают ошибаться.',
+    'Ты не думаешь — ты летишь. Корвет отвечает на каждое движение. Это уже не бой, это танец.',
+    'Финальный залп. Ты давишь на все педали. Корвет ревёт.'
+  ]};
+  return null;
+}
 function getRepTier(rep){
   if(rep>=80) return {name:'Легенда',color:'#ffd700'};
   if(rep>=60) return {name:'Уважаемый',color:'#61d095'};
@@ -3175,11 +3203,18 @@ function renderPanel(){
 function renderCombatPanel(el){
   const c=G.combat;
   const config=COMBAT_CONFIGS[c.id]||COMBAT_CONFIGS.pirates_main;
-  const desc=config.descs[c.round-1]||config.descs[config.descs.length-1];
+  const pilot=getPilotNarration();
+  let desc;
+  if(pilot){
+    desc=pilot.lines[Math.min(c.round-1,pilot.lines.length-1)];
+  } else {
+    desc=config.descs[c.round-1]||config.descs[config.descs.length-1];
+  }
   const pct=clamp((c.score/config.winScore)*100,0,100);
   const moodText=c.crewMood>70?'уверенность':(c.crewMood>40?'напряжение':'раздражение');
+  const pilotBadge=pilot?` <span class="badge mix">${pilot.label}</span>`:'';
   el.innerHTML=`<div class="panel combat-panel">
-    <h3>⚔ Раунд ${c.round} / ${c.maxRounds} · ${c.enemyName}</h3>
+    <h3>⚔ Раунд ${c.round} / ${c.maxRounds} · ${c.enemyName}${pilotBadge}</h3>
     <div class="combat-score-label"><span>Шкала победы (порог ${config.winScore})</span><span><b>${c.score}</b> / ${config.winScore}</span></div>
     <div class="combat-score-bar"><div class="combat-score-fill" style="width:${pct}%"></div></div>
     <div class="combat-stats"><span>Корпус: <b>${Math.round(G.ship.hull)}</b></span><span>Щиты: <b>${Math.round(G.ship.shields)}</b></span><span>Топливо: <b>${Math.round(G.ship.fuel)}</b></span><span>Экипаж: <b>${moodText}</b></span></div>
