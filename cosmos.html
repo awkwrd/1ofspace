@@ -1740,7 +1740,8 @@ function advanceTime(months){
             c.axes[a]=clamp((c.axes[a]||0)-p,-100,100);
           }
           c.badges=resolveBadges(c);
-          addLog(`🩹 ${c.name} поправился. ${c.sick.name} прошла.`,'level');
+          const healVerb=c.gender==='ж'?'поправилась':'поправился';
+          addLog(`🩹 ${c.name} ${healVerb}. ${c.sick.name} больше не беспокоит.`,'level');
           c.sick=null;
         }
       }
@@ -1759,7 +1760,8 @@ function advanceTime(months){
             c.axes[a]=clamp((c.axes[a]||0)+p,-100,100);
           }
           c.badges=resolveBadges(c);
-          addLog(`🤒 ${c.name} заболел: ${d.name} (${months} мес). ${d.desc}`,'sys');
+          const sickVerb=c.gender==='ж'?'заболела':'заболел';
+          addLog(`🤒 ${c.name} ${sickVerb}: ${d.name} (${months} мес). ${d.desc}`,'sys');
         }
       }
     }
@@ -1773,7 +1775,8 @@ function advanceTime(months){
         }
         G.protagonist.badges=resolveBadges(G.protagonist);
         G.protagonist.wounded=null;
-        addLog('🩹 Ты поправился. Раны зажили.','level');
+        const pHealVerb=G.protagonist.gender==='ж'?'поправилась':'поправился';
+        addLog(`🩹 Ты ${pHealVerb}. Раны зажили.`,'level');
       }
     }
 
