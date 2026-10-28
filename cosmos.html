@@ -2649,6 +2649,7 @@ function showInheritanceScene(heir,reason){
     <p>Наследник: <b>${heir.name}</b>, ${Math.floor(heir.age)} лет.</p>
     <p style="color:var(--muted);font-size:12px">Характер (оси): ${describeAxesShort(heir)}</p>
     <p style="color:var(--muted);font-size:12px">Корабль «${G.ship.name}» сохраняет свой характер: ${shipTags}.</p>
+    <p style="color:var(--muted);font-size:12px">Репутация: ${G.rep} (${getRepTier(G.rep).name}) → ${Math.round(G.rep*0.35)+(G.dynastyCapital?5:0)} (${getRepTier(Math.round(G.rep*0.35)+(G.dynastyCapital?5:0)).name})${G.dynastyCapital?' <span style="color:#61d095">· +5 от столицы</span>':''}</p>
     <p style="color:var(--muted);font-size:12px">Экипаж остаётся верен династии.</p>
     ${G.inheritedProfPreview?`<p style="color:#9fd3ff;font-size:13px;margin-top:6px">🪶 Наследие: ${PROFESSIONS[G.inheritedProfPreview].name}</p>`:''}
     <div style="margin-top:14px"><button onclick="inheritAndContinue()">Продолжить как ${heir.name}</button></div>
@@ -2663,6 +2664,10 @@ window.inheritAndContinue=function(){
   const spouseAge=G.spouse?Math.floor(G.spouse.age||30):null;
   G.dynastyGeneration=(G.dynastyGeneration||1)+1;
   if(!G.dynastyName) G.dynastyName=G.protagonist.surname;
+  const oldRep=G.rep;
+  let newRep=Math.round(oldRep*0.35);
+  if(G.dynastyCapital) newRep=clamp(newRep+5,-100,100);
+  G.rep=newRep;
   const base={axes:heir.axes,transitions:{}};
   G.protagonist={first:heir.first,surname:heir.surname,name:heir.name,gender:heir.gender||pickGender(),age:heir.age,lifespan:75+randInt(0,20),level:1,xp:0,axes:heir.axes,transitions:{},badges:resolveBadges(base),isMain:true,nickname:null,brands:[],wounded:null};
   G.child=null;G.spouse=null;G.grandchild=null;G.pregnancy=null;
