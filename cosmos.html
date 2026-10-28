@@ -365,6 +365,7 @@ const PROFESSIONS={
   pilot_cruiser:{id:'pilot_cruiser',name:'Пилот Крейсера',base_salary:50000,study_months:48},
   planetary_expansion_1:{id:'planetary_expansion_1',name:'Планетарная экспансия I',base_salary:30000,study_months:36},
   planetary_expansion_2:{id:'planetary_expansion_2',name:'Планетарная экспансия II',base_salary:60000,study_months:42,requires:'planetary_expansion_1'},
+  data_runner:{id:'data_runner',name:'Data Runner',base_salary:30000,study_months:30},
 };
 const DURATIONS=[
   {id:'short',label:'Короткий (3–6 мес)',min:3,max:6},
@@ -416,6 +417,11 @@ const KNOWLEDGE_EVENTS={
     {id:'ks_pl2_1',text:'Спроектировал экосистему с нуля. Всё связано со всем.',axes:{certainty:+5,initiative:+3}},
     {id:'ks_pl2_2',text:'Изучил падение трёх колоний. Каждая — из-за самоуверенности.',axes:{tempo:-3,risk:-3}},
     {id:'ks_pl2_3',text:'Планета — это не ресурс, это живой организм.',axes:{certainty:+5}},
+  ],
+  data_runner:[
+    {id:'ks_dr_1',text:'Изучил методы сжатия данных. Целая библиотека — в кулаке.',axes:{certainty:+3}},
+    {id:'ks_dr_2',text:'Понял, что данные можно спрятать в шуме. Никто не найдёт.',axes:{risk:+2,certainty:+2}},
+    {id:'ks_dr_3',text:'Разобрал старый шифр. Оказалось, он был про любовь.',axes:{tempo:-2,certainty:+3}},
   ],
 };
 
@@ -561,9 +567,9 @@ const EVENTS=[
     {label:'Пройти напрямую',weight:25,axes:{risk:+1,tempo:+1,initiative:+1},shipAxes:{loud:+1},log:'Корпус принимает удары.',effects:{hull:-10}},
   ]},
   {id:'station',title:'Торговая станция',text:'Вращающееся кольцо станции светится рекламой.',choices:[
-    {label:'Заправиться и починиться',weight:35,axes:{risk:-1,tempo:-1},shipAxes:{maintained:+3},available:s=>s.credits>=4500,log:'Топливо и ремонт.',effects:{credits:-4500,fuel:+50,hull:+30}},
-    {label:'Продать часть груза',weight:30,axes:{initiative:+1},log:'Трюм пустеет.',effects:{credits:+3500,cargo:-10,rep:+1}},
-    {label:'Нанять механика',weight:30,axes:{initiative:+1,firmness:+1},shipAxes:{warm:+1,loyal:+1},available:s=>s.credits>=10000,log:'Новый механик.',effects:{credits:-10000,engine:+10,addCrew:1}},
+    {label:'Заправиться и починиться',weight:35,axes:{risk:-1,tempo:-1},shipAxes:{maintained:+3},available:s=>s.credits>=4500,log:'Топливо и ремонт. Корабль пристыкован — доступны верфь и наём.',effects:{credits:-4500,fuel:+50,hull:+30,dockNow:true}},
+    {label:'Продать часть груза',weight:30,axes:{initiative:+1},log:'Трюм пустеет. Корабль пристыкован.',effects:{credits:+3500,cargo:-10,rep:+1,dockNow:true}},
+    {label:'Нанять механика',weight:30,axes:{initiative:+1,firmness:+1},shipAxes:{warm:+1,loyal:+1},available:s=>s.credits>=10000,log:'Новый механик.',effects:{credits:-10000,engine:+10,addCrew:1,dockNow:true}},
   ]},
   {id:'derelict',title:'Заброшенный корабль',text:'Дрейфующий корпус без опознавательных знаков.',choices:[
     {label:'Высадиться на борт',weight:40,axes:{risk:+1,initiative:+1},shipAxes:{renowned:+1},check:()=>Math.random()<0.7,okLog:'Находите ящик.',failLog:'Ловушка.',okEffects:{credits:+6000,hull:-5,rep:+2},failEffects:{hull:-15,crewLossChance:0.08,rep:-2}},
@@ -1111,6 +1117,7 @@ function travelToSystem(systemId){
   const system=STAR_SYSTEMS.find(s=>s.id===systemId);
   if(!system) return;
   G.ship.currentSystem=systemId;
+  G.docked=false;
   G.visitedSystems=G.visitedSystems||[];
   if(!G.visitedSystems.includes(systemId)){
     G.visitedSystems.push(systemId);
@@ -1134,7 +1141,8 @@ window.goToShipyard=function(){
   G.ship.hull=G.ship.hullMax;
   G.ship.shields=G.ship.shieldsMax;
   G.ship.stranded=null;
-  addLog(`Верфь. Всё восстановлено.`,'level');
+  G.docked=true;
+  addLog(`Верфь. Всё восстановлено. Корабль пристыкован — доступны смена корпуса и наём.`,'level');
   renderAll();saveGame();
 };
 window.goDrift=function(){
@@ -1328,6 +1336,7 @@ function startNewGame(){
     isCaptain:false,
     childPirateDone:false,
     childFuelDone:false,
+    docked:false,
     parentGiftTaken:false,
     majorityEventDone:false,
     pilotingCooldown:0,
@@ -1378,6 +1387,7 @@ function loadAndContinue(){
   if(G.isCaptain===undefined) G.isCaptain=G.protagonist.age>=18;
   if(G.childPirateDone===undefined) G.childPirateDone=false;
   if(G.childFuelDone===undefined) G.childFuelDone=false;
+  if(G.docked===undefined) G.docked=false;
   if(G.parentGiftTaken===undefined) G.parentGiftTaken=false;
   if(G.majorityEventDone===undefined) G.majorityEventDone=false;
   if(G.pilotingCooldown===undefined) G.pilotingCooldown=0;
@@ -1729,6 +1739,7 @@ function applyEffects(e){
       addLog(`Даже с предупреждением топлива не хватает. Корабль дрейфует.`,'sys');
     }
   }
+  if(e.dockNow){G.docked=true;}
   if(e.capitalOpportunity){G.capitalOpportunity=true;}
   if(e.noCapital){G.noCapital=true;}
   if(G.ship.hull<=0 && !G._impendingDeath){
@@ -2107,6 +2118,7 @@ function startContract(profId,durId){
   const totalPay=payPerMonth*months;
   G.activeContract={profId,monthsTotal:months,monthsLeft:months,payPerMonth,totalPay};
   G.workedEvents=[];
+  G.docked=false;
   const otherSystems=STAR_SYSTEMS.filter(s=>s.id!==G.ship.currentSystem);
   if(otherSystems.length){const dest=pick(otherSystems);travelToSystem(dest.id);}
   const note=learned?'×1.5':'базовая';
@@ -2498,6 +2510,17 @@ window.startStudy=startStudy;
 function renderShipyardPanel(el){
   let html='<div class="panel"><h3>Верфь</h3>';
   if(!G.isCaptain){html+='<p style="font-size:12px;color:var(--warn);margin-bottom:8px">По просьбе регента.</p>';}
+
+  if(!G.docked){
+    html+=`<div style="padding:12px;background:rgba(255,211,122,.08);border:1px solid var(--warn);border-radius:10px;margin-bottom:12px">
+      <p style="font-size:13px;color:#ffe6b0;margin:0 0 6px">🚀 Корабль в космосе</p>
+      <p style="font-size:12px;color:var(--muted);margin:0">Смена корпуса и наём специалистов доступны только на верфи или станции. Нажми <b>🛠 Курс на верфь</b> внизу — сто́ит топлива и 2 месяцев пути.</p>
+    </div>`;
+    el.innerHTML=html+'</div>';
+    return;
+  }
+
+  html+='<p style="font-size:12px;color:#61d095;margin-bottom:8px">✅ Корабль пристыкован. Доступны все услуги.</p>';
   html+='<p style="font-size:12px;color:var(--muted);margin-bottom:8px">Смена корпуса: 50% характера переезжает + бонус класса.</p>';
   for(const id of Object.keys(HULL_CLASSES)){
     const h=HULL_CLASSES[id];
@@ -2513,7 +2536,7 @@ function renderShipyardPanel(el){
     const tc=tierColor[spec.tier]||'#3b6ca8';
     html+=`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><div><b>${spec.name}</b> <span class="badge" style="background:${tc};border-color:${tc};font-size:10px;margin-left:4px">${spec.tier}</span> <span style="color:var(--muted);font-size:12px">${spec.desc}</span></div><div>${canHire?`<button class="small" onclick="hireSpecialist('${spec.id}')">Нанять (${spec.cost} ${SC})</button>`:`<span style="color:var(--muted);font-size:11px">${G.credits<spec.cost?'не хватает':'мест нет'}</span>`}</div></div>`;
   }
-  html+='<p style="font-size:12px;color:var(--muted);margin-top:10px">Кнопка «🛠 Курс на верфь» — путь к ремонту.</p>';
+  html+='<p style="font-size:12px;color:var(--muted);margin-top:10px">Чтобы улететь, возьми контракт.</p>';
   el.innerHTML=html+'</div>';
 }
 window.doSwap=function(id){
