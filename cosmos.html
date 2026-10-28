@@ -3347,8 +3347,8 @@ function renderProtagonist(){
   if(G.parents&&G.parents.length){
     for(const par of G.parents){
       if(par.alive===false) continue;
-      const icon=par.gender==='ж'?'👩':'👨';
-      famParts.push(`${icon} ${par.name.split(' ')[0]} (${Math.floor(par.age)})`);
+      const roleLabel=par.role==='мать'?'Мать':'Отец';
+      famParts.push(`${roleLabel} ${par.name.split(' ')[0]} (${Math.floor(par.age)})`);
     }
   }
   if(G.spouse){
