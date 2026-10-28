@@ -1553,18 +1553,19 @@ function maybeLogFlavor(force){
   }
 
   let text;
+  let pool;
   if(soloOnBoard){
-    const used=G.recentFlavor||[];
-    const available=SOLO_DESCRIPTIONS.filter(t=>!used.includes(t));
-    text = available.length ? pick(available) : pick(SOLO_DESCRIPTIONS);
-    if(!available.length) G.recentFlavor=[];
+    // Когда один на корабле — 50% космос, 50% одиночные мысли
+    pool = Math.random() < 0.5
+      ? SOLO_DESCRIPTIONS
+      : (type==='joke'?JOKES:(type==='routine'?ROUTINE:DESCRIPTIONS));
   } else {
-    const pool=type==='joke'?JOKES:(type==='routine'?ROUTINE:DESCRIPTIONS);
-    const used=G.recentFlavor||[];
-    const available=pool.filter(t=>!used.includes(t));
-    if(available.length){text=pick(available);}
-    else{text=pick(pool);G.recentFlavor=[];}
+    pool = type==='joke'?JOKES:(type==='routine'?ROUTINE:DESCRIPTIONS);
   }
+  const used=G.recentFlavor||[];
+  const available=pool.filter(t=>!used.includes(t));
+  if(available.length){text=pick(available);}
+  else{text=pick(pool);G.recentFlavor=[];}
 
   G.recentFlavor=[...(G.recentFlavor||[]),text].slice(-30);
   G.lastFlavorType=type;
