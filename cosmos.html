@@ -962,7 +962,11 @@ function checkRequiresShip(req){
   return true;
 }
 
-function randomName(){return {first:pick(FIRST_NAMES),surname:pick(SURNAMES)};}
+function randomName(){
+  const gender=pickGender();
+  const first=gender==='м'?pick(MALE_NAMES):pick(FEMALE_NAMES);
+  return {first,surname:pick(SURNAMES),gender};
+}
 function personalityAxes(){
   const axes={};
   for(const a of AXES) axes[a]=randInt(-25,25);
@@ -974,12 +978,14 @@ function childAxesFrom(parentAxes){
   for(const a of AXES){const p=parentAxes[a]||0;axes[a]=clamp(Math.round(p*0.5+randInt(-40,40)),-100,100);}
   return axes;
 }
-function makeCrewMember(usePersonality,role){
+function makeCrewMember(usePersonality,role,gender){
   const axes=usePersonality?personalityAxes():makeZeroAxes();
   const base={axes,transitions:{}};
-  const first=pick(CREW_NAMES),surname=pick(SURNAMES);
+  const g=gender||pickGender();
+  const first=g==='м'?pick(CREW_MALE):pick(CREW_FEMALE);
+  const surname=pick(SURNAMES);
   const defaultRoles=['Матрос','Боцман','Штурман','Связист','Оператор','Техник'];
-  return {id:Math.random().toString(36).slice(2,8),first,surname,name:`${first} ${surname}`,role:role||pick(defaultRoles),level:1,xp:0,age:randInt(22,40),lifespan:randInt(60,90),axes,transitions:{},badges:resolveBadges(base),nickname:null};
+  return {id:Math.random().toString(36).slice(2,8),first,surname,name:`${first} ${surname}`,gender:g,role:role||pick(defaultRoles),level:1,xp:0,age:randInt(22,40),lifespan:randInt(60,90),axes,transitions:{},badges:resolveBadges(base),nickname:null};
 }
 function getUsedNicknames(){
   const used=new Set();
@@ -1024,8 +1030,8 @@ function generateShip(opts){
 }
 function generateParents(surname){
   return [
-    {name:`${pick(FIRST_NAMES)} ${surname}`,age:randInt(28,45),relation:pick(['хорошие','ровные','напряжённые']),role:'отец',alive:true},
-    {name:`${pick(FIRST_NAMES)} ${pick(SURNAMES)}`,age:randInt(25,42),relation:pick(['хорошие','ровные','напряжённые']),role:'мать',alive:true},
+    {name:`${pick(MALE_NAMES)} ${surname}`,gender:'м',age:randInt(28,45),relation:pick(['хорошие','ровные','напряжённые']),role:'отец',alive:true},
+    {name:`${pick(FEMALE_NAMES)} ${pick(SURNAMES)}`,gender:'ж',age:randInt(25,42),relation:pick(['хорошие','ровные','напряжённые']),role:'мать',alive:true},
   ];
 }
 function openModal({title, placeholder, defaultValue, onConfirm}){
@@ -1508,7 +1514,13 @@ function loadAndContinue(){
     if(!c.surname){const parts=(c.name||'').split(' ');c.first=parts[0];c.surname=parts[1]||pick(SURNAMES);c.name=`${c.first} ${c.surname}`;}
     if(!c.role) c.role=pick(['Матрос','Боцман','Штурман','Связист','Оператор','Техник']);
     if(!c.lifespan) c.lifespan=randInt(60,90);
+    if(!c.gender) c.gender=Math.random()<0.5?'м':'ж';
   }
+  if(!G.protagonist.gender) G.protagonist.gender=Math.random()<0.5?'м':'ж';
+  if(G.spouse&&!G.spouse.gender) G.spouse.gender=Math.random()<0.5?'м':'ж';
+  if(G.child&&!G.child.gender) G.child.gender=Math.random()<0.5?'м':'ж';
+  if(G.grandchild&&!G.grandchild.gender) G.grandchild.gender=Math.random()<0.5?'м':'ж';
+  if(G.parents) for(const p of G.parents){if(!p.gender) p.gender=p.role==='мать'?'ж':'м';}
   if(!G.ship.traits) G.ship.traits=makeZeroShipTraits();
   if(!G.ship.shipTransitions) G.ship.shipTransitions={};
   if(!G.ship.oldHulls) G.ship.oldHulls=[];
@@ -1834,8 +1846,11 @@ function applyEffects(e){
   }
   if(e.marry){
     const surname=G.protagonist.surname;
-    G.spouse={name:`${pick(CREW_NAMES)} ${surname}`,age:G.protagonist.age,isSpouse:true,surname,relation:'хорошие'};
-    addLog(`💕 ${G.spouse.name} становится твоим супругом/супругой.`,'love');
+    const spG=pickGender();
+    const spFirst=spG==='м'?pick(CREW_MALE):pick(CREW_FEMALE);
+    G.spouse={name:`${spFirst} ${surname}`,gender:spG,age:G.protagonist.age,isSpouse:true,surname,relation:'хорошие'};
+    const word=spG==='м'?'супругом':'супругой';
+    addLog(`💕 ${G.spouse.name} становится твоим ${word}.`,'love');
   }
   if(e.haveChild){
     G.child=makeChild(G.protagonist);
@@ -1923,9 +1938,10 @@ function formatEffects(e){
   return parts.length?` [${parts.join(', ')}]`:'';
 }
 function makeChild(parent){
-  const first=pick(FIRST_NAMES);
+  const gender=pickGender();
+  const first=gender==='м'?pick(MALE_NAMES):pick(FEMALE_NAMES);
   const surname=parent.surname;
-  return {first,surname,name:`${first} ${surname}`,age:0,alive:true,axes:childAxesFrom(parent.axes)};
+  return {first,surname,name:`${first} ${surname}`,gender,age:0,alive:true,axes:childAxesFrom(parent.axes)};
 }
 function delegateTo(memberIdx){
   const member=G.crew[memberIdx];
@@ -2124,7 +2140,7 @@ window.inheritAndContinue=function(){
   G.dynastyGeneration=(G.dynastyGeneration||1)+1;
   if(!G.dynastyName) G.dynastyName=G.protagonist.surname;
   const base={axes:heir.axes,transitions:{}};
-  G.protagonist={first:heir.first,surname:heir.surname,name:heir.name,age:heir.age,lifespan:75+randInt(0,20),level:1,xp:0,axes:heir.axes,transitions:{},badges:resolveBadges(base),isMain:true,nickname:null,brands:[]};
+  G.protagonist={first:heir.first,surname:heir.surname,name:heir.name,gender:heir.gender||pickGender(),age:heir.age,lifespan:75+randInt(0,20),level:1,xp:0,axes:heir.axes,transitions:{},badges:resolveBadges(base),isMain:true,nickname:null,brands:[]};
   G.child=null;G.spouse=null;G.grandchild=null;
   G.pendingInheritance=false;G.deathRolled=false;G.over=false;
   G.activeContract=null;
@@ -2348,13 +2364,22 @@ function renderProtagonist(){
   if(G.parents&&G.parents.length){
     for(const par of G.parents){
       if(par.alive===false) continue;
-      const icon=par.role==='мать'?'👩':'👨';
+      const icon=par.gender==='ж'?'👩':'👨';
       famParts.push(`${icon} ${par.name.split(' ')[0]} (${Math.floor(par.age)})`);
     }
   }
-  if(G.spouse) famParts.push(`❤️ ${G.spouse.name.split(' ')[0]} (${Math.floor(G.spouse.age||30)})`);
-  if(G.child) famParts.push(`👶 ${G.child.name.split(' ')[0]} (${Math.floor(G.child.age)})${G.child.hasCrush?' 💕':''}`);
-  if(G.grandchild) famParts.push(`👶 ${G.grandchild.name.split(' ')[0]} (${Math.floor(G.grandchild.age)})`);
+  if(G.spouse){
+    const spIcon=G.spouse.gender==='ж'?'❤️♀':'❤️♂';
+    famParts.push(`${spIcon} ${G.spouse.name.split(' ')[0]} (${Math.floor(G.spouse.age||30)})`);
+  }
+  if(G.child){
+    const chIcon=G.child.gender==='ж'?'👶♀':'👶♂';
+    famParts.push(`${chIcon} ${G.child.name.split(' ')[0]} (${Math.floor(G.child.age)})${G.child.hasCrush?' 💕':''}`);
+  }
+  if(G.grandchild){
+    const gcIcon=G.grandchild.gender==='ж'?'👶♀':'👶♂';
+    famParts.push(`${gcIcon} ${G.grandchild.name.split(' ')[0]} (${Math.floor(G.grandchild.age)})`);
+  }
   if(G.pet) famParts.push(`${G.pet.type==='cat'?'🐱':'🐶'} ${G.pet.name}`);
   const familyLine=famParts.length
     ? `<div style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.6;border-top:1px solid var(--border);padding-top:6px">${famParts.join(' · ')}</div>`
@@ -2463,7 +2488,7 @@ function renderCrew(){
       const roleColor=(()=>{const r=c.role||'';if(r==='Врач')return '#61d095';if(r==='Стрелок')return '#a83b47';if(r==='Кок')return '#ffd37a';if(r==='Механик')return '#4ea1ff';if(r==='Навигатор')return '#6b4a9c';if(r==='Инженер щитов')return '#7ee0d0';return '#3b6ca8';})();
       html+=`<div style="border-top:1px solid var(--border);padding:8px 0">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
-          <div><b>${c.name}</b> <span class="badge" style="background:${roleColor};border-color:${roleColor}">${c.role||'Матрос'}</span> <span style="color:var(--muted);font-size:12px">ур. ${c.level} · ${Math.floor(c.age||25)}</span>${c.nickname?`<span class="badge nick">«${c.nickname}»</span>`:''}${isLeader?'<span class="badge regent">Регент</span>':''}</div>
+          <div><b>${c.name}</b> <span class="badge" style="background:${(c.gender==='ж')?'#5c2a45':'#1d3c68'};border-color:${(c.gender==='ж')?'#ff6ba8':'#4ea1ff'};color:${(c.gender==='ж')?'#ffd9e8':'#cfe5ff'}">${c.gender==='ж'?'♀':'♂'}</span> <span class="badge" style="background:${roleColor};border-color:${roleColor}">${c.role||'Матрос'}</span> <span style="color:var(--muted);font-size:12px">ур. ${c.level} · ${Math.floor(c.age||25)}</span>${c.nickname?`<span class="badge nick">«${c.nickname}»</span>`:''}${isLeader?'<span class="badge regent">Регент</span>':''}</div>
           <button class="fire-btn" onclick="fireCrewMember(${i})" title="Уволить">✖ Уволить</button>
         </div>
         ${renderAxes(c)}${renderTagsBadges(c,tags,badges)}</div>`;
