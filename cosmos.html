@@ -509,8 +509,7 @@ const PILOTING_ROUND_DESCS=['Инструктор раскладывает сх�
 const SPECIALISTS=[
   {id:'cook',name:'Кок',cost:8000,bonus:{warm:+5},desc:'+5 СЖО',tier:'базовый'},
   {id:'mechanic',name:'Механик',cost:10000,bonus:{engine:+10},desc:'+10 двигатель',tier:'базовый'},
-  {id:'quartermaster',name:'Квартирмейстер',cost:14000,bonus:{maintained:+15,warm:+3,loyal:+2},desc:'+15 ухоженность, +3 СЖО, +2 верность',tier:'средний'},
-  {id:'doctor',name:'Врач',cost:14000,bonus:{},desc:'снижает риск гибели и болезней',tier:'средний'},
+  {id:'quartermaster',name:'Квартирмейстер',cost:14000,bonus:{maintained:+15,warm:+3,loyal:+2},desc:'+15 ухоженность сразу + тянет к +70/+85/+100 по уровню',tier:'средний'},  {id:'doctor',name:'Врач',cost:14000,bonus:{},desc:'снижает риск гибели и болезней',tier:'средний'},
   {id:'navigator',name:'Навигатор',cost:15000,bonus:{jumpworthy:+5},desc:'+5 джампдрайв',tier:'средний'},
   {id:'shield_eng',name:'Инженер щитов',cost:16000,bonus:{shieldsMax:+30,shields:+30},desc:'+30 щиты',tier:'средний'},
   {id:'gunner',name:'Стрелок',cost:24000,bonus:{weapons:+15},desc:'+15 оружие',tier:'элитный'},
@@ -2154,11 +2153,24 @@ function advanceTime(months){
 
     tickShipTransitions();
 
+    // Квартирмейстер пассивно поднимает ухоженность
+    const qm = G.crew.find(c => c.role === 'Квартирмейстер');
+    if (qm) {
+      const target = qm.level >= 3 ? 100 : (qm.level === 2 ? 85 : 70);
+      const current = G.ship.traits.maintained || 0;
+      if (current < target) {
+        G.ship.traits.maintained = clamp(current + 3, -100, 100);
+        if (G.ship.traits.maintained > target) G.ship.traits.maintained = target;
+      }
+    }
+
     // пассивный дрейф корабля — раз в год
     if(G.timeMonths % 12 === 0){
       const drift={};
-      // износ: ухоженность и крепость медленно падают
-      drift.maintained = randInt(-3, 0);
+      // износ: ухоженность падает, если нет квартирмейстера
+      if (!qm) {
+        drift.maintained = randInt(-3, 0);
+      }
       drift.sturdy = randInt(-2, 1);
       // экипаж живёт на корабле: тепло, верность колеблются
       drift.warm = randInt(-1, 2);
