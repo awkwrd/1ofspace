@@ -1039,7 +1039,13 @@ const CHILD_EVENTS=[
     {label:'Хочу понимать корабли',weight:30,axes:{tempo:-1,certainty:+1},log:'Ты раз за разом пересобираешь двигатели корабля в VR симуляторе.',effects:{}},
     {label:'Не знаю. Хочу увидеть мир',weight:30,axes:{risk:+1,tempo:+1},log:'Ты хочешь странствовать.',effects:{}},
   ]},
-  {id:'child_sport_4',ageMin:14,ageMax:16,title:'Космошахматы',text:'Шахматы в невесомости: фигуры плавают, доска вращается. Противник — старый навигатор.',choices:[
+  {id:'child_sport_4',ageMin:14,ageMax:16,title:'Космошахматы',
+    textFn:()=>{
+      const opp = (G.crew && G.crew.length) ? pick(G.crew) : null;
+      const oppName = opp ? opp.name : 'старый навигатор';
+      return `Шахматы в невесомости: фигуры плавают, доска вращается. Противник — ${oppName}.`;
+    },
+    choices:[
     {label:'Играть в атаку',weight:40,axes:{risk:+1,initiative:+1},shipAxes:{renowned:+1},log:'Ты жертвуешь ферзём. Мат через два хода.',effects:{rep:+2,certainty:+1}},
     {label:'Играть в защите',weight:35,axes:{tempo:-1,firmness:+1},shipAxes:{maintained:+1,loyal:+1},log:'Ты выигрываешь на 40-м ходу.',effects:{}},
     {label:'Попросить ничью',weight:25,axes:{risk:-1,tempo:-1},log:'Ничья.',effects:{}},
@@ -1484,8 +1490,11 @@ function getMandatoryEvent(){
   if(!canAdultEvents()){
     const done=G.childEventsDone||[];
     const nextChild=CHILD_EVENTS.find(e=>!done.includes(e.id));
-    if(nextChild&&G.protagonist.age>=nextChild.ageMin) return {...nextChild,isChild:true};
-  } else {
+    if(nextChild&&G.protagonist.age>=nextChild.ageMin){
+      const ev={...nextChild,isChild:true};
+      if(typeof ev.textFn==='function'){ev.text=ev.textFn();delete ev.textFn;}
+      return ev;
+    }  } else {
     if(!G.isCaptain&&G.protagonist.age>=18&&!G.majorityEventDone) return makeMajorityEvent();
     if(G.child&&G.child.age>=15&&!G.child.profChoiceMade) return makeHeirProfessionEvent();
   }
