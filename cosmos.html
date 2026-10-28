@@ -1219,6 +1219,15 @@ function advanceTime(months){
       if(G.timeMonths%6===0) G.rep=clamp(G.rep+1,-100,100);
     }
 
+    // до капитанства корабль сам дрейфует между системами каждые 3 года
+    if(!G.isCaptain && G.timeMonths % 36 === 0){
+      const otherSystems = STAR_SYSTEMS.filter(s => s.id !== G.ship.currentSystem);
+      if(otherSystems.length){
+        const dest = pick(otherSystems);
+        travelToSystem(dest.id);
+      }
+    }
+
     if(G.studying){
       G.studying.monthsLeft--;
       const pool=KNOWLEDGE_EVENTS[G.studying.profId]||[];
