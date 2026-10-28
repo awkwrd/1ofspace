@@ -1594,8 +1594,8 @@ function applyDecision(crew,choice){
     const current=crew.axes[axis]||0;
     const currentTag=resolveTagOnAxis(crew,axis);
     let mult=1.0;
-    if(currentTag) mult=(currentTag.sign===direction)?0.5:1.5;
-    const delta=(choice.weight||50)*direction*mult*0.02;
+    if(currentTag) mult=(currentTag.sign===direction)?0.85:1.15;
+    const delta=(choice.weight||50)*direction*mult*0.03;
     const nv=clamp(current+delta,-100,100);
     const oldSign=Math.sign(current),newSign=Math.sign(nv);
     if(oldSign!==0&&newSign!==0&&oldSign!==newSign&&Math.abs(nv)>=TAG_ON){
@@ -1673,6 +1673,11 @@ function personalityAxes(){
   const axes={};
   for(const a of AXES) axes[a]=randInt(-25,25);
   if(Math.random()<0.7){const dom=pick(AXES);axes[dom]=randInt(50,90)*(Math.random()<0.5?1:-1);}
+  return axes;
+}
+function startingAxes(){
+  const axes={};
+  for(const a of AXES) axes[a]=randInt(-20,20);
   return axes;
 }
 function childAxesFrom(parentAxes){
@@ -2282,7 +2287,7 @@ function startNewGame(){
   const {first,surname}=randomName();
   const name=`${first} ${surname}`;
   G={
-    protagonist:{first,surname,name,age:0,lifespan:75+randInt(0,20),level:1,xp:0,axes:makeZeroAxes(),badges:[],transitions:{},isMain:true,nickname:null,brands:[]},
+    protagonist:{first,surname,name,age:0,lifespan:75+randInt(0,20),level:1,xp:0,axes:startingAxes(),badges:[],transitions:{},isMain:true,nickname:null,brands:[]},
     ship:generateShip(),
     crew:[makeCrewMember(true,undefined,undefined,[25,45])],
     child:null,spouse:null,grandchild:null,inheritedProfPreview:null,pregnancy:null,
