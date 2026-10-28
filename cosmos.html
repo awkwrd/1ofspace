@@ -3668,10 +3668,8 @@ function renderShip(){
   html+=stat('Щиты',s.shields,s.shieldsMax,'shields');
   html+=stat('Топливо',s.fuel,s.fuelMax||100,fuel<need?'fuellow':'fuel');
   html+=stat('Трюм',s.cargo,s.cargoMax||100,'cargo');
-  html+=`<div class="kv"><span>До станции</span><b>${need}</b></div>`;
   html+=statFixed('Двигатель',s.engine,'engine');
   html+=statFixed('Оружие',s.weapons,'weapons');
-  html+=stat('Трюм',s.cargo,100,'cargo');
   html+=stat('Экипаж',G.crew.length+1,s.crewMax,'crew');
   document.getElementById('shipCard').innerHTML=html;
 }
