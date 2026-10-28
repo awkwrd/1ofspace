@@ -1312,7 +1312,7 @@ const SHIP_EVENTS=[
     {label:'Подождать',weight:20,axes:{tempo:-1,risk:-1},log:'Не сейчас.',effects:{}},
   ]},
   {id:'ship_first_blood',title:'Боевое крещение',text:'Первый бой позади. Кто-то замечает отметину от снаряда — и улыбается.',spawn:()=> !G.ship.firstBlood && G.combatDone,choices:[
-    {label:'Осмотреть отметины',weight:50,axes:{tempo:-1,certainty:+1},log:'Тепло. Живой.',effects:{rep:+3},shipAxes:{sturdy:+5,renowned:+3,loyal:+2},customAction:'markFirstBlood'},
+    {label:'Осмотреть отметины',weight:50,axes:{tempo:-1,certainty:+1},log:'Над 16 шпангоутом проходит иссиня черная обугленная царапина в ладонь глубиной.',effects:{rep:+3},shipAxes:{sturdy:+5,renowned:+3,loyal:+2},customAction:'markFirstBlood'},
     {label:'Залатать и забыть',weight:30,axes:{firmness:+1},log:'Бой есть бой.',effects:{},shipAxes:{maintained:+3},customAction:'markFirstBlood'},
     {label:'Устроить праздник',weight:20,axes:{initiative:+1,tempo:+1},log:'Экипаж пьёт за победу.',effects:{credits:-2000,rep:+2},shipAxes:{warm:+3,loyal:+2},customAction:'markFirstBlood'},
   ]},
