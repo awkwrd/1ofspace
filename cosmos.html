@@ -1093,8 +1093,14 @@ function getMandatoryEvent(){
 }
 function canAdultEvents(){return G.isCaptain?G.protagonist.age>=15:G.protagonist.age>=18;}
 function maybeLogFlavor(force){
-  if(!force&&Math.random()>=0.20) return;
-  const isJoke=Math.random()<0.5;
+  let isJoke;
+  if(!force){
+    const roll=Math.random();
+    if(roll>=0.133) return;
+    isJoke=roll<0.033;
+  } else {
+    isJoke=Math.random()<0.5;
+  }
   const pool=isJoke?JOKES:DESCRIPTIONS;
   const used=G.recentFlavor||[];
   const available=pool.filter(t=>!used.includes(t));
