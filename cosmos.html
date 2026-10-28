@@ -1201,6 +1201,7 @@ function getMandatoryEvent(){
     if(nextChild&&G.protagonist.age>=nextChild.ageMin) return {...nextChild,isChild:true};
   } else {
     if(!G.isCaptain&&G.protagonist.age>=18&&!G.majorityEventDone) return makeMajorityEvent();
+    if(G.child&&G.child.age>=15&&!G.child.profChoiceMade) return makeHeirProfessionEvent();
   }
   return null;
 }
@@ -1718,7 +1719,19 @@ function advanceTime(months){
     G.timeMonths++;
     G.protagonist.age+=1/12;
     for(const c of G.crew){c.age=(c.age||25)+1/12;}
-    if(G.child) G.child.age+=1/12;
+    if(G.child){
+      G.child.age+=1/12;
+      if(G.child.studyMonthsLeft){
+        G.child.studyMonthsLeft--;
+        if(G.child.studyMonthsLeft<=0){
+          G.child.learnedProfession=G.child.studyProf;
+          const doneWord=G.child.gender==='ж'?'завершила':'завершил';
+          addLog(`🎓 ${G.child.name} ${doneWord} обучение: ${PROFESSIONS[G.child.learnedProfession].name}.`,'level');
+          G.child.studyProf=null;
+          G.child.studyMonthsLeft=null;
+        }
+      }
+    }
     if(G.spouse) G.spouse.age=(G.spouse.age||30)+1/12;
     if(G.parents) for(const p of G.parents) if(p.alive!==false) p.age+=1/12;
 
@@ -2037,6 +2050,12 @@ function loadAndContinue(){
   if(G.protagonist.wounded===undefined) G.protagonist.wounded=null;
   for(const c of G.crew){ if(c.sick===undefined) c.sick=null; }
   if(G.pregnancy===undefined) G.pregnancy=null;
+  if(G.child){
+    if(G.child.profChoiceMade===undefined) G.child.profChoiceMade=G.child.age>=15;
+    if(G.child.studyProf===undefined) G.child.studyProf=null;
+    if(G.child.studyMonthsLeft===undefined) G.child.studyMonthsLeft=null;
+    if(G.child.learnedProfession===undefined) G.child.learnedProfession=null;
+  }
   if(G.pet===undefined) G.pet=null;
   if(!G.learnedKnowledge) G.learnedKnowledge=[];
   if(!G.workedEvents) G.workedEvents=[];
@@ -2126,6 +2145,36 @@ function makeMajorityEvent(){
     choices.push({label:`Купить свой корабль (${SHIP_PURCHASE_PRICE} ${SC})`,weight:50,axes:{risk:+1,initiative:+1},log:'На верфи ты выбираешь свой корабль.',effects:{becomeCaptain:'buy'}});
   }
   return {id:'majority',title:'Совершеннолетие',text:'Тебе 18. Пора брать корабль под свою руку.',choices};
+}
+function makeHeirProfessionEvent(){
+  const learnable=Object.keys(PROFESSIONS).filter(id=>!PROFESSIONS[id].free_access&&!PROFESSIONS[id].requires);
+  const shuffled=learnable.slice().sort(()=>Math.random()-0.5);
+  const chosen=shuffled.slice(0,3);
+  const childName=G.child?.name||'Наследник';
+  const grewWord=G.child?.gender==='ж'?'подросла':'подрос';
+  const choices=chosen.map(profId=>{
+    const p=PROFESSIONS[profId];
+    return {
+      label:`${p.name} — ${p.study_months} мес, ${p.base_salary} ${SC}/мес`,
+      weight:50,
+      axes:{firmness:+1},
+      log:`${childName} начинает изучать ${p.name}.`,
+      effects:{heirProfession:profId}
+    };
+  });
+  choices.push({
+    label:'Пусть сам решит',
+    weight:10,
+    axes:{tempo:-1},
+    log:`Ты не вмешиваешься. ${childName} сам выберет путь.`,
+    effects:{heirProfDecline:true}
+  });
+  return {
+    id:'heir_profession',
+    title:`🎓 ${childName} ${grewWord}`,
+    text:`${childName} достиг(ла) 15 лет. Пора выбрать профессию — обучение займёт годы, но это вложение в династию.`,
+    choices
+  };
 }
 function makeChildCrushEvent(){
   const name=G.child?.name||'Наследник';
@@ -2402,6 +2451,18 @@ function applyEffects(e){
   if(e.dockNow){G.docked=true;}
   if(e.capitalOpportunity){G.capitalOpportunity=true;}
   if(e.noCapital){G.noCapital=true;}
+  if(e.heirProfession&&G.child){
+    const p=PROFESSIONS[e.heirProfession];
+    G.child.studyProf=e.heirProfession;
+    G.child.studyMonthsLeft=p.study_months;
+    G.child.profChoiceMade=true;
+    addLog(`🎓 ${G.child.name} начинает обучение: ${p.name} (${p.study_months} мес).`,'level');
+  }
+  if(e.heirProfDecline&&G.child){
+    G.child.profChoiceMade=true;
+    const declWord=G.child.gender==='ж'?'решила':'решил';
+    addLog(`🎓 ${G.child.name} ${declWord} сам(а). Что ж, это тоже выбор.`,'sys');
+  }
   if(G.ship.hull<=0 && !G._impendingDeath){
     G._impendingDeath = e.deathReason || 'Корпус не выдержал. Корабль становится обломком.';
   }
@@ -2431,7 +2492,7 @@ function makeChild(parent){
   const gender=pickGender();
   const first=gender==='м'?pick(MALE_NAMES):pick(FEMALE_NAMES);
   const surname=parent.surname;
-  return {first,surname,name:`${first} ${surname}`,gender,age:0,alive:true,axes:childAxesFrom(parent.axes)};
+  return {first,surname,name:`${first} ${surname}`,gender,age:0,alive:true,axes:childAxesFrom(parent.axes),profChoiceMade:false,studyProf:null,studyMonthsLeft:null,learnedProfession:null};
 }
 function delegateTo(memberIdx){
   const member=G.crew[memberIdx];
@@ -2625,7 +2686,7 @@ function protagonistDies(reason){
     G.pendingInheritance=true;
     G.currentEvent=null;G.combat=null;G.pilotingCourse=null;
     G.inheritedProfPreview=null;
-    if(Math.random()<0.5){
+    if(!heir.learnedProfession&&Math.random()<0.5){
       const inheritable=Object.keys(PROFESSIONS).filter(id=>!PROFESSIONS[id].free_access&&!PROFESSIONS[id].requires);
       if(inheritable.length) G.inheritedProfPreview=pick(inheritable);
     }
@@ -2651,7 +2712,9 @@ function showInheritanceScene(heir,reason){
     <p style="color:var(--muted);font-size:12px">Корабль «${G.ship.name}» сохраняет свой характер: ${shipTags}.</p>
     <p style="color:var(--muted);font-size:12px">Репутация: ${G.rep} (${getRepTier(G.rep).name}) → ${Math.round(G.rep*0.35)+(G.dynastyCapital?5:0)} (${getRepTier(Math.round(G.rep*0.35)+(G.dynastyCapital?5:0)).name})${G.dynastyCapital?' <span style="color:#61d095">· +5 от столицы</span>':''}</p>
     <p style="color:var(--muted);font-size:12px">Экипаж остаётся верен династии.</p>
-    ${G.inheritedProfPreview?`<p style="color:#9fd3ff;font-size:13px;margin-top:6px">🪶 Наследие: ${PROFESSIONS[G.inheritedProfPreview].name}</p>`:''}
+    ${heir.learnedProfession
+      ? `<p style="color:#9fd3ff;font-size:13px;margin-top:6px">🎓 Наследник выучил(а): ${PROFESSIONS[heir.learnedProfession].name}</p>`
+      : (G.inheritedProfPreview?`<p style="color:#9fd3ff;font-size:13px;margin-top:6px">🪶 Наследие: ${PROFESSIONS[G.inheritedProfPreview].name}</p>`:'')}
     <div style="margin-top:14px"><button onclick="inheritAndContinue()">Продолжить как ${heir.name}</button></div>
   </div>`;
 }
@@ -2675,7 +2738,10 @@ window.inheritAndContinue=function(){
   G.activeContract=null;
   G.studying=null;
   G.professions=Object.fromEntries(Object.keys(PROFESSIONS).map(k=>[k,false]));
-  if(G.inheritedProfPreview){
+  if(heir.learnedProfession){
+    G.professions[heir.learnedProfession]=true;
+    addLog(`🎓 Ты уже выучил(а): ${PROFESSIONS[heir.learnedProfession].name}.`,'level');
+  } else if(G.inheritedProfPreview){
     G.professions[G.inheritedProfPreview]=true;
     addLog(`🪶 Наследие: ты помнишь уроки родителя. Профессия «${PROFESSIONS[G.inheritedProfPreview].name}» доступна.`,'level');
   }
@@ -2907,7 +2973,14 @@ function renderProtagonist(){
   }
   if(G.child){
     const chIcon=G.child.gender==='ж'?'👶♀':'👶♂';
-    famParts.push(`${chIcon} ${G.child.name.split(' ')[0]} (${Math.floor(G.child.age)})${G.child.hasCrush?' 💕':''}`);
+    const crush=G.child.hasCrush?' 💕':'';
+    let study='';
+    if(G.child.learnedProfession){
+      study=` 🎓 ${PROFESSIONS[G.child.learnedProfession].name}`;
+    } else if(G.child.studyMonthsLeft&&G.child.studyProf){
+      study=` 🎓 ${PROFESSIONS[G.child.studyProf].name} (${G.child.studyMonthsLeft})`;
+    }
+    famParts.push(`${chIcon} ${G.child.name.split(' ')[0]} (${Math.floor(G.child.age)})${crush}${study}`);
   }
   if(G.grandchild){
     const gcIcon=G.grandchild.gender==='ж'?'👶♀':'👶♂';
