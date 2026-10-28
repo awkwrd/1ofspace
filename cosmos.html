@@ -249,6 +249,16 @@ const STAR_SYSTEMS=[
   {id:'kruger60',name:'Крюгер 60',x:11,y:7,distance:13.1,type:'M3V + M4V',facts:'Двойная система красных карликов. Обе компоненты — вспыхивающие звёзды.'},
 ];
 
+const CREW_DISEASES=[
+  {id:'cold',name:'Простуда',minMonths:2,maxMonths:4,penalty:{tempo:-3,certainty:-3},desc:'Кашляет и шмыгает носом.'},
+  {id:'insomnia',name:'Космическая бессонница',minMonths:3,maxMonths:6,penalty:{certainty:-5,tempo:-2},desc:'Не спит третьи сутки.'},
+  {id:'food_poison',name:'Пищевое отравление',minMonths:1,maxMonths:2,penalty:{tempo:-10,firmness:-5},desc:'Съел что-то не то на камбузе.'},
+  {id:'anxiety',name:'Тревожное расстройство',minMonths:4,maxMonths:8,penalty:{initiative:-8,certainty:-5},desc:'Вздрагивает от каждого шума.'},
+  {id:'old_injury',name:'Старая травма',minMonths:6,maxMonths:12,penalty:{risk:-8,firmness:-5},desc:'Колено или спина даёт о себе знать.'},
+  {id:'radiation_sick',name:'Лёгкое облучение',minMonths:4,maxMonths:8,penalty:{firmness:-10,certainty:-5},desc:'Доза была небольшой, но неприятной.'},
+];
+const LETHAL_DISEASES=[
+
 const LETHAL_DISEASES=[
   {id:'muscle_atrophy',name:'Космическая атрофия мышц',desc:'Мышцы теряют силу.'},
   {id:'retina_flicker',name:'Синдром мерцающей сетчатки',desc:'В глазах вспышки света.'},
@@ -278,14 +288,14 @@ const BRANDS={
 };
 
 const COMBAT_ACTIONS=[
-  {id:'attack',label:'⚔ Атаковать',desc:'Залп из всех орудий.',scoreGain:18,hullCost:{min:3,max:8}},
+  {id:'attack',label:'⚔ Атаковать',desc:'Залп из всех орудий.',scoreGain:18,hullCost:{min:10,max:20}},
   {id:'evade',label:'💨 Уклоняться',desc:'Уйти от залпа.',scoreGain:10,fuelCost:{min:3,max:7}},
   {id:'talk',label:'🗣 Надавить',desc:'Уговорить или напугать.',scoreGain:12},
   {id:'retreat',label:'🏃 Отступить',desc:'Выйти из боя. −10.',exits:true},
 ];
 const COMBAT_CONFIGS={
-  pirates_main:{enemyName:'Пиратский перехватчик «Клык»',maxRounds:4,winScore:70,loseScore:40,rewards:{min:400,max:800},failDamage:{min:5,max:12},descs:['Первый залп. Каждый разворот отдаётся в костях.','Звук снарядов глухой. ЭМИ-индикатор пищит.','Механик ругается под нос.','Последний раунд. Пираты что-то кричат.']},
-  alien_main:{enemyName:'Чужой крейсер Неизвестных',maxRounds:6,winScore:95,loseScore:60,rewards:{min:3000,max:8000},failDamage:{min:15,max:30},descs:['Крейсер больше твоего в три раза.','Луч неизвестной природы проходит сквозь щиты.','На мониторе — конструкция, которой не может быть.','На частоте — странный сигнал.','Гравитация искажается.','Последний раунд.']},
+  pirates_main:{enemyName:'Пиратский перехватчик «Клык»',maxRounds:4,winScore:70,loseScore:40,rewards:{min:400,max:800},failDamage:{min:15,max:30},descs:['Первый залп. Каждый разворот отдаётся в костях.','Звук снарядов глухой. ЭМИ-индикатор пищит.','Механик ругается под нос.','Последний раунд. Пираты что-то кричат.']},
+  alien_main:{enemyName:'Чужой крейсер Неизвестных',maxRounds:6,winScore:95,loseScore:60,rewards:{min:3000,max:8000},failDamage:{min:30,max:50},descs:['Крейсер больше твоего в три раза.','Луч неизвестной природы проходит сквозь щиты.','На мониторе — конструкция, которой не может быть.','На частоте — странный сигнал.','Гравитация искажается.','Последний раунд.']},
 };
 const PILOTING_ACTIONS=[
   {id:'listen',label:'🎧 Слушать инструктора',desc:'Внимать.',gain:8},
@@ -1721,6 +1731,194 @@ function advanceTime(months){
       }
     }
 
+    // 🤒 болезни экипажа
+    const hasDoctorOnBoard=G.crew.some(c=>c.role==='Врач');
+    for(const c of G.crew){
+      if(c.sick){
+        c.sick.monthsLeft--;
+        if(c.sick.monthsLeft<=0){
+          for(const [a,p] of Object.entries(c.sick.penalty)){
+            c.axes[a]=clamp((c.axes[a]||0)-p,-100,100);
+          }
+          c.badges=resolveBadges(c);
+          addLog(`🩹 ${c.name} поправился. ${c.sick.name} прошла.`,'level');
+          c.sick=null;
+        }
+      }
+    }
+    // заражение — раз в год
+    if(G.timeMonths%12===0){
+      for(const c of G.crew){
+        if(c.sick) continue;
+        const chance=hasDoctorOnBoard?0.03:0.06;
+        if(Math.random()<chance){
+          const d=pick(CREW_DISEASES);
+          let months=randInt(d.minMonths,d.maxMonths);
+          if(hasDoctorOnBoard) months=Math.max(1,Math.round(months*0.5));
+          c.sick={id:d.id,name:d.name,monthsLeft:months,penalty:{...d.penalty}};
+          for(const [a,p] of Object.entries(d.penalty)){
+            c.axes[a]=clamp((c.axes[a]||0)+p,-100,100);
+          }
+          c.badges=resolveBadges(c);
+          addLog(`🤒 ${c.name} заболел: ${d.name} (${months} мес). ${d.desc}`,'sys');
+        }
+      }
+    }
+
+    // 🩸 ранение протагониста
+    if(G.protagonist.wounded){
+      G.protagonist.wounded.monthsLeft--;
+      if(G.protagonist.wounded.monthsLeft<=0){
+        for(const [a,p] of Object.entries(G.protagonist.wounded.penalty)){
+          G.protagonist.axes[a]=clamp((G.protagonist.axes[a]||0)-p,-100,100);
+        }
+        G.protagonist.badges=resolveBadges(G.protagonist);
+        G.protagonist.wounded=null;
+        addLog('🩹 Ты поправился. Раны зажили.','level');
+      }
+    }
+
+    // 🤒 болезни экипажа
+    const hasDoctorOnBoard=G.crew.some(c=>c.role==='Врач');
+    for(const c of G.crew){
+      if(c.sick){
+        c.sick.monthsLeft--;
+        if(c.sick.monthsLeft<=0){
+          for(const [a,p] of Object.entries(c.sick.penalty)){
+            c.axes[a]=clamp((c.axes[a]||0)-p,-100,100);
+          }
+          c.badges=resolveBadges(c);
+          addLog(`🩹 ${c.name} поправился. ${c.sick.name} прошла.`,'level');
+          c.sick=null;
+        }
+      }
+    }
+    // заражение — раз в год
+    if(G.timeMonths%12===0){
+      for(const c of G.crew){
+        if(c.sick) continue;
+        const chance=hasDoctorOnBoard?0.03:0.06;
+        if(Math.random()<chance){
+          const d=pick(CREW_DISEASES);
+          let months=randInt(d.minMonths,d.maxMonths);
+          if(hasDoctorOnBoard) months=Math.max(1,Math.round(months*0.5));
+          c.sick={id:d.id,name:d.name,monthsLeft:months,penalty:{...d.penalty}};
+          for(const [a,p] of Object.entries(d.penalty)){
+            c.axes[a]=clamp((c.axes[a]||0)+p,-100,100);
+          }
+          c.badges=resolveBadges(c);
+          addLog(`🤒 ${c.name} заболел: ${d.name} (${months} мес). ${d.desc}`,'sys');
+        }
+      }
+    }
+
+    // 🩸 ранение протагониста
+    if(G.protagonist.wounded){
+      G.protagonist.wounded.monthsLeft--;
+      if(G.protagonist.wounded.monthsLeft<=0){
+        for(const [a,p] of Object.entries(G.protagonist.wounded.penalty)){
+          G.protagonist.axes[a]=clamp((G.protagonist.axes[a]||0)-p,-100,100);
+        }
+        G.protagonist.badges=resolveBadges(G.protagonist);
+        G.protagonist.wounded=null;
+        addLog('🩹 Ты поправился. Раны зажили.','level');
+      }
+    }
+
+    // 🤒 болезни экипажа
+    const hasDoctorOnBoard=G.crew.some(c=>c.role==='Врач');
+    for(const c of G.crew){
+      if(c.sick){
+        c.sick.monthsLeft--;
+        if(c.sick.monthsLeft<=0){
+          for(const [a,p] of Object.entries(c.sick.penalty)){
+            c.axes[a]=clamp((c.axes[a]||0)-p,-100,100);
+          }
+          c.badges=resolveBadges(c);
+          addLog(`🩹 ${c.name} поправился. ${c.sick.name} прошла.`,'level');
+          c.sick=null;
+        }
+      }
+    }
+    // заражение — раз в год
+    if(G.timeMonths%12===0){
+      for(const c of G.crew){
+        if(c.sick) continue;
+        const chance=hasDoctorOnBoard?0.03:0.06;
+        if(Math.random()<chance){
+          const d=pick(CREW_DISEASES);
+          let months=randInt(d.minMonths,d.maxMonths);
+          if(hasDoctorOnBoard) months=Math.max(1,Math.round(months*0.5));
+          c.sick={id:d.id,name:d.name,monthsLeft:months,penalty:{...d.penalty}};
+          for(const [a,p] of Object.entries(d.penalty)){
+            c.axes[a]=clamp((c.axes[a]||0)+p,-100,100);
+          }
+          c.badges=resolveBadges(c);
+          addLog(`🤒 ${c.name} заболел: ${d.name} (${months} мес). ${d.desc}`,'sys');
+        }
+      }
+    }
+
+    // 🩸 ранение протагониста
+    if(G.protagonist.wounded){
+      G.protagonist.wounded.monthsLeft--;
+      if(G.protagonist.wounded.monthsLeft<=0){
+        for(const [a,p] of Object.entries(G.protagonist.wounded.penalty)){
+          G.protagonist.axes[a]=clamp((G.protagonist.axes[a]||0)-p,-100,100);
+        }
+        G.protagonist.badges=resolveBadges(G.protagonist);
+        G.protagonist.wounded=null;
+        addLog('🩹 Ты поправился. Раны зажили.','level');
+      }
+    }
+
+    // 🤒 болезни экипажа
+    const hasDoctorOnBoard=G.crew.some(c=>c.role==='Врач');
+    for(const c of G.crew){
+      if(c.sick){
+        c.sick.monthsLeft--;
+        if(c.sick.monthsLeft<=0){
+          for(const [a,p] of Object.entries(c.sick.penalty)){
+            c.axes[a]=clamp((c.axes[a]||0)-p,-100,100);
+          }
+          c.badges=resolveBadges(c);
+          addLog(`🩹 ${c.name} поправился. ${c.sick.name} прошла.`,'level');
+          c.sick=null;
+        }
+      }
+    }
+    // заражение — раз в год
+    if(G.timeMonths%12===0){
+      for(const c of G.crew){
+        if(c.sick) continue;
+        const chance=hasDoctorOnBoard?0.03:0.06;
+        if(Math.random()<chance){
+          const d=pick(CREW_DISEASES);
+          let months=randInt(d.minMonths,d.maxMonths);
+          if(hasDoctorOnBoard) months=Math.max(1,Math.round(months*0.5));
+          c.sick={id:d.id,name:d.name,monthsLeft:months,penalty:{...d.penalty}};
+          for(const [a,p] of Object.entries(d.penalty)){
+            c.axes[a]=clamp((c.axes[a]||0)+p,-100,100);
+          }
+          c.badges=resolveBadges(c);
+          addLog(`🤒 ${c.name} заболел: ${d.name} (${months} мес). ${d.desc}`,'sys');
+        }
+      }
+    }
+
+    // 🩸 ранение протагониста
+    if(G.protagonist.wounded){
+      G.protagonist.wounded.monthsLeft--;
+      if(G.protagonist.wounded.monthsLeft<=0){
+        for(const [a,p] of Object.entries(G.protagonist.wounded.penalty)){
+          G.protagonist.axes[a]=clamp((G.protagonist.axes[a]||0)-p,-100,100);
+        }
+        G.protagonist.badges=resolveBadges(G.protagonist);
+        G.protagonist.wounded=null;
+        addLog('🩹 Ты поправился. Раны зажили.','level');
+      }
+    }
+
     if(!G.ship.stranded){
       G.ship.fuel=Math.max(0,G.ship.fuel-0.15);
       if(G.ship.fuel<=0){
@@ -1973,6 +2171,8 @@ function loadAndContinue(){
   if(!G.protagonist.brands) G.protagonist.brands=[];
   if(!G.recentFlavor) G.recentFlavor=[];
   if(!G.parents) G.parents=generateParents(G.protagonist.surname);
+  if(G.protagonist.wounded===undefined) G.protagonist.wounded=null;
+  for(const c of G.crew){ if(c.sick===undefined) c.sick=null; }
   if(G.pregnancy===undefined) G.pregnancy=null;
   if(G.pet===undefined) G.pet=null;
   if(!G.learnedKnowledge) G.learnedKnowledge=[];
@@ -2402,7 +2602,7 @@ window.performCombatAction=function(actionId){
   let logEntry=`Раунд ${c.round}: ${action.label}`;
   if(action.id==='attack'){
     const cost=randInt(action.hullCost.min,action.hullCost.max);
-    G.ship.hull=Math.max(1,G.ship.hull-cost);
+    G.ship.hull=Math.max(0,G.ship.hull-cost);
     gain+=Math.round(shipCombatBonus());
     logEntry+=` — попадание. −${cost} корпуса. +${gain}.`;
   }
@@ -2430,7 +2630,7 @@ window.performCombatAction=function(actionId){
   c.log.push(logEntry);
   addLog(logEntry,'combat');
   c.round++;
-  if(c.round>c.maxRounds){c.resolved=true;}
+  if(c.round>c.maxRounds||G.ship.hull<=0){c.resolved=true;}
   saveGame();renderAll();
   if(c.resolved) resolveCombat(); else renderPanel();
 };
@@ -2444,26 +2644,60 @@ function resolveCombat(){
     else if(c.score<config.loseScore) G.stats.defeats++;
   }
   addLog(`Бой окончен. Счёт: ${c.score} (порог ${config.winScore}).`,'combat');
+  
   if(c.score>=config.winScore){
     const reward=randInt(config.rewards.min,config.rewards.max);
     G.credits+=reward;
     G.rep=clamp(G.rep+5,-100,100);
     applyShipDrift({renowned:+2,sturdy:+1});
     addLog(`🏆 Победа. +${reward} ${SC}, +5 репутации.`,'level');
-  } else if(c.score>=config.loseScore){
-    addLog('Ничья. Противник уходит.','sys');
-    G.ship.fuel=Math.max(0,G.ship.fuel-5);
-  } else {
-    const dmg=randInt(config.failDamage.min,config.failDamage.max);
-    G.ship.hull=Math.max(1,G.ship.hull-dmg);
-    G.rep=clamp(G.rep-3,-100,100);
-    addLog(`Поражение. −${dmg} корпуса, −3 репутации.`,'death');
+    // 5% шанс, что в бою кого-то зацепило
     if(Math.random()<0.05&&G.crew.length>0){
       const removed=G.crew.pop();
       if(G.stats) G.stats.crewLost++;
-      addLog(`${removed.name} погиб в бою.`,'death');
+      addLog(`${removed.name} не пережил бой. Осколок в шлеме.`,'death');
+    }
+  } else if(c.score>=config.loseScore){
+    addLog('Ничья. Противник уходит, но вы потрёпаны.','sys');
+    G.ship.fuel=Math.max(0,G.ship.fuel-5);
+    if(Math.random()<0.10&&G.crew.length>0){
+      const removed=G.crew.pop();
+      if(G.stats) G.stats.crewLost++;
+      addLog(`${removed.name} погибает от полученных ранений.`,'death');
+    }
+  } else {
+    const failMargin=config.loseScore-c.score;
+    const dmg=randInt(config.failDamage.min,config.failDamage.max)+Math.floor(failMargin/2);
+    G.ship.hull=Math.max(0,G.ship.hull-dmg);
+    G.rep=clamp(G.rep-3,-100,100);
+    addLog(`Поражение. −${dmg} корпуса, −3 репутации.`,'death');
+    // шанс гибели экипажа растёт с провалом: 20% базово + 1% за каждое очко ниже
+    const crewDeathChance=Math.min(0.55, 0.20+failMargin*0.01);
+    if(Math.random()<crewDeathChance&&G.crew.length>0){
+      const removed=G.crew.pop();
+      if(G.stats) G.stats.crewLost++;
+      addLog(`${removed.name} погибает в бою.`,'death');
+    }
+    // шанс ранения протагониста
+    if(Math.random()<0.30&&!G.protagonist.wounded){
+      const m=randInt(3,6);
+      const pen={tempo:-10,firmness:-10};
+      G.protagonist.wounded={monthsLeft:m,penalty:pen};
+      for(const [a,p] of Object.entries(pen)){
+        G.protagonist.axes[a]=clamp((G.protagonist.axes[a]||0)+p,-100,100);
+      }
+      addLog(`🩸 Ты ранен. −10 к темпу и твёрдости на ${m} мес.`,'death');
     }
   }
+  
+  if(G.ship.hull<=0){
+    G.combat=null;
+    timeSpeed=1;startTimeFlow();renderTimeControls();
+    saveGame();renderAll();
+    endGame('Корабль разорвало в бою. Ты не успел покинуть борт.');
+    return;
+  }
+  
   G.combat=null;
   G.actionCooldown=randInt(8,14);
   timeSpeed=1;startTimeFlow();renderTimeControls();
@@ -2567,7 +2801,7 @@ window.inheritAndContinue=function(){
   G.dynastyGeneration=(G.dynastyGeneration||1)+1;
   if(!G.dynastyName) G.dynastyName=G.protagonist.surname;
   const base={axes:heir.axes,transitions:{}};
-  G.protagonist={first:heir.first,surname:heir.surname,name:heir.name,gender:heir.gender||pickGender(),age:heir.age,lifespan:75+randInt(0,20),level:1,xp:0,axes:heir.axes,transitions:{},badges:resolveBadges(base),isMain:true,nickname:null,brands:[]};
+  G.protagonist={first:heir.first,surname:heir.surname,name:heir.name,gender:heir.gender||pickGender(),age:heir.age,lifespan:75+randInt(0,20),level:1,xp:0,axes:heir.axes,transitions:{},badges:resolveBadges(base),isMain:true,nickname:null,brands:[],wounded:null};
   G.child=null;G.spouse=null;G.grandchild=null;G.pregnancy=null;
   G.pendingInheritance=false;G.deathRolled=false;G.over=false;
   G.activeContract=null;
@@ -2835,7 +3069,7 @@ function renderProtagonist(){
   const repBarHtml=`<div class="axis" style="margin-top:6px"><span class="axis-label" style="color:${repTier.color};font-weight:600">${repTier.name}</span><div class="axis-bar" style="height:8px"><div class="axis-center"></div><div class="axis-fill" style="${repFillStyle};background:${repTier.color}"></div></div><span class="axis-val" style="color:${repTier.color}">${repPct>0?'+':''}${Math.round(repPct)}</span></div>`;
 
   document.getElementById('protagonistCard').innerHTML=`
-    <h2>${p.name} ${p.nickname?`<span class="badge nick">«${p.nickname}»</span>`:''} <span style="color:var(--muted);font-size:12px">ур. ${p.level} · ${stage}</span></h2>
+    <h2>${p.name} ${p.nickname?`<span class="badge nick">«${p.nickname}»</span>`:''} ${p.wounded?`<span class="badge" style="background:#3d1f1f;border-color:#6c3b3b;color:#ffc8c8">🩸 ранен (${p.wounded.monthsLeft})</span>`:''} <span style="color:var(--muted);font-size:12px">ур. ${p.level} · ${stage}</span></h2>
     <p>Возраст: ${Math.floor(p.age)} · Поколение ${G.dynastyGeneration||1} ${captainLabel}</p>
     ${renderAxes(p)}${renderTagsBadges(p,tags,badges)}${brandsHtml}
     ${repBarHtml}
