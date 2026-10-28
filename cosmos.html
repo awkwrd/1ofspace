@@ -150,79 +150,24 @@ label.form{display:block;font-size:12px;color:var(--muted);margin:6px 0 3px}
 .modal-box input{font:inherit;background:#0a1222;color:var(--text);border:1px solid #2c4266;border-radius:10px;padding:12px 14px;width:100%;font-size:16px;margin-bottom:14px;min-height:48px}
 .modal-box input:focus{outline:none;border-color:#73b8ff;box-shadow:0 0 0 3px rgba(115,184,255,.2)}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
-/* ============================================================
-   THEME OVERRIDE — amber & copper, no blue dominance
-   ============================================================ */
-:root{
-  --bg:#14110d;
-  --panel:#1e1811;
-  --panel2:#2a2218;
-  --border:#4a3a26;
-  --accent:#f0a742;
-  --text:#f0e6d2;
-  --muted:#a89070;
-  --success:#7be6a5;
-  --warn:#ffcc5c;
-  --danger:#ff6b5c;
-  --ship:#5ce0c8;
-  --combat:#c46bff;
-  --brand:#e0663b;
-  --love:#ff7aa8;
-}
-
-body{
-  background:
-    radial-gradient(circle at 20% 10%, #3a2410 0%, transparent 45%),
-    radial-gradient(circle at 80% 90%, #3d1a1a 0%, transparent 50%),
-    linear-gradient(180deg, #14110d 0%, #0a0806 100%);
-  color:var(--text);
-}
-
+/* THEME OVERRIDE */
+:root{--bg:#14110d;--panel:#1e1811;--panel2:#2a2218;--border:#4a3a26;--accent:#f0a742;--text:#f0e6d2;--muted:#a89070;--success:#7be6a5;--warn:#ffcc5c;--danger:#ff6b5c;--ship:#5ce0c8;--combat:#c46bff;--brand:#e0663b;--love:#ff7aa8}
+body{background:radial-gradient(circle at 20% 10%, #3a2410 0%, transparent 45%),radial-gradient(circle at 80% 90%, #3d1a1a 0%, transparent 50%),linear-gradient(180deg, #14110d 0%, #0a0806 100%);color:var(--text)}
 h1{color:#f0c070;text-shadow:0 0 30px rgba(240,167,66,.5)}
-
-/* Карточки и панели — тёплые, с мягким свечением */
-.card{
-  background:linear-gradient(180deg, rgba(42,34,24,.92), rgba(30,24,17,.94));
-  border:1px solid var(--border);
-  box-shadow:0 4px 20px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,200,120,.05);
-}
+.card{background:linear-gradient(180deg, rgba(42,34,24,.92), rgba(30,24,17,.94));border:1px solid var(--border);box-shadow:0 4px 20px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,200,120,.05)}
 .card h2{color:#f0c070}
-.card p{color:var(--muted)}
-.kv b{color:var(--text)}
-
-.panel{
-  background:linear-gradient(180deg, rgba(42,34,24,.92), rgba(30,24,17,.94));
-  border:1px solid var(--border);
-  box-shadow:0 4px 20px rgba(0,0,0,.45);
-}
+.panel{background:linear-gradient(180deg, rgba(42,34,24,.92), rgba(30,24,17,.94));border:1px solid var(--border);box-shadow:0 4px 20px rgba(0,0,0,.45)}
 .panel h3{color:#f0c070}
 .panel h4{color:#f0a742;border-bottom-color:var(--border)}
-
-/* Кнопки — медь и латунь */
-button{
-  background:linear-gradient(180deg,#5a3a1a,#3a2410);
-  border:1px solid #7a5428;
-  color:#f5e8d0;
-  box-shadow:0 2px 8px rgba(0,0,0,.3);
-}
-button:hover:not(:disabled){
-  border-color:#f0a742;
-  box-shadow:0 0 14px rgba(240,167,66,.35), 0 2px 8px rgba(0,0,0,.3);
-}
+button{background:linear-gradient(180deg,#5a3a1a,#3a2410);border:1px solid #7a5428;color:#f5e8d0;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+button:hover:not(:disabled){border-color:#f0a742;box-shadow:0 0 14px rgba(240,167,66,.35), 0 2px 8px rgba(0,0,0,.3)}
 button.secondary{background:linear-gradient(180deg,#2a2218,#1a140d);border-color:#5a4022}
-button.active{
-  background:linear-gradient(180deg,#a06a20,#6a4810);
-  border-color:#f0a742;
-  box-shadow:0 0 16px rgba(240,167,66,.5);
-}
+button.active{background:linear-gradient(180deg,#a06a20,#6a4810);border-color:#f0a742;box-shadow:0 0 16px rgba(240,167,66,.5)}
 button.icon-btn{background:transparent;border-color:#7a5428}
-button.icon-btn:hover{border-color:#f0a742;box-shadow:0 0 10px rgba(240,167,66,.4)}
 button.delegate{border-color:#c46bff;background:linear-gradient(180deg,#3a2255,#221533);color:#eadcff}
 button.combat-btn{border-color:#c46bff;background:linear-gradient(180deg,#3a1a55,#221033);color:#eadcff}
 button.fire-btn{background:#3a1518;border-color:#c44040;color:#ffb8b8}
 button.love-btn{border-color:#ff7aa8;background:linear-gradient(180deg,#5a1a33,#3a1022);color:#ffd9e8}
-
-/* Бейджи */
 .badge{background:#3a2a1a;border-color:#7a5428;color:#f0dcc0}
 .badge.nick{background:#3a2255;border-color:#8b6bff;color:#e8d4ff}
 .badge.tag{background:#1f4a2d;border-color:#4a9c5a;color:#c8ffd8}
@@ -234,8 +179,6 @@ button.love-btn{border-color:#ff7aa8;background:linear-gradient(180deg,#5a1a33,#
 .badge.regent{background:#4a1f4a;border-color:#9c4a9c;color:#ffc8ff}
 .badge.love{background:#4a1f36;border-color:#ff7aa8;color:#ffd9e8}
 .badge.strength{background:#4a4a1f;border-color:#c4c44a;color:#ffefb8}
-
-/* Шкалы — ярче, тёплый фон */
 .axis-bar{height:8px;background:#0a0806;border-color:#3a2a1a}
 .axis-fill{background:#f0a742;box-shadow:0 0 6px rgba(240,167,66,.6)}
 .axis-fill.neg{background:#e0663b;box-shadow:0 0 6px rgba(224,102,59,.5)}
@@ -243,7 +186,6 @@ button.love-btn{border-color:#ff7aa8;background:linear-gradient(180deg,#5a1a33,#
 .axis-fill.shipfill.neg{background:#a06abf;box-shadow:0 0 6px rgba(160,106,191,.5)}
 .axis-center{background:#3a2a1a}
 .axis-val{color:#f0dcc0;font-weight:600}
-
 .stat-bar{height:8px;background:#0a0806;border-color:#3a2a1a}
 .stat-fill{box-shadow:0 0 6px currentColor}
 .stat-fill.hull{background:#7be6a5}
@@ -255,12 +197,7 @@ button.love-btn{border-color:#ff7aa8;background:linear-gradient(180deg,#5a1a33,#
 .stat-fill.cargo{background:#c4a06b}
 .stat-fill.crew{background:#e0b050}
 .stat-val{color:#f0e6d2;font-weight:600}
-
-/* Лог — тёплый фон, тёмный текст для контраста */
-.log{
-  background:linear-gradient(180deg, rgba(20,16,12,.9), rgba(12,10,7,.92));
-  border:1px solid var(--border);
-}
+.log{background:linear-gradient(180deg, rgba(20,16,12,.9), rgba(12,10,7,.92));border:1px solid var(--border)}
 .log-line{color:#d8c8b0}
 .log-line.start{color:#f0c070}
 .log-line.event{color:#f0e6d2}
@@ -278,58 +215,27 @@ button.love-btn{border-color:#ff7aa8;background:linear-gradient(180deg,#5a1a33,#
 .log-line.love{color:#ff7aa8}
 .log-line.combat{color:#c46bff}
 .log-line.end{color:#ffcc5c;font-weight:600}
-
-/* Табы */
 .tabs{border-bottom-color:var(--border)}
 .tabs button{color:var(--muted)}
 .tabs button.active{color:#f0c070;border-bottom-color:var(--accent)}
-
-/* Время */
-.time-block{
-  background:linear-gradient(180deg, rgba(42,34,24,.92), rgba(30,24,17,.94));
-  border:1px solid var(--border);
-  box-shadow:0 4px 20px rgba(0,0,0,.45);
-}
+.time-block{background:linear-gradient(180deg, rgba(42,34,24,.92), rgba(30,24,17,.94));border:1px solid var(--border);box-shadow:0 4px 20px rgba(0,0,0,.45)}
 .time-label{color:#f0e6d2}
 .time-label b{color:#f0c070}
 .time-label .age{color:#ffcc5c}
-.time-label .life{color:#7be6a5}
 .time-bar{background:#0a0806;border-color:#3a2a1a;height:12px}
-.time-fill{
-  background:linear-gradient(90deg,#f0a742,#ffcc5c,#7be6a5);
-  box-shadow:0 0 10px rgba(240,167,66,.5);
-}
+.time-fill{background:linear-gradient(90deg,#f0a742,#ffcc5c,#7be6a5);box-shadow:0 0 10px rgba(240,167,66,.5)}
 .time-bar-mini{background:#0a0806;border-color:#3a2a1a}
 .time-fill-mini{background:linear-gradient(90deg,#7be6a5,#5ce0c8)}
-
-/* Баннеры */
 .banner.danger{background:rgba(255,107,92,.15);border-color:#ff6b5c;color:#ffb8b0}
 .banner.warn{background:rgba(255,204,92,.15);border-color:#ffcc5c;color:#ffe8b8}
-
-/* Боевая панель — фиолетово-багровая, контраст к янтарю */
-.combat-panel{
-  background:linear-gradient(135deg, rgba(60,30,80,.95), rgba(30,10,20,.95));
-  border-color:#c46bff;
-  box-shadow:0 0 40px rgba(196,107,255,.35);
-}
-
-/* Модалки */
-.modal-box{
-  background:linear-gradient(180deg,#2a2218,#1e1811);
-  border-color:#7a5428;
-  box-shadow:0 20px 60px rgba(0,0,0,.8), 0 0 40px rgba(240,167,66,.15);
-}
+.combat-panel{background:linear-gradient(135deg, rgba(60,30,80,.95), rgba(30,10,20,.95));border-color:#c46bff;box-shadow:0 0 40px rgba(196,107,255,.35)}
+.modal-box{background:linear-gradient(180deg,#2a2218,#1e1811);border-color:#7a5428;box-shadow:0 20px 60px rgba(0,0,0,.8), 0 0 40px rgba(240,167,66,.15)}
 .modal-box h3{color:#f0c070}
 .modal-box input{background:#14110d;border-color:#5a4022;color:#f0e6d2}
 .modal-box input:focus{border-color:#f0a742;box-shadow:0 0 0 3px rgba(240,167,66,.3)}
-
-/* select */
 select{background:#14110d;border-color:#5a4022;color:#f0e6d2}
 select:focus{outline:none;border-color:#f0a742;box-shadow:0 0 0 3px rgba(240,167,66,.3)}
-
-/* identity reveal всё ещё скрыт */
 .identity-reveal{display:none}
-
 </style>
 </head>
 <body>
@@ -525,7 +431,8 @@ const PILOTING_ROUND_DESCS=['Инструктор раскладывает сх�
 const SPECIALISTS=[
   {id:'cook',name:'Кок',cost:8000,bonus:{warm:+5},desc:'+5 СЖО',tier:'базовый'},
   {id:'mechanic',name:'Механик',cost:10000,bonus:{engine:+10},desc:'+10 двигатель',tier:'базовый'},
-  {id:'quartermaster',name:'Квартирмейстер',cost:14000,bonus:{maintained:+15,warm:+3,loyal:+2},desc:'+15 ухоженность сразу + тянет к +70/+85/+100 по уровню',tier:'средний'},  {id:'doctor',name:'Врач',cost:14000,bonus:{},desc:'снижает риск гибели и болезней',tier:'средний'},
+  {id:'quartermaster',name:'Квартирмейстер',cost:14000,bonus:{maintained:+15,warm:+3,loyal:+2},desc:'+15 ухоженность сразу + тянет к +70/+85/+100 по уровню',tier:'средний'},
+  {id:'doctor',name:'Врач',cost:14000,bonus:{},desc:'снижает риск гибели и болезней',tier:'средний'},
   {id:'navigator',name:'Навигатор',cost:15000,bonus:{jumpworthy:+5},desc:'+5 джампдрайв',tier:'средний'},
   {id:'shield_eng',name:'Инженер щитов',cost:16000,bonus:{shieldsMax:+30,shields:+30},desc:'+30 щиты',tier:'средний'},
   {id:'gunner',name:'Стрелок',cost:24000,bonus:{weapons:+15},desc:'+15 оружие',tier:'элитный'},
@@ -1103,7 +1010,7 @@ const CHILD_EVENTS=[
   ]},
   {id:'child_3',ageMin:5,ageMax:8,title:'Уроки механика',text:'Старый механик показывает тебе азы механики гиперпривода.',choices:[
     {label:'Слушать внимательно',weight:50,axes:{tempo:-1,firmness:+1},shipAxes:{maintained:+2},log:'Ты запоминаешь каждое слово. Механик объясняет принцип Красникова и теорию космической инфляции.',effects:{}},
-    {label:'Схватить гаечный ключ',weight:30,axes:{initiative:+1,tempo:+1},shipAxes:{maintained:-1,sturdy:+1},log:'Механик смеётся. Ты что-то откручиваешь не то.',effects:{}},
+    {label:'Схватить гаечный ключ',weight:30,axes:{initiative:+1,tempo:+1},shipAxes:{maintained:-1,sturdy:+1},log:'Механик смеётся. Ты явно открутил что-то не то.',effects:{}},
     {label:'Спросить, зачем это',weight:20,axes:{certainty:+1,risk:+1},log:'Ты слушаешь. Наполовину.',effects:{}},
   ]},
   {id:'child_sport_2',ageMin:7,ageMax:9,title:'Космогонки',text:'Юношеские гонки на мини-шаттлах через пояс обломков.',choices:[
@@ -1290,7 +1197,6 @@ const EVENTS=[
     {label:'📖 Изучить самому',weight:20,axes:{tempo:-1,certainty:+3},log:'Ты тратишь недели на расшифровку. Часть загадок проясняется. Ты начинаешь думать иначе.',effects:{rep:+3},shipAxes:{renowned:+1}},
     {label:'🔥 Стереть запись',weight:10,axes:{risk:-1,tempo:-1},log:'Ты стираешь всё. Некоторые вещи лучше не знать. По крайней мере, сейчас.',effects:{},shipAxes:{renowned:-1}},
   ]},
-
   {id:'insurance_agent',title:'Страховой агент',ageMin:18,
     text:'На станции к тебе подходит агент в мятом костюме: «Полис на случай гибели корабля. Всего 8 000 ⬡ SC в год. Подумайте о семье».',
     choices:[
@@ -1305,7 +1211,6 @@ const EVENTS=[
         failLog:'Агент морщится: «С таким корпусом мы не работаем». Уходит.',
         okEffects:{credits:+2000,rep:-2},failEffects:{}},
     ]},
-
   {id:'medical_policy',title:'Медицинский полис экипажа',ageMin:18,
     text:'Клиника на станции предлагает годовой полис для экипажа: вакцины, диагностика, экстренная помощь.',
     choices:[
@@ -1317,7 +1222,6 @@ const EVENTS=[
       {label:'Отказаться',weight:30,axes:{risk:+1,firmness:+1},
         log:'«Космос сам лечит», — думаешь ты. Или убивает. Как повезёт.',effects:{}},
     ]},
-
   {id:'ship_service',title:'Сервисное обслуживание',ageMin:18,
     text:'Механики станции предлагают полное ТО корабля: диагностика, замена фильтров, калибровка двигателя.',
     choices:[
@@ -1332,6 +1236,43 @@ const EVENTS=[
         okLog:'Ты справляешься сам. Экономия!',
         failLog:'Ты что-то ломаешь. Придётся чинить.',
         okEffects:{hull:+5},failEffects:{hull:-5,engine:-2}},
+    ]},
+  {id:'faction_contract',title:'📜 Контракт фракции',ageMin:18,requiresCaptain:true,
+    spawn:()=> (G.factions && (G.factions.fleet.rep >= 2 || G.factions.volnitsa.rep >= 2)) && !G.recentEvents.includes('faction_contract'),
+    text:'К тебе приходит представитель фракции. «У нас есть работа. Хорошая плата. Не для всех».',
+    choices:[
+      {label:'📜 Взять контракт Флота',weight:40,axes:{firmness:+1},
+        available:s=>G.factions && G.factions.fleet.rep >= 2,
+        log:'Флот доверяет тебе.',
+        effects:{credits:+25000,rep:+5},
+        factionEffect:{fleet:+1, volnitsa:-1}},
+      {label:'📜 Взять контракт Вольницы',weight:40,axes:{risk:+1},
+        available:s=>G.factions && G.factions.volnitsa.rep >= 2,
+        log:'Вольница довольна.',
+        effects:{credits:+30000,rep:+3},
+        factionEffect:{volnitsa:+1, fleet:-1}},
+      {label:'Отказаться',weight:20,axes:{firmness:-1},
+        log:'Не сейчас. Оба ждут.',
+        effects:{},
+        factionEffect:{fleet:-1, volnitsa:-1}},
+    ]},
+  {id:'spy_offer',title:'🕵 Предложение агента',ageMin:18,requiresCaptain:true,
+    spawn:()=> G.spy && !G.spy.task,
+    text:'Человек без имени. Без корабля. Без прошлого. «Есть работа. Тихо, аккуратно. Провал — сам понимаешь».',
+    choices:[
+      {label:'🕵 Внедрить агента во Флот',weight:40,axes:{risk:+1},
+        available:s=>G.factions && G.factions.fleet.rep > -10,
+        log:'Агент получает задание.',
+        effects:{},
+        customAction:'startSpy_fleet'},
+      {label:'🕵 Внедрить агента в Вольницу',weight:40,axes:{risk:+1},
+        available:s=>G.factions && G.factions.volnitsa.rep > -10,
+        log:'Агент получает задание.',
+        effects:{},
+        customAction:'startSpy_volnitsa'},
+      {label:'Отказаться',weight:20,axes:{risk:-1},
+        log:'Не твоё.',
+        effects:{}},
     ]},
 ];
 
@@ -1469,13 +1410,19 @@ function applyBrand(brand){
   if(brand.effects) applyEffects(brand.effects);
   addLog(`Клеймо: «${brand.name}». ${brand.desc}`,'brand');
 }
+function startSpy(faction){
+  if(!G.spy) G.spy={name:'Агент',task:null,exposure:0};
+  if(G.spy.task){addLog('Агент уже занят.','sys');return;}
+  G.spy.task={faction, startedAt:G.timeMonths, duration:randInt(48,60)};
+  G.spyMonthsElapsed=0;
+  addLog(`🕵 Агент внедрён: ${G.factions[faction].name}. Риск: 0/10. Задание ~${G.spy.task.duration} мес.`,'sys');
+}
 
 function startTimeFlow(){stopTimeFlow();if(timeSpeed<=0)return;timeTimer=setInterval(timeTick,TICK_BASE_MS/timeSpeed);}
 function stopTimeFlow(){if(timeTimer){clearInterval(timeTimer);timeTimer=null;}}
 function timeTick(){
   if(!G||G.over||G.pendingInheritance){stopTimeFlow();renderTimeControls();return;}
 
-  // столица — в первую очередь, до любого тика
   if(!G.currentEvent&&G.capitalOpportunity&&!G.dynastyCapital&&!G.noCapital){
     G.capitalOpportunity=false;
     const capEv=makeCapitalEvent();
@@ -1544,7 +1491,6 @@ function maybeLogFlavor(force){
   let type;
 
   if(soloOnBoard){
-    // когда экипажа нет — выпадают только «одиночные» описания
     type='desc';
   } else if(!force){
     const roll=Math.random();
@@ -1557,7 +1503,6 @@ function maybeLogFlavor(force){
     type=r<0.33?'joke':(r<0.66?'routine':'desc');
   }
 
-  // не больше одного подряд (для одиночных не применяем — пул и так узкий)
   if(!soloOnBoard && type===G.lastFlavorType){
     const others=['joke','routine','desc'].filter(t=>t!==type);
     type=pick(others);
@@ -2111,7 +2056,6 @@ window.goToShipyard=function(){
     G.ship.shields=G.ship.shieldsMax;
     addLog(`Верфь. Всё восстановлено. Корабль пристыкован — доступны смена корпуса и наём.`,'level');
   }
-    // Верфь усиливает крепкость до +15 (если ниже)
   const sturdyNow = G.ship.traits.sturdy || 0;
   if(sturdyNow < 15){
     applyShipDrift({sturdy: 15 - sturdyNow});
@@ -2167,7 +2111,6 @@ function advanceTime(months){
     if(G.spouse) G.spouse.age=(G.spouse.age||30)+1/12;
     if(G.parents) for(const p of G.parents) if(p.alive!==false) p.age+=1/12;
 
-    // смерть экипажа от старости
     for(let i=G.crew.length-1;i>=0;i--){
       const c=G.crew[i];
       if(c.age>=(c.lifespan||75)){
@@ -2177,7 +2120,6 @@ function advanceTime(months){
       }
     }
 
-    // 🤒 болезни экипажа
     const hasDoctorOnBoard=G.crew.some(c=>c.role==='Врач');
     for(const c of G.crew){
       if(c.sick){
@@ -2193,7 +2135,6 @@ function advanceTime(months){
         }
       }
     }
-    // заражение — раз в год
     if(G.timeMonths%12===0){
       for(const c of G.crew){
         if(c.sick) continue;
@@ -2216,7 +2157,6 @@ function advanceTime(months){
       }
     }
 
-    // 🩸 ранение протагониста
     if(G.protagonist.wounded){
       G.protagonist.wounded.monthsLeft--;
       if(G.protagonist.wounded.monthsLeft<=0){
@@ -2229,12 +2169,12 @@ function advanceTime(months){
         addLog(`🩹 Ты ${pHealVerb}. Раны зажили.`,'level');
       }
     }
-    // 🛡 Щиты медленно восстанавливаются каждый месяц
+
     if(G.ship.shields < G.ship.shieldsMax){
       const m = G.ship.traits.maintained || 0;
       let regen = 1;
-      if(m > 50) regen = 2;        // ухоженный корабль — вдвое быстрее
-      else if(m < -50) regen = 0.5; // запущенный — вдвое медленнее
+      if(m > 50) regen = 2;
+      else if(m < -50) regen = 0.5;
       const before = G.ship.shields;
       G.ship.shields = Math.min(G.ship.shieldsMax, G.ship.shields + regen);
       if(before < G.ship.shieldsMax && G.ship.shields >= G.ship.shieldsMax){
@@ -2294,7 +2234,6 @@ function advanceTime(months){
       if(G.timeMonths%6===0) G.rep=clamp(G.rep+1,-100,100);
     }
 
-    // 🤰 беременность
     if(G.pregnancy){
       G.pregnancy.monthsLeft--;
       if(G.pregnancy.monthsLeft<=0){
@@ -2304,7 +2243,6 @@ function advanceTime(months){
       }
     }
 
-    // до капитанства корабль сам дрейфует между системами каждые 3 года
     if(!G.isCaptain && G.timeMonths % 36 === 0){
       const otherSystems = STAR_SYSTEMS.filter(s => s.id !== G.ship.currentSystem);
       if(otherSystems.length){
@@ -2315,22 +2253,49 @@ function advanceTime(months){
 
     if(G.studying){
       G.studying.monthsLeft--;
-      const pool=KNOWLEDGE_EVENTS[G.studying.profId]||[];
-      const known=G.learnedKnowledge||[];
-      const available=pool.filter(k=>!known.includes(k.id));
-      if(available.length&&Math.random()<0.20){
-        const k=pick(available);
-        G.learnedKnowledge=[...known,k.id];
-        addLog(`📖 ${k.text}`,'knowledge');
-        for(const [axis,delta] of Object.entries(k.axes||{})){
-          G.protagonist.axes[axis]=clamp((G.protagonist.axes[axis]||0)+delta,-100,100);
+      if(!G.studying.eventFired && G.studying.eventId && Math.random()<0.25){
+        const pool=KNOWLEDGE_EVENTS[G.studying.profId]||[];
+        const k=pool.find(x=>x.id===G.studying.eventId);
+        if(k){
+          G.studying.eventFired=true;
+          G.learnedKnowledge=[...(G.learnedKnowledge||[]),k.id];
+          addLog(`📖 ${k.text}`,'knowledge');
+          for(const [axis,delta] of Object.entries(k.axes||{})){
+            G.protagonist.axes[axis]=clamp((G.protagonist.axes[axis]||0)+delta,-100,100);
+          }
+          G.protagonist.badges=resolveBadges(G.protagonist);
         }
-        G.protagonist.badges=resolveBadges(G.protagonist);
       }
       if(G.studying.monthsLeft<=0){
         G.professions[G.studying.profId]=true;
         addLog(`Обучение завершено: ${PROFESSIONS[G.studying.profId].name}.`,'level');
         G.studying=null;
+      }
+    }
+
+    // ── Шпионаж: exposure +3 / 3 года, задание 48-60 мес ──
+    if(G.spy && G.spy.task){
+      G.spyMonthsElapsed = (G.spyMonthsElapsed||0) + 1;
+      if(G.spyMonthsElapsed % 36 === 0){
+        G.spy.exposure = (G.spy.exposure||0) + 3;
+        if(G.spy.exposure >= 10){
+          const fac = G.spy.task.faction;
+          G.factions[fac].rep = clamp(G.factions[fac].rep - 2, -10, 10);
+          addLog(`🕵 Агент раскрыт. ${G.factions[fac].name} −2.`,'death');
+          G.spy = {name:'Агент', task:null, exposure:0};
+          G.spyMonthsElapsed = 0;
+        } else {
+          addLog(`🕵 Риск раскрытия: ${G.spy.exposure}/10.`,'sys');
+        }
+      }
+      if(G.spy.task && G.spyMonthsElapsed >= (G.spy.task.duration||48)){
+        const fac = G.spy.task.faction;
+        G.factions[fac].rep = clamp(G.factions[fac].rep + 1, -10, 10);
+        const reward = randInt(15000, 30000);
+        G.credits += reward;
+        addLog(`🕵 Задание выполнено: ${G.factions[fac].name}. +1 репутация, +${reward} ${SC}.`,'level');
+        G.spy = {name:'Агент', task:null, exposure:0};
+        G.spyMonthsElapsed = 0;
       }
     }
 
@@ -2350,7 +2315,6 @@ function advanceTime(months){
 
     tickShipTransitions();
 
-    // Квартирмейстер пассивно поднимает ухоженность
     const qm = G.crew.find(c => c.role === 'Квартирмейстер');
     if (qm) {
       const target = qm.level >= 3 ? 100 : (qm.level === 2 ? 85 : 70);
@@ -2361,18 +2325,14 @@ function advanceTime(months){
       }
     }
 
-    // пассивный дрейф корабля — раз в год
     if(G.timeMonths % 12 === 0){
       const drift={};
-      // износ: ухоженность падает, если нет квартирмейстера
       if (!qm) {
         drift.maintained = randInt(-3, 0);
       }
       drift.sturdy = randInt(-2, 1);
-      // экипаж живёт на корабле: тепло, верность колеблются
       drift.warm = randInt(-1, 2);
       drift.loyal = randInt(-1, 2);
-      // известность: за годы что-то копится
       drift.renowned = randInt(0, 1);
       applyShipDrift(drift);
     }
@@ -2448,6 +2408,11 @@ function startNewGame(){
     pilotingCourse:null,
     deathRolled:false,pendingInheritance:false,over:false,
     dynastyGeneration:1,
+    familyFund:0,
+    fundClaimed:false,
+    factions:{fleet:{name:'Флот',rep:0},volnitsa:{name:'Вольница',rep:0}},
+    spy:{name:'Агент',task:null,exposure:0},
+    spyMonthsElapsed:0,
   };
   document.getElementById('intro').classList.add('hidden');
   document.getElementById('game').classList.remove('hidden');
@@ -2465,6 +2430,30 @@ function loadAndContinue(){
   try{loaded=JSON.parse(localStorage.getItem(SAVE_KEY));}catch(e){return;}
   if(!loaded) return;
   G=loaded;
+  // ── миграция старых сейвов ──
+  if(G.ship){
+    const tpl = SHIP_TEMPLATES.find(t=>t.className===G.ship.className);
+    if(tpl){
+      if(G.ship.cargoMax==null) G.ship.cargoMax = tpl.cargoMax||100;
+      if(G.ship.fuelMax==null) G.ship.fuelMax = tpl.fuelMax||100;
+      if(G.ship.crewMax==null) G.ship.crewMax = tpl.crewMax||HULL_CLASSES[tpl.classId]?.crew_max||3;
+      if(G.ship.crewBaseMax==null && tpl.crewBaseMax) G.ship.crewBaseMax = tpl.crewBaseMax;
+      if(G.ship.undyingUsed==null) G.ship.undyingUsed = false;
+      if(G.ship.shelterActive==null) G.ship.shelterActive = false;
+    }
+  }
+  if(G.studying && !G.studying.eventId){
+    const p=KNOWLEDGE_EVENTS[G.studying.profId]||[];
+    const c=p.length?pick(p):null;
+    G.studying.eventId = c?c.id:null;
+    G.studying.eventFired = false;
+  }
+  if(G.familyFund==null) G.familyFund = 0;
+  if(G.fundClaimed==null) G.fundClaimed = (G.protagonist && G.protagonist.age >= 18);
+  if(!G.factions) G.factions = {fleet:{name:'Флот',rep:0},volnitsa:{name:'Вольница',rep:0}};
+  if(!G.spy) G.spy = {name:'Агент',task:null,exposure:0};
+  if(G.spyMonthsElapsed==null) G.spyMonthsElapsed = 0;
+  if(G.spy && G.spy.exposure==null) G.spy.exposure = 0;
   document.getElementById('intro').classList.add('hidden');
   document.getElementById('game').classList.remove('hidden');
   document.getElementById('identityReveal').innerHTML=`<div class="name">${G.protagonist.name}</div><div class="ship">${G.ship.className} «${G.ship.name}» · ${Math.floor(G.protagonist.age)} лет</div><div class="gen">Поколение ${G.dynastyGeneration||1}</div>`;
@@ -2604,7 +2593,6 @@ function pickActionEvent(){
   const maintained=G.ship.traits.maintained||0;
   const warm=G.ship.traits.warm||0;
 
-  // плохое состояние корпуса → чаще поломки
   if(maintained<-50 && Math.random()<0.3){
     const bd=EVENTS.find(e=>e.id==='breakdown');
     if(bd && !G.recentEvents.includes('breakdown')){
@@ -2613,7 +2601,6 @@ function pickActionEvent(){
     }
   }
 
-  // холодный экипаж → чаще драки
   if(warm<-50 && G.isCaptain && canAdultEvents() && Math.random()<0.2){
     const tf=EVENTS.find(e=>e.id==='team_fight');
     if(tf && !G.recentEvents.includes('team_fight')){
@@ -2642,12 +2629,11 @@ function pickActionEvent(){
     G.recentEvents.push(ev.id);
     return ev;
   }
-  let pool=EVENTS.filter(e=>!e.hidden&&!G.recentEvents.includes(e.id)&&(!e.ageMin||G.protagonist.age>=e.ageMin)&&(!e.ageMax||G.protagonist.age<=e.ageMax)&&(!e.requiresCaptain||G.isCaptain));
-  // ухоженный корабль → поломки не выпадают из пула
+  let pool=EVENTS.filter(e=>!e.hidden&&!G.recentEvents.includes(e.id)&&(!e.spawn||e.spawn())&&(!e.ageMin||G.protagonist.age>=e.ageMin)&&(!e.ageMax||G.protagonist.age<=e.ageMax)&&(!e.requiresCaptain||G.isCaptain));
   if(maintained>50) pool=pool.filter(e=>e.id!=='breakdown');
   if(pool.length===0){
     G.recentEvents=[];
-    pool=EVENTS.filter(e=>!e.hidden&&(!e.ageMin||G.protagonist.age>=e.ageMin)&&(!e.ageMax||G.protagonist.age<=e.ageMax)&&(!e.requiresCaptain||G.isCaptain));
+    pool=EVENTS.filter(e=>!e.hidden&&(!e.spawn||e.spawn())&&(!e.ageMin||G.protagonist.age>=e.ageMin)&&(!e.ageMax||G.protagonist.age<=e.ageMax)&&(!e.requiresCaptain||G.isCaptain));
   }
   if(pool.length===0) return null;
   const ev=pick(pool);
@@ -2683,6 +2669,21 @@ function applyChoice(choice,target){
   if(isOk===true&&choice.okShipAxes) applyShipDrift(choice.okShipAxes);
   if(isOk===false&&choice.failShipAxes) applyShipDrift(choice.failShipAxes);
   applyEffects(effects);
+  // ── фракции ──
+  const facFx = isOk===true ? (choice.okFactionEffect||choice.factionEffect||null)
+             : isOk===false ? (choice.failFactionEffect||null)
+             : (choice.factionEffect||null);
+  if(facFx && G.factions){
+    for(const [fac,val] of Object.entries(facFx)){
+      if(!G.factions[fac]) continue;
+      const before = G.factions[fac].rep;
+      G.factions[fac].rep = clamp(before + val, -10, 10);
+      const diff = G.factions[fac].rep - before;
+      if(Math.abs(diff) >= 1){
+        addLog(`⚑ ${G.factions[fac].name}: ${diff>0?'+':''}${diff}`,'sys');
+      }
+    }
+  }
   if(choice.customAction==='rename'){window.renameShip();}
   else if(choice.customAction==='renameByCrew'){
     const shipNames=['Рассвет','Тишина','Странник','Пепел','Соль','Клин','Путь','Надежда','Свет','Ветер'];
@@ -2696,6 +2697,10 @@ function applyChoice(choice,target){
     }
   } else if(choice.customAction==='markFirstBlood'){
     G.ship.firstBlood=true;
+  } else if(choice.customAction==='startSpy_fleet'){
+    startSpy('fleet');
+  } else if(choice.customAction==='startSpy_volnitsa'){
+    startSpy('volnitsa');
   }
   const fxStr=formatEffects(effects);
   if(target==='protagonist'){
@@ -2747,7 +2752,6 @@ function applyChoice(choice,target){
       return;
     }
   }
-  // если открыта возможность столицы — показать её сразу, не ждать тика
   if(G.capitalOpportunity&&!G.dynastyCapital&&!G.noCapital){
     G.capitalOpportunity=false;
     const capEv=makeCapitalEvent();
@@ -2927,23 +2931,18 @@ function delegateTo(memberIdx){
   const dominant=AXES.map(a=>({axis:a,score:member.axes[a]||0})).sort((a,b)=>Math.abs(b.score)-Math.abs(a.score)).slice(0,2).filter(x=>Math.abs(x.score)>10);
   let matches=ev.choices.filter(ch=>dominant.some(d=>{const dir=(ch.axes||{})[d.axis];return dir&&Math.sign(dir)===Math.sign(d.score);}));
 
-  // ── Эмпатия ──
-  // Если член экипажа не "чёрствый", он не творит зло и с большей
-  // вероятностью помогает, если есть явно добрый выбор (rep ≥ +5).
   const isHarsh = (member.axes.risk > 60 && member.axes.firmness > 40)
                || (G.ship.traits.warm||0) < -40;
   if(!isHarsh){
-    // 1) Добрые варианты доступны любому — не только рисковым
     const goodChoices = ev.choices.filter(ch => ((ch.effects && ch.effects.rep) || 0) >= 5);
     const rest = matches.filter(m => !goodChoices.includes(m));
     matches = [...goodChoices, ...rest];
-    // 2) Пересчёт весов: добро — в приоритете, зло — почти не выбирается
     matches = matches.map(m => {
       const rep = (m.effects && m.effects.rep) || 0;
       let factor = 1;
-      if(rep >= 5) factor = 2.5;      // спасти, помочь — приоритет
-      else if(rep <= -5) factor = 0.2; // ограбить, убить — редко
-      else if(rep < 0) factor = 0.7;   // пройти мимо — реже
+      if(rep >= 5) factor = 2.5;
+      else if(rep <= -5) factor = 0.2;
+      else if(rep < 0) factor = 0.7;
       return {...m, weight:(m.weight||50) * factor};
     });
   }
@@ -3053,14 +3052,13 @@ function resolveCombat(){
     else if(c.score<config.loseScore) G.stats.defeats++;
   }
   addLog(`Бой окончен. Счёт: ${c.score} (порог ${config.winScore}, ничья от ${config.loseScore}).`,'combat');
-  
+
   if(c.score>=config.winScore){
     const reward=randInt(config.rewards.min,config.rewards.max);
     G.credits+=reward;
     G.rep=clamp(G.rep+5,-100,100);
     applyShipDrift({renowned:+2,sturdy:+1});
     addLog(`🏆 Победа. +${reward} ${SC}, +5 репутации.`,'level');
-    // 5% шанс, что в бою кого-то зацепило
     if(Math.random()<0.05&&G.crew.length>0){
       const removed=G.crew.pop();
       if(G.stats) G.stats.crewLost++;
@@ -3080,14 +3078,12 @@ function resolveCombat(){
     G.ship.hull=Math.max(0,G.ship.hull-dmg);
     G.rep=clamp(G.rep-3,-100,100);
     addLog(`Поражение. −${dmg} корпуса, −3 репутации.`,'death');
-    // шанс гибели экипажа растёт с провалом: 20% базово + 1% за каждое очко ниже
     const crewDeathChance=Math.min(0.55, 0.20+failMargin*0.01);
     if(Math.random()<crewDeathChance&&G.crew.length>0){
       const removed=G.crew.pop();
       if(G.stats) G.stats.crewLost++;
       addLog(`${removed.name} погибает в бою.`,'death');
     }
-    // шанс ранения протагониста
     if(Math.random()<0.30&&!G.protagonist.wounded){
       const m=randInt(3,6);
       const pen={tempo:-10,firmness:-10};
@@ -3098,7 +3094,7 @@ function resolveCombat(){
       addLog(`🩸 Ты ранен. −10 к темпу и твёрдости на ${m} мес.`,'death');
     }
   }
-  
+
   if(G.ship.hull<=0){
     G.combat=null;
     timeSpeed=1;startTimeFlow();renderTimeControls();
@@ -3106,7 +3102,7 @@ function resolveCombat(){
     endGame('Корабль разорвало в бою. Ты не успел покинуть борт.');
     return;
   }
-  
+
   G.combat=null;
   G.actionCooldown=randInt(8,14);
   timeSpeed=1;startTimeFlow();renderTimeControls();
@@ -3319,7 +3315,7 @@ function generateFinalReport(reason){
     <div class="kv"><span>Всего решений</span><b>${total}</b></div>
     <div class="kv"><span>Успешных</span><b style="color:#61d095">${succ}</b></div>
     <div class="kv"><span>Сомнительных</span><b style="color:#ff6b7a">${doubt}</b></div>
-    <div class="kv"><span>Точность (по броскам)</span><b>${winRate}% <span style="color:var(--muted);font-size:11px">(${succ}/${checkedCount})</span></b></div>
+    <div class="kv"><span>Точность (по броскам)</span><b>${winRate}% <span style="color:var(--muted);font-size:11px">(${succ}/${succ+doubt})</span></b></div>
     <h4>⚔ Бои</h4>
     <div class="kv"><span>Сражений</span><b>${s.combats||0}</b></div>
     <div class="kv"><span>Побед</span><b style="color:#61d095">${s.victories||0}</b></div>
@@ -3406,7 +3402,9 @@ function startStudy(profId){
   const p=PROFESSIONS[profId];
   if(!p) return {ok:false};
   if(p.requires&&!G.professions[p.requires]){addLog(`Сначала выучи: ${PROFESSIONS[p.requires].name}`,'sys');return;}
-  G.studying={profId,monthsLeft:p.study_months};
+  const pool=KNOWLEDGE_EVENTS[profId]||[];
+  const chosen=pool.length?pick(pool):null;
+  G.studying={profId,monthsLeft:p.study_months,eventId:chosen?chosen.id:null,eventFired:false};
   addLog(`Начинаешь обучение: ${p.name} (${p.study_months} мес).`,'sys');
   saveGame();renderAll();renderPanel();
 }
@@ -3453,7 +3451,6 @@ function renderProtagonist(){
     brandsHtml+='</div>';
   }
 
-  // компактная строка семьи
   const famParts=[];
   if(G.parents&&G.parents.length){
     for(const par of G.parents){
@@ -3489,7 +3486,6 @@ function renderProtagonist(){
     ? `<div style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.6;border-top:1px solid var(--border);padding-top:6px">${famParts.join(' · ')}</div>`
     : '';
 
-  // династия + столица
   let dynastyLine=`<div class="kv" style="font-size:12px;color:var(--muted);margin-top:6px;border-top:1px solid var(--border);padding-top:6px"><span>Династия</span><b>${G.dynastyName||p.surname} <button class="icon-btn" onclick="renameDynasty()" title="Переименовать династию">✎</button></b></div>`;
   if(G.dynastyCapital){
     const capName=G.dynastyCapital.capitalName||G.dynastyCapital.systemName;
@@ -3499,7 +3495,6 @@ function renderProtagonist(){
     dynastyLine+=`<div class="kv" style="font-size:12px"><span>🏛 Столица</span><b style="color:${canAfford?'#61d095':'#ff6b7a'}">можно основать за ${CAPITAL_COST.toLocaleString('ru-RU')} ${SC} <button class="icon-btn" onclick="foundCapitalNow()" title="Основать столицу">▶</button></b></div>`;
   }
 
-  // репутация с полоской и тиром
   const repTier=getRepTier(G.rep);
   const repPct=clamp(G.rep, -100, 100);
   const repPos=repPct>=0;
@@ -3507,11 +3502,27 @@ function renderProtagonist(){
   const repFillStyle=repPos?`left:50%;width:${repWidth/2}%`:`right:50%;width:${repWidth/2}%`;
   const repBarHtml=`<div class="axis" style="margin-top:6px"><span class="axis-label" style="color:${repTier.color};font-weight:600">${repTier.name}</span><div class="axis-bar" style="height:8px"><div class="axis-center"></div><div class="axis-fill" style="${repFillStyle};background:${repTier.color}"></div></div><span class="axis-val" style="color:${repTier.color}">${repPct>0?'+':''}${Math.round(repPct)}</span></div>`;
 
+  // фракции
+  let factionsHtml='';
+  if(G.factions){
+    for(const key of ['fleet','volnitsa']){
+      const f=G.factions[key];
+      if(!f) continue;
+      const v=clamp(f.rep,-10,10);
+      const pct=Math.abs(v)/10*50;
+      const style=v>=0?`left:50%;width:${pct}%`:`right:50%;width:${pct}%`;
+      const color=v>=0?'#61d095':'#ff6b7a';
+      factionsHtml+=`<div class="axis"><span class="axis-label" style="font-size:11px">${f.name}</span><div class="axis-bar" style="height:6px"><div class="axis-center"></div><div class="axis-fill" style="${style};background:${color}"></div></div><span class="axis-val" style="font-size:11px">${v>0?'+':''}${v}</span></div>`;
+    }
+    if(factionsHtml) factionsHtml=`<div style="margin-top:4px">${factionsHtml}</div>`;
+  }
+
   document.getElementById('protagonistCard').innerHTML=`
     <h2>${p.name} ${p.nickname?`<span class="badge nick">«${p.nickname}»</span>`:''} ${p.wounded?`<span class="badge" style="background:#3d1f1f;border-color:#6c3b3b;color:#ffc8c8">🩸 ранен (${p.wounded.monthsLeft})</span>`:''} <span style="color:var(--muted);font-size:12px">ур. ${p.level} · ${stage}</span></h2>
     <p>Возраст: ${Math.floor(p.age)} · Поколение ${G.dynastyGeneration||1} ${captainLabel}</p>
     ${renderAxes(p)}${renderTagsBadges(p,tags,badges)}${brandsHtml}
     ${repBarHtml}
+    ${factionsHtml}
     ${dynastyLine}
     ${familyLine}
     <div class="kv"><span>Кредиты</span><b>${G.credits} ${SC}</b></div>`;
@@ -3577,7 +3588,7 @@ function renderShip(){
   if(s.baptized) tagHtml+=`<span class="badge" style="background:#3d2f1f;border-color:#6c5a3b;color:#ffe0c8">Личный позывной</span>`;
   if(tagHtml) html+=`<div class="tag-line">${tagHtml}</div>`;
   html+=`<div style="margin-top:8px"></div>`;
-    const shipSpec=SHIP_SPECIALS[s.className];
+  const shipSpec=SHIP_SPECIALS[s.className];
   if(shipSpec){
     const used = s.className==='Левиафан' && s.undyingUsed;
     html+=`<div class="kv" style="font-size:12px;margin-top:6px"><span>✨ Способность</span><b>${shipSpec.label}${used?' <span style="color:#ff6b7a">(использовано)</span>':''}</b></div>`;
@@ -3732,7 +3743,7 @@ function renderCombatPanel(el){
     <div class="combat-desc">${desc}</div>
     <div class="choices">
       ${COMBAT_ACTIONS.map(a=>`<button class="choice-btn combat-btn" onclick="performCombatAction('${a.id}')">${a.label} <span style="color:var(--muted);font-size:11px">— ${a.desc}</span></button>`).join('')}
-            ${SHIP_SPECIALS[G.ship.className] && !SHIP_SPECIALS[G.ship.className].passive?(()=>{
+      ${SHIP_SPECIALS[G.ship.className] && !SHIP_SPECIALS[G.ship.className].passive?(()=>{
         const sp=SHIP_SPECIALS[G.ship.className];
         const cd=sp.cooldown||0;
         const onCd=cd>0 && (c.round-c.specLastUse<cd);
@@ -3940,7 +3951,7 @@ function renderShipTabPanel(el){
     html+=`<h3 style="margin-top:14px">🏠 Убежище</h3>`;
     html+=`<div style="font-size:12px;color:var(--muted);margin-bottom:6px">Лимит: <b>${G.ship.crewMax}</b>${active?' · <span style="color:#61d095">активно</span>':''}</div>`;
     html+=`<button class="small" onclick="toggleShelter()">${active?'Сложить убежище':'Активировать убежище'}</button>`;
-  }  
+  }
   el.innerHTML=html+'</div>';
 }
 function renderMapPanel(el){
