@@ -665,7 +665,17 @@ const EVENTS=[
   {id:'complex_disease',title:'Радиационное отравление',text:'Ты получил большую дозу радиации. Врач мрачнеет.',ageMin:76,choices:[
     {label:'Полное лечение',weight:50,axes:{risk:-1},available:s=>s.credits>=20000,log:'Лечение помогает.',effects:{credits:-20000,lifespanLoss:3}},
     {label:'Обезболить',weight:30,axes:{tempo:-1,risk:-1},log:'Ты продолжаешь.',effects:{lifespanLoss:10}},
-    {label:'Игнорировать',weight:20,axes:{risk:+1,firmness:+1},log:'Может, обойдётся.',effects:{lifespanLoss:15}},
+    {label:'Игнорировать',weight:20,axes:{risk:+1,firmness:+1},
+      check:()=>{
+        const hasDoctor=G.crew.some(c=>c.role==='Врач');
+        if(!hasDoctor) return false;
+        return Math.random()<0.3;
+      },
+      okLog:'Врач вламывается в каюту: «Ты с ума сошёл?» — и тащит тебя на лечение. Успел.',
+      failLog:'Может, обойдётся. Может, нет. Врач разводит руками.',
+      okEffects:{lifespanLoss:3},
+      failEffects:{lifespanLoss:15},
+    },
   ]},
   {id:'black_hole',title:'Чёрная дыра',text:'Впереди — чёрная дыра. Гравитация искажает звёзды.',ageMin:18,requiresCaptain:true,choices:[
     {label:'Пройти рядом',weight:30,axes:{risk:+1,certainty:+1},check:()=>Math.random()<0.55,okLog:'Данные бесценны.',failLog:'Корабль затягивает. Ты едва вырываешься.',okEffects:{rep:+25,credits:+15000},failEffects:{hull:-50,shields:-30,crewLossChance:0.35}},
@@ -1385,6 +1395,16 @@ function advanceTime(months){
       if(G.timeMonths%6===0) G.rep=clamp(G.rep+1,-100,100);
     }
 
+    // 🤰 беременность
+    if(G.pregnancy){
+      G.pregnancy.monthsLeft--;
+      if(G.pregnancy.monthsLeft<=0){
+        G.child=makeChild(G.protagonist);
+        G.pregnancy=null;
+        addLog(`🎉 ${G.child.name} рождается. Династия продолжается.`,'level');
+      }
+    }
+
     // до капитанства корабль сам дрейфует между системами каждые 3 года
     if(!G.isCaptain && G.timeMonths % 36 === 0){
       const otherSystems = STAR_SYSTEMS.filter(s => s.id !== G.ship.currentSystem);
@@ -1485,7 +1505,7 @@ function startNewGame(){
     protagonist:{first,surname,name,age:0,lifespan:75+randInt(0,20),level:1,xp:0,axes:makeZeroAxes(),badges:[],transitions:{},isMain:true,nickname:null,brands:[]},
     ship:generateShip(),
     crew:[makeCrewMember(true),makeCrewMember(true)],
-    child:null,spouse:null,grandchild:null,inheritedProfPreview:null,
+    child:null,spouse:null,grandchild:null,inheritedProfPreview:null,pregnancy:null,
     dynastyName:surname,
     currentSystem:'sol',
     visitedSystems:['sol'],
@@ -1575,6 +1595,7 @@ function loadAndContinue(){
   if(!G.protagonist.brands) G.protagonist.brands=[];
   if(!G.recentFlavor) G.recentFlavor=[];
   if(!G.parents) G.parents=generateParents(G.protagonist.surname);
+  if(G.pregnancy===undefined) G.pregnancy=null;
   if(G.pet===undefined) G.pet=null;
   if(!G.learnedKnowledge) G.learnedKnowledge=[];
   if(!G.workedEvents) G.workedEvents=[];
@@ -1707,7 +1728,7 @@ function makeSpouseEvent(){
 }
 function makeChildEvent(){
   return {id:'child_event',title:'Решение о ребёнке',text:'Вы с супругом говорите о будущем.',choices:[
-    {label:'Завести ребёнка',weight:40,axes:{firmness:+1,certainty:+1},log:'У вас рождается ребёнок.',effects:{haveChild:true}},
+    {label:'Завести ребёнка',weight:40,axes:{firmness:+1,certainty:+1},log:'Вы решаете завести ребёнка.',effects:{haveChild:true}},
     {label:'Подождать',weight:30,axes:{tempo:-1},log:'Ещё не время.',effects:{}},
     {label:'Отказаться',weight:30,axes:{firmness:-1},log:'Не сейчас.',effects:{}},
   ]};
@@ -1725,7 +1746,7 @@ function pickActionEvent(){
     return null;
   }
   if(!G.spouse&&G.protagonist.age>=20&&G.timeMonths>6&&(!G.spouseCooldown||G.spouseCooldown<=0)&&Math.random()<0.15) return makeSpouseEvent();
-  if(G.spouse&&!G.child&&G.protagonist.age>=20&&G.protagonist.age<55&&Math.random()<0.18) return makeChildEvent();
+  if(G.spouse&&!G.child&&!G.pregnancy&&G.protagonist.age>=20&&G.protagonist.age<55&&Math.random()<0.18) return makeChildEvent();
   if(G.child&&G.child.age>=16&&!G.child.hasCrush&&Math.random()<0.10) return makeChildCrushEvent();
   if(G.child&&G.child.hasCrush&&G.child.age>=20&&!G.grandchild&&Math.random()<0.10) return makeGrandchildEvent();
   const shipPool=SHIP_EVENTS.filter(e=>!G.recentEvents.includes(e.id)&&e.spawn&&e.spawn());
@@ -1878,8 +1899,9 @@ function applyEffects(e){
     addLog(`💕 ${G.spouse.name} становится твоим ${word}.`,'love');
   }
   if(e.haveChild){
-    G.child=makeChild(G.protagonist);
-    addLog(`Рождается ${G.child.name}. Династия продолжается.`,'level');
+    const months=randInt(7,9);
+    G.pregnancy={monthsLeft:months};
+    addLog(`🤰 Вы ждёте ребёнка. Роды через ~${months} мес.`,'love');
   }
   if(e.childCrush){if(G.child) G.child.hasCrush=true;addLog(`${G.child?.name||'Наследник'} влюбился(ась). Дела сердечные.`,'love');}
   if(e.grandchild){
@@ -2166,7 +2188,7 @@ window.inheritAndContinue=function(){
   if(!G.dynastyName) G.dynastyName=G.protagonist.surname;
   const base={axes:heir.axes,transitions:{}};
   G.protagonist={first:heir.first,surname:heir.surname,name:heir.name,gender:heir.gender||pickGender(),age:heir.age,lifespan:75+randInt(0,20),level:1,xp:0,axes:heir.axes,transitions:{},badges:resolveBadges(base),isMain:true,nickname:null,brands:[]};
-  G.child=null;G.spouse=null;G.grandchild=null;
+  G.child=null;G.spouse=null;G.grandchild=null;G.pregnancy=null;
   G.pendingInheritance=false;G.deathRolled=false;G.over=false;
   G.activeContract=null;
   G.studying=null;
@@ -2396,6 +2418,9 @@ function renderProtagonist(){
   if(G.spouse){
     const spIcon=G.spouse.gender==='ж'?'❤️♀':'❤️♂';
     famParts.push(`${spIcon} ${G.spouse.name.split(' ')[0]} (${Math.floor(G.spouse.age||30)})`);
+  }
+  if(G.pregnancy){
+    famParts.push(`🤰 роды через ${G.pregnancy.monthsLeft} мес`);
   }
   if(G.child){
     const chIcon=G.child.gender==='ж'?'👶♀':'👶♂';
