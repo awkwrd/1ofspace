@@ -1173,7 +1173,7 @@ const EVENTS=[
       failShipAxes:{warm:+1},
     },
   ]},
-  {id:'complex_disease',title:'Радиационное отравление',text:'Ты получил большую дозу радиации. Врач мрачнеет.',ageMin:76,choices:[
+  {id:'complex_disease',title:'Радиационное отравление',text:'Ты получил большую дозу радиации. Врач мрачнеет.',ageMin:60,ageMax:95,choices:[
     {label:'Полное лечение',weight:50,axes:{risk:-1},available:s=>s.credits>=20000,log:'Лечение помогает.',effects:{credits:-20000,lifespanLoss:3}},
     {label:'Обезболить',weight:30,axes:{tempo:-1,risk:-1},log:'Ты продолжаешь.',effects:{lifespanLoss:10}},
     {label:'Игнорировать',weight:20,axes:{risk:+1,firmness:+1},
@@ -1729,7 +1729,7 @@ function makeCrewMember(usePersonality,role,gender,ageRange){
   const surname=pick(SURNAMES);
   const defaultRoles=['Матрос','Боцман','Штурман','Связист','Оператор','Техник'];
   const [minA,maxA]=ageRange||[18,45];
-  return {id:Math.random().toString(36).slice(2,8),first,surname,name:`${first} ${surname}`,gender:g,role:role||pick(defaultRoles),level:1,xp:0,age:randInt(minA,maxA),lifespan:randInt(60,90),axes,transitions:{},badges:resolveBadges(base),nickname:null};
+  return {id:Math.random().toString(36).slice(2,8),first,surname,name:`${first} ${surname}`,gender:g,role:role||pick(defaultRoles),level:1,xp:0,age:randInt(minA,maxA),lifespan:randInt(55,95),axes,transitions:{},badges:resolveBadges(base),nickname:null};
 }
 function getUsedNicknames(){
   const used=new Set();
@@ -1790,7 +1790,7 @@ function generateShip(opts){
 }
 function generateParents(surname){
   return [
-    {name:`${pick(MALE_NAMES)} ${surname}`,gender:'м',age:randInt(28,45),relation:pick(['хорошие','ровные','напряжённые']),role:'отец',alive:true,lifespan:75+randInt(0,20)},
+    {name:`${pick(MALE_NAMES)} ${surname}`,gender:'м',age:randInt(28,45),relation:pick(['хорошие','ровные','напряжённые']),role:'отец',alive:true,lifespan:70+randInt(0,30)},
     {name:`${pick(FEMALE_NAMES)} ${pick(SURNAMES)}`,gender:'ж',age:randInt(25,42),relation:pick(['хорошие','ровные','напряжённые']),role:'мать',alive:true,lifespan:75+randInt(0,20)},
   ];
 }
@@ -2446,7 +2446,7 @@ function startNewGame(){
   }
 
   G={
-    protagonist:{first,surname,name,age:0,lifespan:75+randInt(0,20),level:1,xp:0,axes:baseAxes,badges:[],transitions:{},isMain:true,nickname:null,brands:[]},
+    protagonist:{first,surname,name,age:0,lifespan:72+randInt(0,28),level:1,xp:0,axes:baseAxes,badges:[],transitions:{},isMain:true,nickname:null,brands:[]},
     ship:generateShip(),
     crew:[makeCrewMember(true,undefined,undefined,[25,45])],
     child:null,spouse:null,grandchild:null,inheritedProfPreview:null,pregnancy:null,
@@ -3292,7 +3292,7 @@ window.inheritAndContinue=function(){
   if(G.dynastyCapital) newRep=clamp(newRep+5,-100,100);
   G.rep=newRep;
   const base={axes:heir.axes,transitions:{}};
-  G.protagonist={first:heir.first,surname:heir.surname,name:heir.name,gender:heir.gender||pickGender(),age:heir.age,lifespan:75+randInt(0,20),level:1,xp:0,axes:heir.axes,transitions:{},badges:resolveBadges(base),isMain:true,nickname:null,brands:[],wounded:null};
+  G.protagonist={first:heir.first,surname:heir.surname,name:heir.name,gender:heir.gender||pickGender(),age:heir.age,lifespan:72+randInt(0,28),level:1,xp:0,axes:heir.axes,transitions:{},badges:resolveBadges(base),isMain:true,nickname:null,brands:[],wounded:null};
   G.child=null;G.spouse=null;G.grandchild=null;G.pregnancy=null;
   G.pendingInheritance=false;G.deathRolled=false;G.over=false;
   G.activeContract=null;
