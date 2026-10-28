@@ -434,6 +434,7 @@ const SHIP_SPECIALS={
 const COMBAT_CONFIGS={
   pirates_main:{enemyName:'Пиратский перехватчик «Клык»',maxRounds:4,winScore:70,loseScore:40,rewards:{min:400,max:800},failDamage:{min:15,max:30},descs:['Первый залп. Каждый разворот отдаётся в костях.','Звук снарядов глухой. ЭМИ-индикатор пищит.','Механик ругается под нос.','Последний раунд. Пираты что-то кричат.']},
   alien_main:{enemyName:'Чужой крейсер Неизвестных',maxRounds:6,winScore:95,loseScore:60,rewards:{min:3000,max:8000},failDamage:{min:30,max:50},descs:['Крейсер больше твоего в три раза.','Луч неизвестной природы проходит сквозь щиты.','На мониторе — конструкция, которой не может быть.','На частоте — странный сигнал.','Гравитация искажается.','Последний раунд.']},
+  contract_combat:{enemyName:'Пиратский рейдер',maxRounds:4,winScore:60,loseScore:30,rewards:{min:1500,max:3000},failDamage:{min:15,max:25},descs:['Пираты идут на сближение.','Залп по касательной. Щиты держат.','Двигатель ревёт от перегрузок.','Последний рывок.']},
 };
 const PILOTING_ACTIONS=[
   {id:'listen',label:'🎧 Слушать инструктора',desc:'Внимать.',gain:8},
@@ -963,19 +964,19 @@ const CONTRACT_EVENTS={
     {id:'cw_xa_3',text:'Гробница оказалась ловушкой. Едва выбрался.',axes:{risk:+2,firmness:+2}},
   ],
   pilot_corvette:[
-    {id:'cw_pc_1',text:'Учебный бой. Победил.',axes:{firmness:+2,certainty:+1}},
-    {id:'cw_pc_2',text:'Патрулирование. Скучно.',axes:{tempo:-2}},
-    {id:'cw_pc_3',text:'Погоня за контрабандистом. Догнал.',axes:{risk:+2,tempo:+1}},
+    {id:'cw_pc_1',text:'Патрулирование. Обнаружен нарушитель. Открываю огонь.',axes:{firmness:+2,certainty:+1},startCombat:'contract_combat'},
+    {id:'cw_pc_2',text:'Учебный бой. Победил.',axes:{firmness:+2,certainty:+1}},
+    {id:'cw_pc_3',text:'Погоня за контрабандистом. Догнал. Пришлось стрелять.',axes:{risk:+2,tempo:+1},startCombat:'contract_combat'},
   ],
   pilot_bomber:[
-    {id:'cw_pb_1',text:'Точное попадание в цель с первого раза.',axes:{certainty:+3}},
+    {id:'cw_pb_1',text:'Задание на бомбардировку. Встретили сопротивление.',axes:{certainty:+3},startCombat:'contract_combat'},
     {id:'cw_pb_2',text:'Промахнулся. Инструктор недоволен.',axes:{firmness:-2,certainty:-1}},
-    {id:'cw_pb_3',text:'Три часа ждал цели. Дождался.',axes:{tempo:-3}},
+    {id:'cw_pb_3',text:'Три часа ждал цели. Дождался. Огонь!',axes:{tempo:-3},startCombat:'contract_combat'},
   ],
   pilot_cruiser:[
-    {id:'cw_pcr_1',text:'Командовал сменой. Всё гладко.',axes:{initiative:+2,firmness:+1}},
-    {id:'cw_pcr_2',text:'Экипаж не послушался приказа.',axes:{firmness:+2}},
-    {id:'cw_pcr_3',text:'Крейсер — это город, ты управляешь.',axes:{certainty:+2}},
+    {id:'cw_pcr_1',text:'Патруль сектора. Встретили пиратский флот.',axes:{initiative:+2,firmness:+1},startCombat:'contract_combat'},
+    {id:'cw_pcr_2',text:'Экипаж не послушался приказа. Разбор полётов.',axes:{firmness:+2}},
+    {id:'cw_pcr_3',text:'Крейсер — это город. Враги у ворот!',axes:{certainty:+2},startCombat:'contract_combat'},
   ],
   planetary_expansion_1:[
     {id:'cw_pe1_1',text:'Проект терраформирования одобрен.',axes:{certainty:+3}},
@@ -2267,12 +2268,18 @@ function advanceTime(months){
         const targetMonth = c.eventTargetMonth || Math.floor(c.monthsTotal * 0.5);
         if(w && elapsed >= targetMonth){
           c.eventFired=true;
-          G.workedEvents=[...(G.workedEvents||[]),w.id];
           addLog(`⚙ ${PROFESSIONS[c.profId].name}: ${w.text}`,'work');
+          
           for(const [axis,delta] of Object.entries(w.axes||{})){
             G.protagonist.axes[axis]=clamp((G.protagonist.axes[axis]||0)+delta,-100,100);
           }
           G.protagonist.badges=resolveBadges(G.protagonist);
+          
+          if(w.startCombat){
+            startCombat(w.startCombat);
+            return; // Прерываем advanceTime, бой перехватывает управление
+          }
+          G.workedEvents=[...(G.workedEvents||[]),w.id];
         }
       }
       if(c.monthsLeft<=0){
@@ -2710,7 +2717,10 @@ function pickActionEvent(){
   }
   if(pool.length===0) return null;
   const ev=pick(pool);
-  G.recentEvents.push(ev.id);
+  // Пираты и чужие могут выпадать повторно, чтобы жизнь не была скучной
+  if (ev.id !== 'pirates' && ev.id !== 'alien_hostile') {
+    G.recentEvents.push(ev.id);
+  }
   return ev;
 }
 
