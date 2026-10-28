@@ -1599,12 +1599,13 @@ function applyChoice(choice,target){
   } else if(choice.customAction==='markFirstBlood'){
     G.ship.firstBlood=true;
   }
+  const fxStr=formatEffects(effects);
   if(target==='protagonist'){
     gainXP(G.protagonist,5);
-    addLog(`▸ ${choice.label}. ${logText}`,'choice');
+    addLog(`▸ ${choice.label}. ${logText}${fxStr}`,'choice');
   } else {
     gainXP(actor,8);
-    addLog(`▸ ${actor.name} решает: «${choice.label}». ${logText}`,'choice');
+    addLog(`▸ ${actor.name} решает: «${choice.label}». ${logText}${fxStr}`,'choice');
   }
 
   if(G._impendingDeath){
@@ -1741,6 +1742,19 @@ function describeAxesShort(m){
     if(Math.abs(v)>=30) parts.push(`${AXIS_LABELS[a]} ${v>0?'+':''}${v}`);
   }
   return parts.length?parts.join(', '):'нейтральный';
+}
+function formatEffects(e){
+  if(!e) return '';
+  const parts=[];
+  const labels={hull:'корпус',shields:'щиты',engine:'двигатель',weapons:'оружие',cargo:'трюм',fuel:'топливо'};
+  if(e.credits!==undefined) parts.push(`${e.credits>0?'+':''}${e.credits} ${SC}`);
+  if(e.rep!==undefined) parts.push(`${e.rep>0?'+':''}${e.rep} реп.`);
+  for(const [key,label] of Object.entries(labels)){
+    if(e[key]!==undefined) parts.push(`${e[key]>0?'+':''}${e[key]} ${label}`);
+  }
+  if(e.lifespanLoss!==undefined) parts.push(`−${e.lifespanLoss} лет жизни`);
+  if(e.addCrew) parts.push(`+${e.addCrew} экипаж`);
+  return parts.length?` [${parts.join(', ')}]`:'';
 }
 function makeChild(parent){
   const first=pick(FIRST_NAMES);
