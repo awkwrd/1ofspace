@@ -2480,7 +2480,7 @@ function makeChildPirateEvent(){
   G.childPirateDone=true;
   const choices=[
     {label:'Спрятаться в каюте',weight:40,axes:{risk:-1},log:'Ты прячешься под кроватью, пока стреляют.',effects:{brand:'ptsd'}},
-    {label:'Помочь экипажу',weight:40,axes:{initiative:+1,firmness:+1},log:'Ты подносишь инструменты.',effects:{brand:'helper'}},
+    {label:'Помочь экипажу',weight:40,axes:{initiative:+1,firmness:+1},log:'Ты метко швырнул ногой болтер угрожающего вида космодесантнику',effects:{brand:'helper'}},
   ];
   if(G.protagonist.age>=15){
     choices.push({label:'Взять командование',weight:30,axes:{risk:+1,firmness:+1},log:'Ты встаёшь у штурвала.',effects:{brand:'captain_by_force',becomeCaptain:true}});
