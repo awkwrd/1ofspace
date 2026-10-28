@@ -183,6 +183,7 @@ label.form{display:block;font-size:12px;color:var(--muted);margin:6px 0 3px}
         <button id="playBtn" onclick="toggleTime()">▶ Играть</button>
         <button id="x1Btn" class="active" onclick="setSpeed(1)">×1</button>
         <button id="x2Btn" onclick="setSpeed(2)">×2</button>
+        <button id="x16Btn" onclick="setSpeed(16)">×16</button>
         <span id="timeMode">время: пауза</span>
       </div>
     </div>
@@ -504,18 +505,18 @@ const CHILD_EVENTS=[
     {label:'Задать вопрос',weight:20,axes:{tempo:-1},log:'Ты спрашиваешь, почему звёзды не падают.',effects:{}},
   ]},
   {id:'child_sport_1',ageMin:4,ageMax:6,title:'Космофутбол',text:'Экипаж собирается в грузовом отсеке. Мяч — контейнер, ворота — шлюз.',choices:[
-    {label:'В защите',weight:40,axes:{firmness:+1,tempo:-1},log:'Ты держишь оборону.',effects:{rep:+1}},
-    {label:'В атаке',weight:40,axes:{risk:+1,initiative:+1},log:'Ты забиваешь. Экипаж скандирует твоё имя.',effects:{rep:+2}},
+    {label:'В защите',weight:40,axes:{firmness:+1,tempo:-1},shipAxes:{sturdy:+1,loyal:+1},log:'Ты держишь оборону.',effects:{rep:+1}},
+    {label:'В атаке',weight:40,axes:{risk:+1,initiative:+1},shipAxes:{warm:+2,renowned:+1},log:'Ты забиваешь. Экипаж скандирует твоё имя.',effects:{rep:+2}},
     {label:'Смотреть с трибуны',weight:20,axes:{tempo:-1,certainty:-1},log:'Ты смотришь. Запоминаешь тактику.',effects:{}},
   ]},
   {id:'child_3',ageMin:5,ageMax:8,title:'Уроки механика',text:'Старый механик берёт тебя в мастерскую.',choices:[
-    {label:'Слушать внимательно',weight:50,axes:{tempo:-1,firmness:+1},log:'Ты запоминаешь каждое слово.',effects:{}},
-    {label:'Схватить гаечный ключ',weight:30,axes:{initiative:+1,tempo:+1},log:'Механик смеётся.',effects:{}},
+    {label:'Слушать внимательно',weight:50,axes:{tempo:-1,firmness:+1},shipAxes:{maintained:+2},log:'Ты запоминаешь каждое слово. Механик показывает, где смазывать.',effects:{}},
+    {label:'Схватить гаечный ключ',weight:30,axes:{initiative:+1,tempo:+1},shipAxes:{maintained:-1,sturdy:+1},log:'Механик смеётся. Ты что-то откручиваешь не то.',effects:{}},
     {label:'Спросить, зачем это',weight:20,axes:{certainty:+1,risk:+1},log:'Ты слушаешь. Наполовину.',effects:{}},
   ]},
   {id:'child_sport_2',ageMin:7,ageMax:9,title:'Космогонки',text:'Юношеские гонки на мини-шаттлах через пояс обломков.',choices:[
-    {label:'Гнать в полную силу',weight:40,axes:{risk:+1,tempo:+1},log:'Ты финишируешь третьим.',effects:{rep:+1}},
-    {label:'Ехать осторожно',weight:35,axes:{risk:-1,tempo:-1},log:'Ты финишируешь предпоследним, но целым.',effects:{}},
+    {label:'Гнать в полную силу',weight:40,axes:{risk:+1,tempo:+1},shipAxes:{jumpworthy:+2,loud:+1},log:'Ты финишируешь третьим. Двигатель ревёт.',effects:{rep:+1}},
+    {label:'Ехать осторожно',weight:35,axes:{risk:-1,tempo:-1},shipAxes:{maintained:+1},log:'Ты финишируешь предпоследним, но целым.',effects:{}},
     {label:'Сойти с трассы',weight:25,axes:{risk:-1},log:'Ты останавливаешься.',effects:{}},
   ]},
   {id:'child_4',ageMin:9,ageMax:12,title:'Первый выход в скафандре',text:'Первый выход в открытый космос.',choices:[
@@ -524,8 +525,8 @@ const CHILD_EVENTS=[
     {label:'Скорее вернуться внутрь',weight:20,axes:{risk:-1},log:'Внутри спокойнее.',effects:{}},
   ]},
   {id:'child_sport_3',ageMin:10,ageMax:13,title:'Космобокс',text:'Космобокс — без гравитации. Удары в воздух, кувырки.',choices:[
-    {label:'Участвовать в спарринге',weight:40,axes:{risk:+1,firmness:+1},log:'Ты получаешь синяк и уважение.',effects:{rep:+2}},
-    {label:'Тренироваться отдельно',weight:35,axes:{tempo:-1,firmness:+1},log:'Ты учишься держать удар.',effects:{}},
+    {label:'Участвовать в спарринге',weight:40,axes:{risk:+1,firmness:+1},shipAxes:{loyal:+1,warm:+1},log:'Ты получаешь синяк и уважение.',effects:{rep:+2}},
+    {label:'Тренироваться отдельно',weight:35,axes:{tempo:-1,firmness:+1},shipAxes:{sturdy:+1},log:'Ты учишься держать удар.',effects:{}},
     {label:'Отказаться',weight:25,axes:{risk:-1},log:'Ты остаёшься в стороне.',effects:{}},
   ]},
   {id:'child_5',ageMin:13,ageMax:16,title:'Выбор пути',text:'Пора решать.',choices:[
@@ -534,8 +535,8 @@ const CHILD_EVENTS=[
     {label:'Не знаю. Хочу увидеть мир',weight:30,axes:{risk:+1,tempo:+1},log:'Ты хочешь странствовать.',effects:{}},
   ]},
   {id:'child_sport_4',ageMin:14,ageMax:16,title:'Космошахматы',text:'Шахматы в невесомости: фигуры плавают, доска вращается. Противник — старый навигатор.',choices:[
-    {label:'Играть в атаку',weight:40,axes:{risk:+1,initiative:+1},log:'Ты жертвуешь ферзём. Мат через два хода.',effects:{rep:+2,certainty:+1}},
-    {label:'Играть в защите',weight:35,axes:{tempo:-1,firmness:+1},log:'Ты выигрываешь на 40-м ходу.',effects:{}},
+    {label:'Играть в атаку',weight:40,axes:{risk:+1,initiative:+1},shipAxes:{renowned:+1},log:'Ты жертвуешь ферзём. Мат через два хода.',effects:{rep:+2,certainty:+1}},
+    {label:'Играть в защите',weight:35,axes:{tempo:-1,firmness:+1},shipAxes:{maintained:+1,loyal:+1},log:'Ты выигрываешь на 40-м ходу.',effects:{}},
     {label:'Попросить ничью',weight:25,axes:{risk:-1,tempo:-1},log:'Ничья.',effects:{}},
   ]},
   {id:'child_6',ageMin:16,ageMax:18,title:'Взрослая жизнь',text:'Пора.',choices:[
@@ -813,6 +814,8 @@ function renderTimeControls(){
   play.classList.toggle('active',timeSpeed>0);
   document.getElementById('x1Btn').classList.toggle('active',timeSpeed===1);
   document.getElementById('x2Btn').classList.toggle('active',timeSpeed===2);
+  const x16=document.getElementById('x16Btn');
+  if(x16) x16.classList.toggle('active',timeSpeed===16);
   if(mode) mode.textContent=timeSpeed===0?'время: пауза':`время: ×${timeSpeed}`;
 }
 window.toggleTime=function(){if(timeSpeed>0){timeSpeed=0;stopTimeFlow();}else{timeSpeed=1;startTimeFlow();}renderTimeControls();};
@@ -1308,6 +1311,20 @@ function advanceTime(months){
     }
 
     tickShipTransitions();
+
+    // пассивный дрейф корабля — раз в год
+    if(G.timeMonths % 12 === 0){
+      const drift={};
+      // износ: ухоженность и крепость медленно падают
+      drift.maintained = randInt(-3, 0);
+      drift.sturdy = randInt(-2, 1);
+      // экипаж живёт на корабле: тепло, верность колеблются
+      drift.warm = randInt(-1, 2);
+      drift.loyal = randInt(-1, 2);
+      // известность: за годы что-то копится
+      drift.renowned = randInt(0, 1);
+      applyShipDrift(drift);
+    }
 
     if(G.timeMonths%12===0&&!G.over&&!G.pendingInheritance&&!G.deathRolled){
       if(Math.random()<0.0015){
