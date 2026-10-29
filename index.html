@@ -9,7 +9,7 @@
 :root{--bg:#070b14;--panel:#101b2d;--border:#263b63;--accent:#4ea1ff;--text:#dce7ff;--muted:#8fa3c7;--success:#61d095;--warn:#ffd37a;--danger:#ff6b7a;--ship:#7ee0d0;--combat:#6b4a9c;--brand:#ff8c42;--love:#ff6ba8}
 *{box-sizing:border-box}
 body{margin:0;padding:16px;padding-top:calc(16px + env(safe-area-inset-top));padding-bottom:calc(16px + env(safe-area-inset-bottom));font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:radial-gradient(circle at top,#16213e 0%,#070b14 60%,#03050a 100%);color:var(--text);min-height:100vh;min-height:100dvh}
-#app{max-width:1100px;margin:0 auto}
+#app{max-width:1100px;margin:0 auto;position:relative;z-index:1}
 h1{display:none!important}
 .sub{color:var(--muted);margin:0 0 18px;font-size:14px}
 .hidden{display:none!important}
@@ -256,9 +256,53 @@ select:focus{outline:none;border-color:#f0a742;box-shadow:0 0 0 3px rgba(240,167
 }
 .ship-collapsed .ship-hidden-details { display: none; }
 .ship-spoiler { display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; padding: 4px 0; }
+/* =========================================
+   ГИПЕРПРЫЖОК: ЗВЁЗДЫ ЛЕТЯТ НА НАС
+   ========================================= */
+body { background: #000000 !important; }
+
+.warp-bg {
+    position: fixed; inset: 0; z-index: -1; background: #000; overflow: hidden;
+    perspective: 400px; /* Задает глубину */
+}
+.warp-tunnel {
+    position: absolute; inset: 0; transform-style: preserve-3d;
+    animation: spin-slow 120s linear infinite; /* Медленное вращение всей сцены */
+}
+.warp-particle {
+    position: absolute; 
+    top: 50%; left: 50%;
+    transform-origin: center center;
+    animation: warp-fly linear infinite;
+    will-change: transform, opacity;
+}
+
+@keyframes warp-fly {
+    0% {
+        /* Стартуем далеко в глубине */
+        transform: translate3d(var(--x), var(--y), -3000px) rotate(var(--ang));
+        opacity: 0;
+    }
+    15% { opacity: 1; }
+    85% { opacity: 1; }
+    100% {
+        /* Приближаемся, но НЕ пролетаем сквозь камеру (останавливаемся на Z=-50px) */
+        transform: translate3d(var(--x), var(--y), -50px) rotate(var(--ang));
+        opacity: 0;
+    }
+}
+
+@keyframes spin-slow {
+    0% { transform: rotateZ(0deg); }
+    100% { transform: rotateZ(360deg); }
+}
+
 </style>
 </head>
 <body>
+<div class="warp-bg">
+    <div class="warp-tunnel" id="warpTunnel"></div>
+</div>
 <div id="app">
   <div id="intro">
     <h1>1 из 18 квинтиллионов: Космос</h1>
@@ -4469,6 +4513,59 @@ window.buyWeapon = function(weaponId) {
 };
 window.applyChoice=applyChoice;
 window.delegateTo=delegateTo;
+/* =========================================
+   ГЕНЕРАТОР ЗВЁЗД ДЛЯ ГИПЕРПРЫЖКА
+   ========================================= */
+document.addEventListener("DOMContentLoaded", function() {
+    const tunnel = document.getElementById('warpTunnel');
+    if (!tunnel) return;
+
+    // Прозрачность поднята до 0.6 (вполовину ярче, чем 0.35)
+    const colors = [
+        'rgba(255, 255, 255, 0.6)', 
+        'rgba(255, 255, 255, 0.6)', 
+        'rgba(255, 255, 255, 0.6)', 
+        'rgba(255, 255, 255, 0.6)', 
+        'rgba(255, 122, 168, 0.6)', // Розовый
+        'rgba(92, 214, 255, 0.6)',  // Голубой
+        'rgba(255, 211, 122, 0.6)'  // Янтарный
+    ]; 
+    
+    for (let i = 0; i < 25; i++) {
+        const el = document.createElement('div');
+        el.className = 'warp-particle';
+        
+        const x = (Math.random() - 0.5) * 2000;
+        const y = (Math.random() - 0.5) * 2000;
+        const angle = Math.atan2(y, x) * (180 / Math.PI) - 90; 
+        
+        const duration = 0.4 + Math.random() * 2.1; 
+        const delay = Math.random() * -15; 
+        
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        const isStar = Math.random() > 0.8; 
+        
+        el.style.setProperty('--x', `${x}px`);
+        el.style.setProperty('--y', `${y}px`);
+        el.style.setProperty('--ang', `${angle}deg`);
+        el.style.animationDuration = `${duration}s`;
+        el.style.animationDelay = `${delay}s`; 
+        
+        if (isStar) {
+            el.style.width = '2px';
+            el.style.height = '2px';
+            el.style.borderRadius = '50%';
+            el.style.background = color;
+            el.style.boxShadow = `0 0 4px ${color}`;
+        } else {
+            el.style.width = '1px';
+            el.style.height = `${30 + Math.random() * 60}px`; 
+            el.style.background = `linear-gradient(to top, transparent, ${color})`;
+        }
+
+        tunnel.appendChild(el);
+    }
+});
 </script>
 </body>
 </html>
