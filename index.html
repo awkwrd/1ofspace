@@ -1575,7 +1575,8 @@ function stopTimeFlow(){if(timeTimer){clearInterval(timeTimer);timeTimer=null;}}
 function timeTick(){
   if(!G||G.over||G.pendingInheritance){stopTimeFlow();renderTimeControls();return;}
 
-  if(!G.currentEvent&&G.capitalOpportunity&&!G.dynastyCapital&&!G.noCapital){
+  if(!G.currentEvent&&G.capitalOpportunity&&!G.dynastyCapital&&!G.noCapital
+     &&(!G.capitalOpportunityCooldown||G.capitalOpportunityCooldown<=0)){
     G.capitalOpportunity=false;
     const capEv=makeCapitalEvent();
     if(capEv){
@@ -1644,7 +1645,8 @@ function safeRenderPanel(){
   renderPanel();
 }
 function getMandatoryEvent(){
-  if(G.capitalOpportunity&&!G.dynastyCapital&&!G.noCapital){
+  if(G.capitalOpportunity&&!G.dynastyCapital&&!G.noCapital
+     &&(!G.capitalOpportunityCooldown||G.capitalOpportunityCooldown<=0)){
     G.capitalOpportunity=false;return makeCapitalEvent();
   }
   if(!canAdultEvents()){
@@ -2549,6 +2551,7 @@ function advanceTime(months){
 
     if(G.pilotingCooldown&&G.pilotingCooldown>0) G.pilotingCooldown--;
     if(G.spouseCooldown&&G.spouseCooldown>0) G.spouseCooldown--;
+    if(G.capitalOpportunityCooldown&&G.capitalOpportunityCooldown>0) G.capitalOpportunityCooldown--;
 
     const prevAge=G.protagonist.age-1/12;
     if(!G.leisureUnlocked&&Math.floor(prevAge)<6&&Math.floor(G.protagonist.age)>=6){
@@ -2738,6 +2741,7 @@ function startNewGame(){
     visitedSystems:['sol'],
     dynastyCapital:null,
     capitalOpportunity:false,
+    capitalOpportunityCooldown:0,
     noCapital:false,
     parents:generateParents(surname),
     pet:null,
@@ -2819,6 +2823,7 @@ function loadAndContinue(){
   }
   if(!G.logHistory) G.logHistory = [];
   if(G.familyFund==null) G.familyFund = 0;
+  if(G.capitalOpportunityCooldown==null) G.capitalOpportunityCooldown = 0;
   if(G.fundClaimed==null) G.fundClaimed = (G.protagonist && G.protagonist.age >= 18);
   if(!G.factions) G.factions = {fleet:{name:'Флот',rep:0},volnitsa:{name:'Вольница',rep:0}};
   if(!G.spy) G.spy = {name:'Агент',task:null,exposure:0};
@@ -2953,9 +2958,9 @@ function makeCapitalEvent(){
   if(canAfford){
     choices.push({label:`🏛 Основать столицу (−${costStr} ${SC})`,weight:50,axes:{firmness:+1,initiative:+1},log:`Ты платишь ${costStr} ${SC} и основываешь столицу династии ${dynName} в ${sysName}.`,effects:{foundCapital:true}});
   } else {
-    choices.push({label:`Основать столицу (нужно ${costStr} ${SC})`,weight:50,axes:{firmness:+1},log:`Не хватает ${costStr} ${SC}.`,effects:{capitalOpportunity:true}});
+    choices.push({label:`Основать столицу (нужно ${costStr} ${SC})`,weight:50,axes:{firmness:+1},log:`Не хватает ${costStr} ${SC}. Вернёшься к вопросу через год.`,effects:{capitalOpportunity:true,capitalCooldown:12}});
   }
-  choices.push({label:'Не сейчас — накопить',weight:30,axes:{tempo:-1},log:'Ты откладываешь.',effects:{capitalOpportunity:true}});
+  choices.push({label:'Не сейчас — накопить',weight:30,axes:{tempo:-1},log:'Ты откладываешь. Вернёшься к вопросу через год.',effects:{capitalOpportunity:true,capitalCooldown:12}});
   choices.push({label:'Никогда — наш дом это корабль',weight:20,axes:{risk:-1},log:'Ты решаешь не основывать столицу.',effects:{noCapital:true}});
   return {id:'dynasty_capital',title:'🏛 Столица династии',text:`Ты завершил планетарную экспансию II. ${sysName} готова стать домом для твоей династии. Основание столицы ${dynName} стоит ${costStr} ${SC}.\n\nУ тебя: ${G.credits.toLocaleString('ru-RU')} ${SC}.`,choices};
 }
@@ -3448,6 +3453,7 @@ function applyEffects(e){
   }
   if(e.dockNow){G.docked=true;}
   if(e.capitalOpportunity){G.capitalOpportunity=true;}
+  if(e.capitalCooldown){G.capitalOpportunityCooldown=e.capitalCooldown;}
   if(e.noCapital){G.noCapital=true;}
   if(e.heirProfession&&G.child){
     const p=PROFESSIONS[e.heirProfession];
