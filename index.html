@@ -691,6 +691,115 @@ select:focus, .modal-box input:focus {
    BALANCED WARMTH END (Тёплые акценты на холодном)
    ========================================= */
 
+   /* =========================================
+   ELEGANT HUD FINAL POLISH
+   ========================================= */
+
+/* 1. Заголовки в стиле инженерных плашек */
+.card h2, 
+.panel h3, 
+.crew-spoiler h2,
+.time-label {
+  font-family: ui-monospace, "SF Mono", Consolas, monospace !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1.5px !important;
+  font-size: 14px !important;
+  color: #d4e2ec !important;
+}
+
+/* 2. Плоские сенсорные кнопки (без градиентов)
+button {
+  background: #141a2e !important;
+  border: 1px solid #2e3a5c !important;
+  box-shadow: none !important;
+  transition: all 0.15s ease !important;
+}
+button:hover:not(:disabled) {
+  background: #1d2540 !important;
+  border-color: #7fb4d6 !important;
+  transform: translateY(-1px) !important;
+}
+button:active:not(:disabled) {
+  transform: translateY(1px) !important;
+  background: #0b1016 !important;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.5) !important;
+} */
+
+/* Фикс для цветных кнопок, чтобы они тоже стали плоскими */
+button.active {
+  background: #2d5470 !important;
+  border-color: #7fb4d6 !important;
+  color: #eaf3fa !important;
+}
+button.combat-btn {
+  background: #2a1540 !important;
+  border-color: #a071d4 !important;
+}
+button.delegate {
+  background: #2a1a3f !important;
+  border-color: #a071d4 !important;
+}
+button.fire-btn {
+  background: #3a1510 !important;
+  border-color: #d95a45 !important;
+}
+button.love-btn {
+  background: #3a1020 !important;
+  border-color: #d97aa0 !important;
+}
+
+/* 3. Тонкие и точные шкалы (Precision Bars) */
+.axis-bar, 
+.stat-bar, 
+.time-bar, 
+.time-bar-mini {
+  height: 4px !important;
+  border-radius: 2px !important;
+  background: #070a0f !important;
+  border: 1px solid #1a2238 !important;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.9) !important;
+}
+.axis-fill, 
+.stat-fill, 
+.time-fill, 
+.time-fill-mini {
+  border-radius: 1px !important;
+}
+
+/* 4. Строгие строки данных (пунктирные линии) */
+.kv {
+  display: flex !important;
+  align-items: baseline !important;
+  gap: 6px !important;
+}
+.kv span:first-child {
+  color: var(--muted) !important;
+  white-space: nowrap !important;
+}
+/* Пунктирная линия, растягивающаяся между названием и значением */
+.kv span:first-child::after {
+  content: "" !important;
+  flex-grow: 1 !important;
+  border-bottom: 1px dotted rgba(127,180,214, 0.25) !important;
+  margin: 0 4px !important;
+}
+.kv b {
+  white-space: nowrap !important;
+  color: #e6eef5 !important;
+}
+
+/* 5. Легкая пульсация свечения у активных элементов */
+@keyframes softGlow {
+  0%, 100% { box-shadow: 0 0 10px rgba(77,255,136,.3), inset 0 0 5px rgba(77,255,136,.1); }
+  50% { box-shadow: 0 0 15px rgba(77,255,136,.6), inset 0 0 10px rgba(77,255,136,.2); }
+}
+.tabs button.active {
+  animation: softGlow 2.5s ease-in-out infinite !important;
+}
+   /* =========================================
+   ELEGANT HUD FINAL POLISH END
+   ========================================= */
+
 
 </style>
 </head>
