@@ -4090,8 +4090,8 @@ function renderProtagonist(){
   if(G.parents&&G.parents.length){
     for(const par of G.parents){
       if(par.alive===false) continue;
-      const roleLabel=par.role==='мать'?'Мать':'Отец';
-      famParts.push(`${roleLabel} ${par.name.split(' ')[0]} (${Math.floor(par.age)})`);
+      const roleLabel=par.role==='мать'?'Мать':(par.role==='отец'?'Отец':'Родитель');
+      famParts.push(`${roleLabel} ${par.name} (${Math.floor(par.age)})`);
     }
   }
   if(G.spouse){
@@ -4152,8 +4152,10 @@ function renderProtagonist(){
     if(factionsHtml) factionsHtml=`<div style="margin-top:4px">${factionsHtml}</div>`;
   }
 
+  const genderBadge = `<span class="badge" style="background:${(p.gender==='ж')?'#5c2a45':'#1d3c68'};border-color:${(p.gender==='ж')?'#ff6ba8':'#4ea1ff'};color:${(p.gender==='ж')?'#ffd9e8':'#cfe5ff'}">${p.gender==='ж'?'♀':'♂'}</span>`;
+
   document.getElementById('protagonistCard').innerHTML=`
-    <h2>${p.name} ${p.nickname?`<span class="badge nick">«${p.nickname}»</span>`:''} ${p.wounded?`<span class="badge" style="background:#3d1f1f;border-color:#6c3b3b;color:#ffc8c8">🩸 ранен (${p.wounded.monthsLeft})</span>`:''} <span style="color:var(--muted);font-size:12px">ур. ${p.level} · ${stage}</span></h2>
+    <h2>${p.name} ${genderBadge} ${p.nickname?`<span class="badge nick">«${p.nickname}»</span>`:''} ${p.wounded?`<span class="badge" style="background:#3d1f1f;border-color:#6c3b3b;color:#ffc8c8">🩸 ранен (${p.wounded.monthsLeft})</span>`:''} <span style="color:var(--muted);font-size:12px">ур. ${p.level} · ${stage}</span></h2>
     <p>Возраст: ${Math.floor(p.age)} · Поколение ${G.dynastyGeneration||1} ${captainLabel}</p>
     ${renderAxes(p)}${renderTagsBadges(p,tags,badges)}${brandsHtml}
     ${repBarHtml}
