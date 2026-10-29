@@ -4898,11 +4898,9 @@ function formatLeisureQuote(actionId, idx){
   const pool = LEISURE_QUOTES[actionId] || [];
   if(!pool.length) return '';
   const q = pool[idx % pool.length];
-  const label = actionId==='meditation' ? 'Медитация' :
-                (LEISURE_ACTIONS.find(a=>a.id===actionId)?.label || 'Досуг');
   return q.author
-    ? `📖 ${label}: ${q.text} — ${q.author}`
-    : `📖 ${label}: ${q.text}`;
+    ? `📖 ${q.text} — ${q.author}`
+    : `📖 ${q.text}`;
 }
 function renderLeisurePanel(el) {
   let html = '<div class="panel"><h3>Досуг и тренировки</h3>';
