@@ -2328,7 +2328,11 @@ function advanceTime(months){
 
     if(!G.ship.stranded){
       G.ship.fuel=Math.max(0,G.ship.fuel-0.45);
-      if(!G.isCaptain) G.ship.fuel = G.ship.fuelMax; // <--- РЕГЕНТ ЗАПРАВЛЯЕТ САМ
+      // Регент доливает топливо раз в 3 месяца, чтобы игрок видел расход
+      if(!G.isCaptain && G.timeMonths % 3 === 0){
+        G.ship.fuel = G.ship.fuelMax||100;
+        addLog('⛽ Регент доливает топливо до полного бака (раз в 3 мес).','sys');
+      }
       if(G.ship.fuel<=0){
         G.ship.fuel=0;
         G.ship.stranded={monthsLeft:18};
