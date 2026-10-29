@@ -253,6 +253,8 @@ select:focus{outline:none;border-color:#f0a742;box-shadow:0 0 0 3px rgba(240,167
   border-radius: 6px;
   animation: tabPulse 1.5s infinite;
 }
+.ship-collapsed .ship-hidden-details { display: none; }
+.ship-spoiler { display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; padding: 4px 0; }
 </style>
 </head>
 <body>
@@ -288,7 +290,7 @@ select:focus{outline:none;border-color:#f0a742;box-shadow:0 0 0 3px rgba(240,167
         <button id="playBtn" onclick="toggleTime()">▶ Играть</button>
         <button id="x1Btn" class="active" onclick="setSpeed(1)">×1</button>
         <button id="x2Btn" onclick="setSpeed(2)">×2</button>
-        <button id="x16Btn" onclick="setSpeed(16)">×16</button>
+        <button id="x4Btn" onclick="setSpeed(4)">×4</button>
         <span id="timeMode">время: пауза</span>
       </div>
     </div>
@@ -332,23 +334,23 @@ const FIRST_NAMES=[...MALE_NAMES,...FEMALE_NAMES];
 const CREW_NAMES=[...CREW_MALE,...CREW_FEMALE];
 
 const SHIP_TEMPLATES=[
-  {className:'Сойка',role:'разведчик-курьер · лёгкий рейдер',name:'Сойка',classId:'small',crewMax:3,hull:95,shields:110,engine:58,weapons:22,cargo:35,cargoMax:60,fuel:80,fuelMax:80,fuelToStation:14,
+  {className:'Сойка',role:'разведчик-курьер · лёгкий рейдер',name:'Сойка',classId:'small',crewMax:3,hull:95,shields:100,engine:58,weapons:22,cargo:35,cargoMax:60,fuel:80,fuelMax:80,fuelToStation:14,
    traits:{sturdy:+2,jumpworthy:+3,loud:-2,maintained:+18,loyal:+22,warm:+8,renowned:+4}},
-  {className:'Овод',role:'перехватчик · сторожевой',name:'Овод',classId:'small',crewMax:3,hull:105,shields:85,engine:72,weapons:61,cargo:12,cargoMax:40,fuel:100,fuelMax:100,fuelToStation:31,
+  {className:'Овод',role:'перехватчик · сторожевой',name:'Овод',classId:'small',crewMax:3,hull:100,shields:85,engine:72,weapons:61,cargo:12,cargoMax:40,fuel:100,fuelMax:100,fuelToStation:31,
    traits:{sturdy:-6,jumpworthy:+1,loud:+3,maintained:+52,loyal:+9,warm:+2,renowned:+17}},
-  {className:'Мотыль',role:'челнок-разведчик · тихий',name:'Мотыль',classId:'small',crewMax:3,hull:88,shields:120,engine:66,weapons:14,cargo:28,cargoMax:50,fuel:70,fuelMax:70,fuelToStation:9,
+  {className:'Мотыль',role:'челнок-разведчик · тихий',name:'Мотыль',classId:'small',crewMax:3,hull:88,shields:100,engine:66,weapons:14,cargo:28,cargoMax:50,fuel:70,fuelMax:70,fuelToStation:9,
    traits:{sturdy:-3,jumpworthy:+2,loud:-4,maintained:+37,loyal:+28,warm:+6,renowned:-5}},
-  {className:'Кречет',role:'корвет · рейдер',name:'Кречет',classId:'medium',crewMax:4,hull:310,shields:285,engine:64,weapons:128,cargo:145,cargoMax:320,fuel:260,fuelMax:300,fuelToStation:47,
+  {className:'Кречет',role:'корвет · рейдер',name:'Кречет',classId:'medium',crewMax:4,hull:140,shields:150,engine:64,weapons:128,cargo:145,cargoMax:320,fuel:260,fuelMax:300,fuelToStation:47,
    traits:{sturdy:+11,jumpworthy:+2,loud:+1,maintained:+34,loyal:+26,warm:+14,renowned:+38}},
-  {className:'Скиталец',role:'исследователь · дальний рейс',name:'Скиталец',classId:'medium',crewMax:4,hull:285,shields:260,engine:49,weapons:42,cargo:290,cargoMax:420,fuel:340,fuelMax:340,fuelToStation:68,
+  {className:'Скиталец',role:'исследователь · дальний рейс',name:'Скиталец',classId:'medium',crewMax:4,hull:150,shields:140,engine:49,weapons:42,cargo:290,cargoMax:420,fuel:340,fuelMax:340,fuelToStation:68,
    traits:{sturdy:+19,jumpworthy:+4,loud:-1,maintained:+44,loyal:+31,warm:+27,renowned:+22}},
-  {className:'Кузнец',role:'ремонтник · плавучая мастерская',name:'Кузнец',classId:'medium',crewMax:4,hull:340,shields:230,engine:41,weapons:36,cargo:380,cargoMax:460,fuel:210,fuelMax:300,fuelToStation:54,
+  {className:'Кузнец',role:'ремонтник · плавучая мастерская',name:'Кузнец',classId:'medium',crewMax:4,hull:150,shields:130,engine:41,weapons:36,cargo:380,cargoMax:460,fuel:210,fuelMax:300,fuelToStation:54,
    traits:{sturdy:+22,jumpworthy:+1,loud:+2,maintained:+67,loyal:+38,warm:+19,renowned:+29}},
-  {className:'Левиафан',role:'линкор · тяжёлый крейсер',name:'Левиафан',classId:'large',crewMax:6,hull:920,shields:880,engine:58,weapons:242,cargo:540,cargoMax:1000,fuel:780,fuelMax:900,fuelToStation:102,
+  {className:'Левиафан',role:'линкор · тяжёлый крейсер',name:'Левиафан',classId:'large',crewMax:6,hull:200,shields:200,engine:58,weapons:242,cargo:540,cargoMax:1000,fuel:780,fuelMax:900,fuelToStation:102,
    traits:{sturdy:+24,jumpworthy:+2,loud:+5,maintained:+29,loyal:+41,warm:+18,renowned:+76}},
-  {className:'Молот',role:'штурмовой крейсер · осадный',name:'Молот',classId:'large',crewMax:6,hull:980,shields:720,engine:47,weapons:286,cargo:380,cargoMax:800,fuel:700,fuelMax:900,fuelToStation:88,
+  {className:'Молот',role:'штурмовой крейсер · осадный',name:'Молот',classId:'large',crewMax:6,hull:200,shields:180,engine:47,weapons:286,cargo:380,cargoMax:800,fuel:700,fuelMax:900,fuelToStation:88,
    traits:{sturdy:+31,jumpworthy:+1,loud:+7,maintained:+36,loyal:+46,warm:+12,renowned:+81}},
-  {className:'Ковчег',role:'колонизатор · дальний хаулер',name:'Ковчег',classId:'large',crewMax:12,crewBaseMax:12,hull:840,shields:790,engine:44,weapons:92,cargo:960,cargoMax:1400,fuel:860,fuelMax:900,fuelToStation:141,
+  {className:'Ковчег',role:'колонизатор · дальний хаулер',name:'Ковчег',classId:'large',crewMax:12,crewBaseMax:12,hull:180,shields:190,engine:44,weapons:92,cargo:960,cargoMax:1400,fuel:860,fuelMax:900,fuelToStation:141,
    traits:{sturdy:+12,jumpworthy:+4,loud:0,maintained:+72,loyal:+58,warm:+41,renowned:+54}},
 ];
 
@@ -864,8 +866,8 @@ const ROUTINE=[
 ];
 const HULL_CLASSES={
   small:{id:'small',multiplier:1,crew_max:3,hull_max:100,shields_max:100,name:'Малый',price:0},
-  medium:{id:'medium',multiplier:3,crew_max:4,hull_max:300,shields_max:300,name:'Средний',price:80000},
-  large:{id:'large',multiplier:9,crew_max:6,hull_max:900,shields_max:900,name:'Большой',price:800000},
+  medium:{id:'medium',multiplier:3,crew_max:4,hull_max:150,shields_max:150,name:'Средний',price:80000},
+  large:{id:'large',multiplier:9,crew_max:6,hull_max:200,shields_max:200,name:'Большой',price:800000},
 };
 const PROFESSIONS={
   scavenger:{id:'scavenger',name:'Мусорщик',base_salary:5000,study_months:0,free_access:true},
@@ -1079,6 +1081,7 @@ const EVENTS=[
     {label:'Открыть огонь',weight:40,axes:{risk:+1,firmness:+1},startCombat:'pirates_main',log:'Ты открываешь огонь.'},
     {label:'Уйти на форсаже',weight:35,axes:{risk:-1,tempo:+1},check:s=>s.engine+shipEngineBonus()+Math.random()*30>=55,okLog:'Пираты позади.',failLog:'Форсаж срывается!',okEffects:{fuel:-15,rep:+2},failEffects:{fuel:-10},failCombat:'pirates_main'},
     {label:'Заплатить',weight:25,axes:{risk:-1,firmness:-1},available:s=>s.credits>=4000,log:'Пираты довольны.',effects:{credits:-4000,rep:-2}},
+    {label:'Сбросить груз',weight:30,axes:{risk:-1},available:s=>s.credits>=1500,log:'Ты сбрасываешь контейнеры. Пираты довольны добычей и уходят.',effects:{credits:-1500,rep:-1}},
   ]},
   {id:'alien_hostile',title:'Чужой корабль',text:'Из гиперпространства выходит корабль неизвестной конструкции. Он больше твоего в три раза. Похоже, он не настроен на разговор.',ageMin:18,requiresCaptain:true,choices:[
     {label:'Атаковать первым',weight:40,axes:{risk:+1,firmness:+1},startCombat:'alien_main',log:'Ты открываешь огонь.'},
@@ -1193,7 +1196,7 @@ const EVENTS=[
   {id:'black_hole',title:'Чёрная дыра',text:'Впереди — чёрная дыра. Гравитация искажает звёзды.',ageMin:18,requiresCaptain:true,choices:[
     {label:'Пройти рядом',weight:30,axes:{risk:+1,certainty:+1},check:()=>Math.random()<0.55,okLog:'Данные бесценны.',failLog:'Корабль затягивает. Ты едва вырываешься.',okEffects:{rep:+25,credits:+15000},failEffects:{hull:-50,shields:-30,crewLossChance:0.35}},
     {label:'Обойти',weight:50,axes:{risk:-1,tempo:-1},log:'Безопасно, но скучно.',effects:{fuel:-20}},
-    {label:'Прыгнуть вслепую',weight:20,axes:{risk:+1,tempo:+1},check:()=>Math.random()<0.15,okLog:'Ты выходишь в неизвестной системе.',failLog:'Тебя разрывает на части.',okEffects:{rep:+50,credits:+50000},failEffects:{hull:-100,deathReason:'Корабль разорвало гравитацией чёрной дыры. Тебя больше нет.'}},
+    {label:'Прыгнуть вслепую',weight:20,axes:{risk:+1,tempo:+1},check:()=>Math.random()<0.15,okLog:'Ты выходишь в неизвестной системе.',failLog:'Тебя растягивает в атомы.',okEffects:{rep:+50,credits:+50000},failEffects:{hull:-100,deathReason:'Горизонт событий. Тебя медленно перетирает в атомы экспоненциальных уравнений.'}},
   ]},
   {id:'new_planet',title:'Новая планета',text:'Сканеры показывают планету в обитаемой зоне. Атмосфера пригодна.',ageMin:18,requiresCaptain:true,choices:[
     {label:'Высадиться',weight:40,axes:{risk:+1,initiative:+1},check:()=>Math.random()<0.7,okLog:'Ты ступаешь на землю нового мира.',failLog:'Фауна агрессивна.',okEffects:{rep:+30,credits:+10000},failEffects:{hull:-5,crewLossChance:0.15,rep:+5}},
@@ -1346,6 +1349,16 @@ const SHIP_EVENTS=[
     {label:'Смириться',weight:30,axes:{firmness:-1},log:'Своенравен, но летит.',effects:{hull:-3},shipAxes:{loyal:-1}},
     {label:'Сдать в переплавку',weight:20,axes:{firmness:+1},log:'Расстаться с корпусом.',effects:{credits:+5000},shipAxes:{loyal:+5}},
   ]},
+];
+
+const WEAPONS = [
+  {id:'none', name:'Штатное', cost:0, dmg:0, desc:'То, что было при покупке. Стреляет, если повезет.'},
+  {id:'pulse', name:'Импульсный лазер', cost:15000, dmg:10, desc:'Быстрый, дешевый, но греется как утюг. Классика жанра.'},
+  {id:'plasma', name:'Плазменная пушка', cost:40000, dmg:25, desc:'Расплавляет обшивку врага. Требует много энергии, зато выглядит эпично.'},
+  {id:'railgun', name:'Рельсотрон', cost:75000, dmg:45, desc:'Разгоняет болванку до сверхсветовой. Пробивает насквозь, но перезаряжается целую вечность.'},
+  {id:'missiles', name:'Ракетная установка', cost:50000, dmg:30, desc:'Рой самонаводящихся ракет. Если у врага нет точечной обороны — ему конец.'},
+  {id:'ion', name:'Ионный дисраптор', cost:60000, dmg:20, desc:'Не убивает, а вырубает системы. Идеально против щитов и тех, кто любит поговорить.'},
+  {id:'scatter', name:'Картечница', cost:25000, dmg:15, desc:'Дробовик в космосе. Разлетается веером. На близкой дистанции разрывает на куски.'}
 ];
 
 let G=null;
@@ -1524,12 +1537,12 @@ function getMandatoryEvent(){
       if(typeof ev.textFn==='function'){ev.text=ev.textFn();delete ev.textFn;}
       return ev;
     }  } else {
-    if(!G.isCaptain&&G.protagonist.age>=18&&!G.majorityEventDone) return makeMajorityEvent();
+    if(!G.isCaptain&&G.protagonist.age>=16&&!G.majorityEventDone) return makeMajorityEvent();
     if(G.child&&G.child.age>=15&&!G.child.profChoiceMade) return makeHeirProfessionEvent();
   }
   return null;
 }
-function canAdultEvents(){return G.isCaptain?G.protagonist.age>=15:G.protagonist.age>=18;}
+function canAdultEvents(){return G.isCaptain?G.protagonist.age>=15:G.protagonist.age>=16;}
 function maybeLogFlavor(force){
   const soloOnBoard = (!G.crew || G.crew.length===0);
   let type;
@@ -1579,12 +1592,26 @@ function renderTimeControls(){
   play.classList.toggle('active',timeSpeed>0);
   document.getElementById('x1Btn').classList.toggle('active',timeSpeed===1);
   document.getElementById('x2Btn').classList.toggle('active',timeSpeed===2);
-  const x16=document.getElementById('x16Btn');
-  if(x16) x16.classList.toggle('active',timeSpeed===16);
+  const x4=document.getElementById('x4Btn');
+  if(x4) x4.classList.toggle('active',timeSpeed===4);
   if(mode) mode.textContent=timeSpeed===0?'время: пауза':`время: ×${timeSpeed}`;
 }
-window.toggleTime=function(){if(timeSpeed>0){timeSpeed=0;stopTimeFlow();}else{timeSpeed=1;startTimeFlow();}renderTimeControls();};
-window.setSpeed=function(s){timeSpeed=s;startTimeFlow();renderTimeControls();};
+window.toggleTime=function(){
+  if(timeSpeed>0){
+    timeSpeed=0;
+    stopTimeFlow();
+  }else{
+    timeSpeed = (G._prevTimeSpeed !== undefined && G._prevTimeSpeed > 0) ? G._prevTimeSpeed : 1;
+    startTimeFlow();
+  }
+  renderTimeControls();
+};
+window.setSpeed=function(s){
+  timeSpeed=s;
+  G._prevTimeSpeed = s; // Запоминаем выбор игрока
+  startTimeFlow();
+  renderTimeControls();
+};
 
 function saveGame(){
   if(!G) return;
@@ -1767,6 +1794,9 @@ function gainXP(member,amount){
 function generateShip(opts){
   opts=opts||{};
   let templates=SHIP_TEMPLATES.slice();
+  if(!opts.allowLarge) {
+    templates = templates.filter(t => t.classId !== 'large');
+  }
   if(opts.excludeClassName){
     const filtered=templates.filter(t=>t.className!==opts.excludeClassName);
     if(filtered.length) templates=filtered;
@@ -1791,7 +1821,7 @@ function generateShip(opts){
     fuel:(t.fuel!=null?t.fuel:60),fuelMax:t.fuelMax||100,
     fuelToStation:t.fuelToStation!=null?t.fuelToStation:randInt(15,25),
     crewMax,crewBaseMax:t.crewBaseMax||null,shelterActive:false,
-    oldHulls:[],traits,shipTransitions:{},
+    oldHulls:[],traits,shipTransitions:{},weaponId:'none',
     firstBlood:false,baptized:false,stranded:null,currentSystem:'sol',
     undyingUsed:false,
   };
@@ -2251,7 +2281,7 @@ function advanceTime(months){
     }
 
     if(!G.ship.stranded){
-      G.ship.fuel=Math.max(0,G.ship.fuel-0.15);
+      G.ship.fuel=Math.max(0,G.ship.fuel-0.45);
       if(G.ship.fuel<=0){
         G.ship.fuel=0;
         G.ship.stranded={monthsLeft:18};
@@ -2401,7 +2431,7 @@ function advanceTime(months){
       addLog('Скафандрята завершён. Пора учиться всерьёз.','level');
     }
 
-    if(!G.isCaptain && G.crew.length===0 && G.protagonist.age<18){
+    if(!G.isCaptain && G.crew.length===0 && G.protagonist.age<16){
       addLog('Экипаж покинул корабль. В таком возрасте ты не выживешь один.','death');
       endGame('Экипаж покинул корабль. Ты остался один в детстве.');
       return;
@@ -2503,7 +2533,7 @@ function startNewGame(){
 
   G={
     protagonist:{first,surname,name,age:0,lifespan:72+randInt(0,28),level:1,xp:0,axes:baseAxes,badges:[],transitions:{},isMain:true,nickname:null,brands:[]},
-    ship:generateShip(),
+    ship:generateShip({allowLarge: false}),
     crew:[makeCrewMember(true,undefined,undefined,[25,45])],
     child:null,spouse:null,grandchild:null,inheritedProfPreview:null,pregnancy:null,
     dynastyName:surname,
@@ -2572,6 +2602,7 @@ function loadAndContinue(){
       if(G.ship.crewBaseMax==null && tpl.crewBaseMax) G.ship.crewBaseMax = tpl.crewBaseMax;
       if(G.ship.undyingUsed==null) G.ship.undyingUsed = false;
       if(G.ship.shelterActive==null) G.ship.shelterActive = false;
+      if(G.ship.weaponId==null) G.ship.weaponId = 'none'; // <-- ДОБАВИТЬ ЭТО
     }
   }
   if(G.studying && !G.studying.eventId){
@@ -2645,7 +2676,7 @@ function makeMajorityEvent(){
   if(G.credits>=SHIP_PURCHASE_PRICE){
     choices.push({label:`Купить свой корабль (${SHIP_PURCHASE_PRICE} ${SC})`,weight:50,axes:{risk:+1,initiative:+1},log:'На верфи ты выбираешь свой корабль.',effects:{becomeCaptain:'buy'}});
   }
-  return {id:'majority',title:'Совершеннолетие',text:'Тебе 18. Пора брать корабль под свою руку.',choices};
+  return {id:'majority',title:'Совершеннолетие',text:'Тебе 16. Пора брать корабль под свою руку.',choices};
 }
 function makeHeirProfessionEvent(){
   const learnable=Object.keys(PROFESSIONS).filter(id=>!PROFESSIONS[id].free_access&&!PROFESSIONS[id].requires);
@@ -3022,7 +3053,7 @@ function applyEffects(e){
     if(e.becomeCaptain==='buy'){
       G.ship.oldHulls=G.ship.oldHulls||[];
       G.ship.oldHulls.push({classId:G.ship.classId,name:G.ship.name,traits:JSON.parse(JSON.stringify(G.ship.traits)),stored:true});
-      const newShip=generateShip();
+      const newShip=generateShip({allowLarge: false});
       G.ship=newShip;
       G.credits-=SHIP_PURCHASE_PRICE;
       addLog(`Ты покупаешь свой корабль: ${G.ship.className} «${G.ship.name}». −${SHIP_PURCHASE_PRICE} ${SC}.`,'reveal');
@@ -3439,7 +3470,7 @@ window.inheritAndContinue=function(){
   G.combat=null;
   G.recentEvents=[];
   G.scafandryataGraduated=G.protagonist.age>=6;
-  G.isCaptain=G.protagonist.age>=18;
+  G.isCaptain=G.protagonist.age>=16;
   G.parents=[{name:deceasedName,age:deceasedAge,relation:'хорошие',role:'родитель',alive:false}];
   if(spouseName){G.parents.push({name:spouseName,age:spouseAge,relation:'хорошие',role:'родитель',alive:true});}
   if(G.isCaptain) addLog(`Ты — ${G.protagonist.name}. Наследник вступает в силу.`,'reveal');
@@ -3795,6 +3826,8 @@ function renderShip(){
   const renameBtn=`<button class="icon-btn" onclick="renameShip()" title="Переименовать">✎</button>`;
   const currentSys=STAR_SYSTEMS.find(sy=>sy.id===s.currentSystem);
   const hullLabel=HULL_CLASSES[s.classId]?.name||'';
+  const collapsed = G.shipCollapsed || false;
+
   const stat=(label,cur,max,cls)=>{
     const pct=max>0?clamp((cur/max)*100,0,100):0;
     return `<div class="stat-row"><span class="stat-label">${label}</span><div class="stat-bar"><div class="stat-fill ${cls}" style="width:${pct}%"></div></div><span class="stat-val">${Math.round(cur)}/${Math.round(max)}</span></div>`;
@@ -3803,15 +3836,24 @@ function renderShip(){
     const pct=clamp(val,0,100);
     return `<div class="stat-row"><span class="stat-label">${label}</span><div class="stat-bar"><div class="stat-fill ${cls}" style="width:${pct}%"></div></div><span class="stat-val">${Math.round(val)}</span></div>`;
   };
-  let html=`<h2>«${s.name}» ${renameBtn}</h2>`;
+
+  let html=`<div class="ship-spoiler" onclick="window.toggleShipCollapse()">
+    <h2>«${s.name}» ${renameBtn}</h2>
+    <span style="color:var(--muted);font-size:12px">${collapsed ? '▼' : '▲'}</span>
+  </div>`;
+  
+  // Скрытая часть (всё что ниже)
+  html+=`<div class="ship-hidden-details">`;
   html+=`<p>${s.className} · ${s.role||''} · <span style="color:var(--ship)">${hullLabel} корпус</span>${!G.isCaptain?' · под регентом':''}</p>`;
   html+=`<div class="kv" style="font-size:12px"><span>🌍 Система</span><b>${currentSys?.name||'?'}</b></div>`;
   html+=renderShipAxes();
+  
   let tagHtml='';
   for(const t of tags) tagHtml+=`<span class="badge shiptag">${t.name}</span>`;
   if(s.firstBlood) tagHtml+=`<span class="badge" style="background:#3d1f1f;border-color:#6c3b3b;color:#ffc8c8">Боевое крещение</span>`;
   if(s.baptized) tagHtml+=`<span class="badge" style="background:#3d2f1f;border-color:#6c5a3b;color:#ffe0c8">Личный позывной</span>`;
   if(tagHtml) html+=`<div class="tag-line">${tagHtml}</div>`;
+  
   html+=`<div style="margin-top:8px"></div>`;
   const shipSpec=SHIP_SPECIALS[s.className];
   if(shipSpec){
@@ -3819,15 +3861,27 @@ function renderShip(){
     html+=`<div class="kv" style="font-size:12px;margin-top:6px"><span>✨ Способность</span><b>${shipSpec.label}${used?' <span style="color:#ff6b7a">(использовано)</span>':''}</b></div>`;
     html+=`<div style="font-size:11px;color:var(--muted);margin-bottom:6px">${shipSpec.desc}</div>`;
   }
-  html+=stat('Корпус',s.hull,s.hullMax,'hull');
-  html+=stat('Щиты',s.shields,s.shieldsMax,'shields');
-  html+=stat('Топливо',s.fuel,s.fuelMax||100,fuel<need?'fuellow':'fuel');
+  
+  // Скрываем Трюм, Двигатель, Оружие и Экипаж в спойлер
   html+=stat('Трюм',s.cargo,s.cargoMax||100,'cargo');
   html+=statFixed('Двигатель',s.engine,'engine');
   html+=statFixed('Оружие',s.weapons,'weapons');
   html+=stat('Экипаж',G.crew.length+1,s.crewMax,'crew');
+  html+=`</div>`; // Конец скрытой части
+
+  // Эти три полоски всегда видны
+  html+=stat('Корпус',s.hull,s.hullMax,'hull');
+  html+=stat('Щиты',s.shields,s.shieldsMax,'shields');
+  html+=stat('Топливо',s.fuel,s.fuelMax||100,fuel<need?'fuellow':'fuel');
+
   document.getElementById('shipCard').innerHTML=html;
+  document.getElementById('shipCard').className = `card ${collapsed ? 'ship-collapsed' : ''}`;
 }
+
+window.toggleShipCollapse = function() {
+  G.shipCollapsed = !G.shipCollapsed;
+  renderShip();
+};
 function renderCrew(){
   const el=document.getElementById('crewCard');
   const collapsed=G.crewCollapsed||false;
@@ -4150,7 +4204,16 @@ function renderShipyardPanel(el){
       </div>
     </div>`;
   }
-
+  html+='<h3 style="margin-top:14px">Арсенал (Оружие)</h3>';
+  for(const w of WEAPONS){
+    const isEquipped = (G.ship.weaponId || 'none') === w.id;
+    const canBuy = G.credits >= w.cost && !isEquipped;
+    
+    html+=`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
+      <div><b>${w.name}</b> <span style="color:#ff5555;font-size:12px">(+${w.dmg} к урону)</span><br><span style="color:var(--muted);font-size:11px">${w.desc}</span></div>
+      <div>${isEquipped ? '<span class="badge tag">Установлено</span>' : (canBuy ? `<button class="small" onclick="buyWeapon('${w.id}')">Купить (${w.cost} ${SC})</button>` : `<span style="font-size:11px;color:var(--muted)">${G.credits < w.cost ? 'не хватает' : ''}</span>`)}</div>
+    </div>`;
+  }
   html+='<h3 style="margin-top:14px">Наём специалистов</h3>';
   const tierColor={базовый:'#3b6ca8',средний:'#6b4a9c',элитный:'#a83b47'};
   for(const spec of SPECIALISTS){
@@ -4184,7 +4247,8 @@ window.doBuyShip=function(className){
     engine:tpl.engine+randInt(-3,3), weapons:tpl.weapons+randInt(-3,3),
     cargo:tpl.cargo, cargoMax:tpl.cargoMax, fuel:tpl.fuelMax, fuelMax:tpl.fuelMax,
     fuelToStation:tpl.fuelToStation, crewMax:tpl.crewMax, crewBaseMax:tpl.crewBaseMax||null, shelterActive:false,
-    oldHulls, traits:newTraits, shipTransitions:{}, firstBlood:false, baptized:false, stranded:null, currentSystem:oldSystem, undyingUsed:false
+    oldHulls, traits:newTraits, shipTransitions:{}, weaponId: 'none', firstBlood:false, baptized:false, stranded:null, currentSystem:oldSystem, undyingUsed:false
+  };
   };
   addLog(`🛒 Новый корабль: ${G.ship.className} «${G.ship.name}». −${price} ${SC}.`,'reveal');
   addLog(`📦 Старый ${oldClassName} «${oldName}» → музей династии.`,'sys');
@@ -4349,7 +4413,8 @@ lastGameBtn.addEventListener('click', () => {
     document.getElementById('playBtn').disabled = true;
     document.getElementById('x1Btn').disabled = true;
     document.getElementById('x2Btn').disabled = true;
-    document.getElementById('x16Btn').disabled = true;
+    const x4btn = document.getElementById('x4Btn');
+    if(x4btn) x4btn.disabled = true; // <-- Защита от ошибки
     document.getElementById('shipyardBtn').style.display = 'none';
     document.getElementById('retireBtn').style.display = 'none';
     document.querySelectorAll('#tabs button').forEach(b => b.style.display = 'none');
@@ -4387,6 +4452,21 @@ document.getElementById('retireBtn').addEventListener('click',()=>{
 });
 window.addEventListener('beforeunload',()=>{if(G&&!G.over) saveGame();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&G&&!G.over) saveGame();});
+window.buyWeapon = function(weaponId) {
+  const newW = WEAPONS.find(x=>x.id===weaponId);
+  if(!newW || G.credits < newW.cost) return;
+  
+  const oldW = WEAPONS.find(x=>x.id === (G.ship.weaponId || 'none')) || WEAPONS[0];
+  
+  G.credits -= newW.cost;
+  G.ship.weaponId = newW.id;
+  
+  // Вычитаем старый урон, прибавляем новый
+  G.ship.weapons = Math.round(G.ship.weapons - oldW.dmg + newW.dmg); 
+  
+  addLog(`🔫 Установлено оружие: ${newW.name}. (${newW.dmg>0?'+':''}${newW.dmg} к урону)`, 'level');
+  saveGame(); renderAll(); renderPanel();
+};
 window.applyChoice=applyChoice;
 window.delegateTo=delegateTo;
 </script>
