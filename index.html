@@ -2977,10 +2977,17 @@ function makeDivorceEvent(){
     text:`${spouseName} всё чаще молчит. Разговоры превращаются в споры. Что-то не так.`,
     choices:[
       {label:'Попытаться спасти брак', weight:40, axes:{tempo:-1,initiative:+1},
-        check:()=>Math.random()<0.5,
+        check:()=>{
+          let p = 0.6;
+          if((G.protagonist.axes.initiative||0) >= 20) p += 0.1;
+          if((G.protagonist.axes.firmness||0)   >= 20) p += 0.05;
+          if((G.ship.traits.warm||0) > 30)           p += 0.1;
+          if(G.rep >= 20)                            p += 0.05;
+          return Math.random() < Math.min(0.85, p);
+        },
         okLog:`Вы говорите всю ночь. Утром легче. Пока что.`,
         failLog:`Разговор не получается. ${spouseName} собирает вещи.`,
-        okEffects:{spouseCooldown:12},
+        okEffects:{spouseCooldown:12, clearDivorceEvent:true},
         failEffects:{divorce:true}},
       {label:'Отпустить', weight:30, axes:{tempo:-1,risk:-1},
         log:`Вы расходитесь. Тихо. Без скандала.`,
@@ -2989,7 +2996,7 @@ function makeDivorceEvent(){
         check:()=>Math.random()<0.4,
         okLog:`Пока прокатывает.`,
         failLog:`${spouseName} уходит, хлопнув дверью.`,
-        okEffects:{},
+        okEffects:{clearDivorceEvent:true},
         failEffects:{divorce:true}},
     ]
   };
@@ -3346,13 +3353,32 @@ function applyEffects(e){
     addLog(`💕 ${G.spouse.name} теперь с тобой. Вы стали семьёй.`,'love');
   }
   if(e.divorce && G.spouse){
-    addLog(`💔 ${G.spouse.name} уходит. Брак расторгнут.`,'love');
+    const exName   = G.spouse.name;
+    const exGender = G.spouse.gender;
+    const exAge    = Math.floor(G.spouse.age || 30);
+    const exLife   = G.spouse.lifespan || 75;
+    addLog(`💔 ${exName} уходит. Брак расторгнут.`,'love');
     if(G.pregnancy && G.pregnancy.bySpouse){
-      addLog(`👶 ${G.spouse.name} уходит вместе с ребёнком. Ты его больше не увидишь.`,'love');
+      addLog(`👶 ${exName} беременна от тебя. Ребёнок останется с ней — уже не твой наследник.`,'love');
       G.pregnancy = null;
+    }
+    // В космосе некуда уйти — бывший(ая) остаётся на корабле как член экипажа
+    if(G.crew.length + 1 < G.ship.crewMax){
+      const ex = makeCrewMember(true, 'Матрос', exGender, [exAge, exAge]);
+      ex.name = exName;
+      ex.age = exAge;
+      ex.lifespan = exLife;
+      ex.exSpouse = true;
+      G.crew.push(ex);
+      addLog(`🏠 ${exName} остаётся на борту — уже не как супруг(а), а как член экипажа. В космосе некуда уйти.`,'love');
+    } else {
+      addLog(`🚀 ${exName} покинет корабль на следующей станции.`,'love');
     }
     G.spouse = null;
     G.spouseCooldown = 12;
+    G.recentEvents = G.recentEvents.filter(x => x !== 'divorce_event');
+  }
+  if(e.clearDivorceEvent){
     G.recentEvents = G.recentEvents.filter(x => x !== 'divorce_event');
   }
   if(e.haveChild){
