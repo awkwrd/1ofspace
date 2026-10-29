@@ -2591,7 +2591,6 @@ function advanceTime(months){
           const curVal = G.protagonist.axes[G.leisure.axis] || 0;
           if(curVal < 80){
             G.protagonist.axes[G.leisure.axis] = clamp(curVal + 1, -100, 100);
-            addLog(`🎯 Постоянные занятия "${G.leisure.label}": +1 к ${AXIS_LABELS[G.leisure.axis]}.`, 'level');
             if(Math.random() < 0.10){
               G.protagonist.axes[G.leisure.riskAxis] = clamp((G.protagonist.axes[G.leisure.riskAxis]||0) + G.leisure.riskVal, -100, 100);
               addLog(`⚠ Неудача: ${G.leisure.riskText} (${AXIS_LABELS[G.leisure.riskAxis]} ${G.leisure.riskVal}).`, 'death');
@@ -5031,7 +5030,7 @@ window.doLeisure = function(actionId) {
     monthsActive: 0,
     quoteIdx: 0
   };
-  addLog(`🎯 Постоянные занятия "${act.label}" начаты. +1 к ${AXIS_LABELS[act.axis]} каждые 6 мес.`, 'level');
+  addLog(`Вы начинаете заниматься: ${act.label}.`, 'sys');
   if(timeSpeed <= 0) { timeSpeed = 1; startTimeFlow(); renderTimeControls(); }
   saveGame(); renderAll(); renderPanel();
 };
