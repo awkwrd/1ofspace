@@ -2485,6 +2485,11 @@ function advanceTime(months){
     if(G.spouseCooldown&&G.spouseCooldown>0) G.spouseCooldown--;
 
     const prevAge=G.protagonist.age-1/12;
+    if(!G.leisureUnlocked&&Math.floor(prevAge)<6&&Math.floor(G.protagonist.age)>=6){
+      G.leisureUnlocked=true;
+       addLog('Скафандрята завершён и теперь можно заниматься собой. Во вкладке «Досуг» доступны тренировки характера.','level');
+      G.pendingPause = true;
+    }
     if(!G.scafandryataGraduated&&Math.floor(prevAge)<12&&Math.floor(G.protagonist.age)>=12){
       G.scafandryataGraduated=true;
       addLog('Пора учиться всерьёз. В «Обучении» ты найдёшь занятие по душе.','level');
@@ -2661,7 +2666,8 @@ function startNewGame(){
     crewCollapsed: true,
     leisure: null,
     trainedThisYear: {},
-    pendingPause: false
+    pendingPause: false,
+    leisureUnlocked: false
   };
   document.getElementById('intro').classList.add('hidden');
   document.getElementById('game').classList.remove('hidden');
@@ -2713,6 +2719,7 @@ function loadAndContinue(){
   if(G.spyMonthsElapsed==null) G.spyMonthsElapsed = 0;
   if(G.spy && G.spy.exposure==null) G.spy.exposure = 0;
   if(!G.trainedThisYear) G.trainedThisYear = {};
+  if(G.leisureUnlocked==null) G.leisureUnlocked = (G.protagonist && G.protagonist.age>=6);
   document.getElementById('intro').classList.add('hidden');
   document.getElementById('game').classList.remove('hidden');
   document.getElementById('identityReveal').innerHTML=`<div class="name">${G.protagonist.name}</div><div class="ship">${G.ship.className} «${G.ship.name}» · ${Math.floor(G.protagonist.age)} лет</div><div class="gen">Поколение ${G.dynastyGeneration||1}</div>`;
@@ -3572,6 +3579,7 @@ window.inheritAndContinue=function(){
   G.leisure = null;
   G.trainedThisYear = {};
   G.pendingPause = false;
+  G.leisureUnlocked=G.protagonist.age>=6;
   G.scafandryataGraduated=G.protagonist.age>=12;
   G.isCaptain=G.protagonist.age>=16;
   G.parents=[{name:deceasedName,age:deceasedAge,relation:'хорошие',role:'родитель',alive:false}];
