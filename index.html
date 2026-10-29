@@ -314,7 +314,7 @@ body { background: #000000 !important; }
       <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap">
         <button id="newGameBtn">Новая жизнь</button>
         <button id="continueBtn" class="secondary hidden">Продолжить</button>
-        <button id="lastGameBtn" class="secondary hidden">Итоги прошлой игры</button>
+        <button id="lastGameBtn" class="secondary hidden">📜 Эпитафия прошлой жизни</button>
       </div>
     </div>
   </div>
@@ -1234,7 +1234,7 @@ const EVENTS=[
     {label:'Уйти',weight:30,axes:{tempo:-1},log:'Ты уходишь.',effects:{}},
   ]},
   {id:'simple_disease',title:'Простуда',text:'Ты проснулся с температурой. Горло дерёт, голова гудит.',ageMin:6,ageMax:75,choices:[
-    {label:'Отлежаться',weight:50,axes:{tempo:-1},log:'Через неделю легчает.',effects:{}},
+    {label:'Отлежаться',weight:50,axes:{tempo:-1},log:'Через неделю легчает. Работа стоит.',effects:{pauseEarnings:1}},
     {label:'Работать дальше',weight:50,axes:{firmness:+1,risk:+1},
       check:()=>{
         const hasDoctor=G.crew.some(c=>c.role==='Врач');
@@ -1249,8 +1249,8 @@ const EVENTS=[
     },
   ]},
   {id:'complex_disease',title:'Радиационное отравление',text:'Ты получил большую дозу радиации. Врач мрачнеет.',ageMin:60,ageMax:95,choices:[
-    {label:'Полное лечение',weight:50,axes:{risk:-1},available:s=>s.credits>=20000,log:'Лечение помогает.',effects:{credits:-20000,lifespanLoss:3}},
-    {label:'Обезболить',weight:30,axes:{tempo:-1,risk:-1},log:'Ты продолжаешь.',effects:{lifespanLoss:10}},
+    {label:'Полное лечение',weight:50,axes:{risk:-1},available:s=>s.credits>=20000,log:'Лечение помогает.',effects:{credits:-20000,lifespanLoss:3,pauseEarnings:3}},
+    {label:'Обезболить',weight:30,axes:{tempo:-1,risk:-1},log:'Ты продолжаешь.',effects:{lifespanLoss:10,pauseEarnings:2}},
     {label:'Игнорировать',weight:20,axes:{risk:+1,firmness:+1},
       check:()=>{
         const hasDoctor=G.crew.some(c=>c.role==='Врач');
@@ -2297,10 +2297,22 @@ function travelToSystem(systemId){
 }
 
 window.goToShipyard=function(){
-  if(!G||G.over||G.pendingInheritance||G.combat||G.pilotingCourse||G.currentEvent) return; // <--- ДОБАВЛЕН G.currentEvent
+  if(!G||G.over||G.pendingInheritance||G.combat||G.pilotingCourse||G.currentEvent) return;
   if(!G.isCaptain){addLog('Ты не капитан. Курс отдаёт регент.','sys');return;}
   const cost=G.ship.fuelToStation||15;
   if(G.ship.fuel<cost){addLog(`Курс невозможен: нужно ${cost} топлива, есть ${Math.floor(G.ship.fuel)}.`,'sys');return;}
+
+  // Курс на верфь прерывает активный контракт
+  if(G.activeContract){
+    const c = G.activeContract;
+    const penalty = Math.min(G.credits, c.payPerMonth * 2);
+    const profName = PROFESSIONS[c.profId].name;
+    if(!confirm(`Курс на верфь прервёт контракт «${profName}».\nШтраф: ${penalty} ${SC}. Не отработано: ${c.monthsLeft} мес.\nПродолжить?`)) return;
+    G.credits -= penalty;
+    addLog(`📤 Контракт «${profName}» прерван: курс на верфь. Штраф ${penalty} ${SC}. Не отработано ${c.monthsLeft} мес.`,'sys');
+    G.activeContract = null;
+  }
+
   G.ship.fuel-=cost;
   addLog(`Ты берёшь курс на верфь. Тратишь ${cost} топлива, 2 месяца.`,'sys');
   advanceTime(2);
@@ -2530,35 +2542,47 @@ function advanceTime(months){
 
     if(G.activeContract){
       const c=G.activeContract;
-      c.monthsLeft--;
-      G.credits+=c.payPerMonth;
-      if(!c.eventFired && c.eventId){
-        const pool=CONTRACT_EVENTS[c.profId]||[];
-        const w=pool.find(k=>k.id===c.eventId);
-        const elapsed = c.monthsTotal - c.monthsLeft;
-        const targetMonth = c.eventTargetMonth || Math.floor(c.monthsTotal * 0.5);
-        if(w && elapsed >= targetMonth){
-          c.eventFired=true;
-          addLog(`⚙ ${PROFESSIONS[c.profId].name}: ${w.text}`,'work');
-          
-          for(const [axis,delta] of Object.entries(w.axes||{})){
-            G.protagonist.axes[axis]=clamp((G.protagonist.axes[axis]||0)+delta,-100,100);
-          }
-          G.protagonist.badges=resolveBadges(G.protagonist);
-          
-          if(w.startCombat){
-            startCombat(w.startCombat);
-            return; // Прерываем advanceTime, бой перехватывает управление
-          }
-          G.workedEvents=[...(G.workedEvents||[]),w.id];
+
+      // Пауза в заработке (отдых, лечение, простой)
+      if(c.pauseMonths && c.pauseMonths > 0){
+        c.pauseMonths--;
+        if(!c._pauseLogged){
+          addLog(`⏸ Контракт «${PROFESSIONS[c.profId].name}» приостановлен: не работаешь.`,'sys');
+          c._pauseLogged = true;
         }
-      }
-      if(c.monthsLeft<=0){
-        addLog(`Контракт завершён: ${PROFESSIONS[c.profId].name}. Всего получено ${c.totalPay} ${SC}.`,'level');
-        const finishedProfId=c.profId;
-        G.activeContract=null;
-        if(finishedProfId==='planetary_expansion_2'&&!G.dynastyCapital&&!G.noCapital){
-          G.capitalOpportunity=true;
+      } else {
+        if(c._pauseLogged){
+          addLog(`▶ Контракт «${PROFESSIONS[c.profId].name}» возобновлён.`,'sys');
+          c._pauseLogged = false;
+        }
+        c.monthsLeft--;
+        G.credits+=c.payPerMonth;
+        if(!c.eventFired && c.eventId){
+          const pool=CONTRACT_EVENTS[c.profId]||[];
+          const w=pool.find(k=>k.id===c.eventId);
+          const elapsed = c.monthsTotal - c.monthsLeft;
+          const targetMonth = c.eventTargetMonth || Math.floor(c.monthsTotal * 0.5);
+          if(w && elapsed >= targetMonth){
+            c.eventFired=true;
+            addLog(`⚙ ${PROFESSIONS[c.profId].name}: ${w.text}`,'work');
+            for(const [axis,delta] of Object.entries(w.axes||{})){
+              G.protagonist.axes[axis]=clamp((G.protagonist.axes[axis]||0)+delta,-100,100);
+            }
+            G.protagonist.badges=resolveBadges(G.protagonist);
+            if(w.startCombat){
+              startCombat(w.startCombat);
+              return;
+            }
+            G.workedEvents=[...(G.workedEvents||[]),w.id];
+          }
+        }
+        if(c.monthsLeft<=0){
+          addLog(`Контракт завершён: ${PROFESSIONS[c.profId].name}. Всего получено ${c.totalPay} ${SC}.`,'level');
+          const finishedProfId=c.profId;
+          G.activeContract=null;
+          if(finishedProfId==='planetary_expansion_2'&&!G.dynastyCapital&&!G.noCapital){
+            G.capitalOpportunity=true;
+          }
         }
       }
     }
@@ -3571,6 +3595,10 @@ if(e.marry){
   if(G.ship.hull<=0 && !G._impendingDeath){
     G._impendingDeath = e.deathReason || 'Корпус не выдержал. Корабль становится обломком.';
   }
+  if(e.pauseEarnings && G.activeContract){
+    G.activeContract.pauseMonths = (G.activeContract.pauseMonths||0) + e.pauseEarnings;
+    addLog(`⏸ Контракт «${PROFESSIONS[G.activeContract.profId].name}» приостановлен на ${e.pauseEarnings} мес.`,'sys');
+  }
   if(e.timeAnomaly){ triggerTimeAnomaly(); }
   if(e.clearAnomalyLoss){ G.anomalyLostPregnancy = false; }
 }
@@ -4036,41 +4064,51 @@ function endGame(reason){
   addLog(`★ ${reason}`,'end');
   addLog(`Династия длилась ${G.dynastyGeneration||1} поколений.`,'end');
   renderAll();renderTimeControls();
-  
-  // Скрываем интерфейс игры
-  document.querySelector('.row').style.display = 'none';
-  document.getElementById('crewCard').style.display = 'none';
-  document.querySelector('.time-block').style.display = 'none';
-  document.getElementById('log').style.display = 'none';
-  document.getElementById('tabs').style.display = 'none';
-  document.querySelector('.footer').style.display = 'none';
-  
+
+  const hide = (sel) => { const el = document.querySelector(sel); if(el) el.style.display='none'; };
+  hide('.row');
+  hide('#crewCard');
+  hide('.time-block');
+  hide('#tabs');
+  hide('.footer');
+  hide('#pointOfNoReturn');
+  const sb = document.getElementById('shipyardBtn'); if(sb) sb.style.display='none';
+  const rb = document.getElementById('retireBtn'); if(rb) rb.style.display='none';
+
   const reportHTML = generateFinalReport(reason);
   document.getElementById('panel').innerHTML = reportHTML;
-  
+
+  const meta = {
+    name: G.protagonist.name,
+    age: Math.floor(G.protagonist.age),
+    ship: G.ship.className + ' «' + G.ship.name + '»',
+    dynasty: G.dynastyGeneration || 1,
+    reason: reason
+  };
+
+  const btnWrap = document.createElement('div');
+  btnWrap.style.marginTop = '12px';
+  btnWrap.style.display = 'flex';
+  btnWrap.style.flexDirection = 'column';
+  btnWrap.style.gap = '8px';
+
   const restartBtn = document.createElement('button');
   restartBtn.textContent = '🔄 Начать новую жизнь';
   restartBtn.className = 'small';
-  restartBtn.style.marginTop = '12px';
-  restartBtn.style.width = '100%';
-  restartBtn.onclick = () => { clearSave(); startNewGame(); };
-  document.getElementById('panel').appendChild(restartBtn);
+  restartBtn.onclick = () => { clearSave(); location.reload(); };
+  btnWrap.appendChild(restartBtn);
 
-  // Кнопка "Поделиться"
   const shareBtn = document.createElement('button');
-  shareBtn.textContent = '🔗 Поделиться итогами';
+  shareBtn.textContent = '🔗 Поделиться (отчёт + история)';
   shareBtn.className = 'small';
-  shareBtn.style.marginTop = '8px';
-  shareBtn.style.width = '100%';
   shareBtn.onclick = () => {
     try {
-      // Кодируем HTML в Base64, безопасно для кириллицы
-      const encoded = btoa(unescape(encodeURIComponent(reportHTML)));
+      const payload = { reportHTML: reportHTML, logHistory: G.logHistory || [], meta: meta };
+      const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
       const shareUrl = window.location.origin + window.location.pathname + '#report=' + encoded;
-      
       if(navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(shareUrl).then(() => {
-          alert('Ссылка на итоги скопирована в буфер обмена! Можете отправлять её друзьям.');
+          alert('Ссылка на итоги скопирована в буфер обмена!');
         }).catch(() => {
           prompt('Скопируйте ссылку вручную:', shareUrl);
         });
@@ -4078,22 +4116,89 @@ function endGame(reason){
         prompt('Скопируйте ссылку вручную:', shareUrl);
       }
     } catch(e) {
-      alert('Не удалось создать ссылку (слишком длинный отчёт).');
+      alert('Не удалось создать ссылку (слишком длинная история).');
     }
   };
-  document.getElementById('panel').appendChild(shareBtn);
-  
-  // Сохраняем итоги в кэш
+  btnWrap.appendChild(shareBtn);
+
+  const menuBtn = document.createElement('button');
+  menuBtn.textContent = '← В главное меню';
+  menuBtn.className = 'small secondary';
+  menuBtn.onclick = () => { location.reload(); };
+  btnWrap.appendChild(menuBtn);
+
+  document.getElementById('panel').appendChild(btnWrap);
+
   try {
     localStorage.setItem('cosmos_last_game', JSON.stringify({
       reportHTML: reportHTML,
-      logHistory: G.logHistory || []
+      logHistory: G.logHistory || [],
+      meta: meta
     }));
   } catch(e){ console.error('save last game error', e); }
-  
+
   clearSave();
 }
 
+function showReportScreen(reportHTML, logHistory, meta, isShared) {
+  G = { logHistory: logHistory || [], over: true };
+
+  document.getElementById('intro').classList.add('hidden');
+  document.getElementById('game').classList.remove('hidden');
+
+  const hide = (sel) => { const el = document.querySelector(sel); if(el) el.style.display='none'; };
+  hide('.row');
+  hide('#crewCard');
+  hide('.time-block');
+  hide('#tabs');
+  hide('.footer');
+  hide('#pointOfNoReturn');
+
+  const sb = document.getElementById('shipyardBtn'); if(sb) sb.style.display='none';
+  const rb = document.getElementById('retireBtn'); if(rb) rb.style.display='none';
+  const play = document.getElementById('playBtn'); if(play) play.disabled = true;
+  const x1 = document.getElementById('x1Btn'); if(x1) x1.disabled = true;
+  const x2 = document.getElementById('x2Btn'); if(x2) x2.disabled = true;
+  const x4 = document.getElementById('x4Btn'); if(x4) x4.disabled = true;
+  document.querySelectorAll('#tabs button').forEach(b => b.style.display = 'none');
+
+  const label = document.getElementById('timeLabel'); if(label) label.innerHTML = '';
+
+  const panel = document.getElementById('panel');
+  panel.innerHTML = reportHTML;
+
+  if (meta) {
+    const header = document.createElement('div');
+    header.style.textAlign = 'center';
+    header.style.fontSize = '12px';
+    header.style.color = 'var(--muted)';
+    header.style.marginTop = '8px';
+    header.textContent = `${meta.name} · ${meta.ship} · Поколение ${meta.dynasty}`;
+    panel.appendChild(header);
+  }
+
+  renderLog();
+
+  const btnWrap = document.createElement('div');
+  btnWrap.style.marginTop = '12px';
+  btnWrap.style.display = 'flex';
+  btnWrap.style.flexDirection = 'column';
+  btnWrap.style.gap = '8px';
+
+  const newGameBtn = document.createElement('button');
+  newGameBtn.textContent = isShared ? '🚀 Начать свою жизнь' : '🔄 Начать новую жизнь';
+  newGameBtn.className = 'small';
+  newGameBtn.onclick = () => { window.location.href = window.location.pathname; };
+  btnWrap.appendChild(newGameBtn);
+
+  const menuBtn = document.createElement('button');
+  menuBtn.textContent = '← В главное меню';
+  menuBtn.className = 'small secondary';
+  menuBtn.onclick = () => { location.reload(); };
+  btnWrap.appendChild(menuBtn);
+
+  panel.appendChild(btnWrap);
+}
 function startContract(profId,durId){
   if(!G||G.over||G.pendingInheritance) return {ok:false};
   const minAge=G.isCaptain?15:16;
@@ -4108,15 +4213,15 @@ function startContract(profId,durId){
   const lifeMonths=Math.floor((G.protagonist.lifespan-G.protagonist.age)*12);
   const maxMonths=Math.max(6,lifeMonths-24);
   const months=Math.min(randInt(dur.min,dur.max),maxMonths);
-  const multiplier=learned?1.5:1.0;
-  const lengthBonus=1+Math.min(0.30,Math.floor(months/12)*0.01);
+  const multiplier=learned?1.2:1.0;
+  const lengthBonus=1+Math.min(0.15,Math.floor(months/12)*0.005);
   const payPerMonth=Math.round(prof.base_salary*multiplier*lengthBonus);
   const totalPay=payPerMonth*months;
   const contractPool=CONTRACT_EVENTS[profId]||[];
   const chosenEvent=contractPool.length?pick(contractPool):null;
   // Событие произойдёт на 40-80% срока контракта (ближе к концу)
   const eventTargetMonth = Math.floor(months * (0.4 + Math.random() * 0.4));
-  G.activeContract={profId,monthsTotal:months,monthsLeft:months,payPerMonth,totalPay,eventId:chosenEvent?chosenEvent.id:null,eventFired:false,eventTargetMonth};
+  G.activeContract={profId,monthsTotal:months,monthsLeft:months,payPerMonth,totalPay,eventId:chosenEvent?chosenEvent.id:null,eventFired:false,eventTargetMonth,pauseMonths:0,_pauseLogged:false};
   G.docked=false;
   const otherSystems=STAR_SYSTEMS.filter(s=>s.id!==G.ship.currentSystem);
   if(otherSystems.length){const dest=pick(otherSystems);travelToSystem(dest.id);}
@@ -4906,42 +5011,7 @@ lastGameBtn.addEventListener('click', () => {
   try {
     const data = JSON.parse(localStorage.getItem('cosmos_last_game'));
     if(!data) return;
-    
-    // Создаём фейковый G для рендера лога
-    G = { logHistory: data.logHistory || [], over: true };
-    
-    document.getElementById('intro').classList.add('hidden');
-    document.getElementById('game').classList.remove('hidden');
-    
-    // Скрываем всё лишнее
-    document.getElementById('playBtn').disabled = true;
-    document.getElementById('x1Btn').disabled = true;
-    document.getElementById('x2Btn').disabled = true;
-    const x4btn = document.getElementById('x4Btn');
-    if(x4btn) x4btn.disabled = true; 
-    document.getElementById('shipyardBtn').style.display = 'none';
-    document.getElementById('retireBtn').style.display = 'none';
-    document.querySelectorAll('#tabs button').forEach(b => b.style.display = 'none');
-    document.getElementById('pointOfNoReturn').style.display = 'none';
-    
-    // Прячем интерфейс игры
-    document.querySelector('.row').style.display = 'none';
-    document.getElementById('crewCard').style.display = 'none';
-    document.querySelector('.time-block').style.display = 'none';
-    document.getElementById('log').style.display = 'none';
-    document.querySelector('.footer').style.display = 'none';
-    
-    // Показываем отчёт и лог
-    document.getElementById('panel').innerHTML = data.reportHTML;
-    renderLog();
-    
-    const backBtn = document.createElement('button');
-    backBtn.textContent = '← Вернуться в меню';
-    backBtn.className = 'small';
-    backBtn.style.marginTop = '12px';
-    backBtn.style.width = '100%';
-    backBtn.onclick = () => location.reload();
-    document.getElementById('panel').appendChild(backBtn);
+    showReportScreen(data.reportHTML || '', data.logHistory || [], data.meta || null, false);
   } catch(e) { console.error(e); }
 });
 
@@ -4979,57 +5049,35 @@ window.delegateTo=delegateTo;
    ЗАГРУЗКА ОТЧЁТА ИЗ ССЫЛКИ
    ========================================= */
 function checkSharedReport() {
-    const hash = window.location.hash;
-    if (hash && hash.startsWith('#report=')) {
-        try {
-            const encoded = hash.substring(8); // отрезаем "#report="
-            const decodedHtml = decodeURIComponent(escape(atob(encoded)));
-            
-            // Создаём фейковый G для рендера
-            G = { logHistory: [], over: true }; 
-            
-            document.getElementById('intro').classList.add('hidden');
-            document.getElementById('game').classList.remove('hidden');
-            
-            // Скрываем игровые панели
-            document.getElementById('playBtn').disabled = true;
-            document.getElementById('x1Btn').disabled = true;
-            document.getElementById('x2Btn').disabled = true;
-            const x4btn = document.getElementById('x4Btn');
-            if(x4btn) x4btn.disabled = true; 
-            document.getElementById('shipyardBtn').style.display = 'none';
-            document.getElementById('retireBtn').style.display = 'none';
-            document.querySelectorAll('#tabs button').forEach(b => b.style.display = 'none');
-            document.getElementById('pointOfNoReturn').style.display = 'none';
-            
-            // Очищаем лишние карточки
-            document.getElementById('protagonistCard').innerHTML = '';
-            document.getElementById('shipCard').innerHTML = '';
-            document.getElementById('crewCard').innerHTML = '';
-            document.getElementById('timeLabel').innerHTML = '';
-            document.getElementById('log').innerHTML = '';
-            
-            // Показываем отчёт
-            document.getElementById('panel').innerHTML = decodedHtml;
-            
-            // Кнопка возврата на главную
-            const backBtn = document.createElement('button');
-            backBtn.textContent = '🔄 Начать свою жизнь';
-            backBtn.className = 'small';
-            backBtn.style.marginTop = '12px';
-            backBtn.style.width = '100%';
-            backBtn.onclick = () => { window.location.href = window.location.pathname; };
-            document.getElementById('panel').appendChild(backBtn);
-            
-        } catch(e) {
-            console.error('Ошибка парсинга ссылки:', e);
-            alert('Не удалось загрузить отчёт. Возможно, ссылка повреждена.');
-            window.location.href = window.location.pathname;
+  const hash = window.location.hash;
+  if (hash && hash.startsWith('#report=')) {
+    try {
+      const encoded = hash.substring(8);
+      const raw = decodeURIComponent(escape(atob(encoded)));
+      let reportHTML, logHistory, meta;
+      try {
+        const parsed = JSON.parse(raw);
+        if (typeof parsed === 'string') {
+          reportHTML = parsed;
+        } else {
+          reportHTML = parsed.reportHTML || '';
+          logHistory = parsed.logHistory || [];
+          meta = parsed.meta || null;
         }
+      } catch(e) {
+        reportHTML = raw;
+      }
+      showReportScreen(reportHTML, logHistory || [], meta, true);
+    } catch(e) {
+      console.error('Ошибка парсинга ссылки:', e);
+      alert('Не удалось загрузить отчёт. Возможно, ссылка повреждена.');
+      window.location.href = window.location.pathname;
     }
+  }
 }
-// Вызываем проверку сразу при старте
 checkSharedReport();
+
+
 /* =========================================
    ГЕНЕРАТОР ЗВЁЗД ДЛЯ ГИПЕРПРЫЖКА
    ========================================= */
