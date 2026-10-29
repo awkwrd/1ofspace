@@ -284,16 +284,18 @@ button.love-btn{border-color:var(--love);background:linear-gradient(180deg,#3a10
 .tabs{border-bottom-color:var(--border)}
 .tabs button{color:var(--muted)}
 .tabs button.active{
-  color:#d4e2ec;
-  border-bottom-color:var(--accent);
-  text-shadow:0 0 6px rgba(127,180,214,.4);
+  color:#4dff88;
+  border-bottom-color:#4dff88;
+  text-shadow:
+    0 0 6px rgba(77,255,136,.6),
+    0 0 14px rgba(77,255,136,.35);
 }
 
 .time-label{color:#e6eef5}
 .time-label b{color:#7fb4d6}
 .time-label .age{color:#e0a838}
 .time-bar{background:#070a0f;border-color:#2d3644;height:12px;box-shadow:inset 0 0 8px rgba(0,0,0,.9)}
-.time-fill{background:linear-gradient(90deg,#5a8fb0,#7fb4d6,#5ab890);box-shadow:0 0 8px rgba(127,180,214,.4)}
+.time-fill{background:#e0a838;box-shadow:0 0 10px rgba(224,168,56,.5)}
 .time-bar-mini{background:#070a0f;border-color:#2d3644}
 .time-fill-mini{background:linear-gradient(90deg,#5ab890,#5fb8b8);box-shadow:0 0 6px rgba(95,184,184,.4)}
 
@@ -336,30 +338,16 @@ select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(1
 
 select:focus{outline:none;border-color:#f0a742;box-shadow:0 0 0 3px rgba(240,167,66,.3)}
 .identity-reveal{display:none}
-/* стена событий: цифровой терминал */
+/* стена событий: Cambria 18px */
 .log,
 .log .log-line{
-  font-family:
-    ui-monospace,
-    "SF Mono",
-    "JetBrains Mono",
-    "Fira Code",
-    "Cascadia Mono",
-    Menlo,
-    Consolas,
-    "Liberation Mono",
-    "Courier New",
-    monospace;
-  font-size: 16px;
-  letter-spacing: 0.01em;
-  font-variant-ligatures: none;
-  font-feature-settings: "tnum" 1, "zero" 1;
-  font-variant-numeric: tabular-nums slashed-zero;
+  font-family: Cambria, "Cambria Math", Georgia, serif;
+  font-size: 18px;
 }
 
 /* мигающий блочный курсор в конце последней строки */
 .log-line:last-child::after{
-  content: '█';
+  content: '▊';
   display: inline-block;
   margin-left: 4px;
   color: var(--accent);
@@ -369,7 +357,6 @@ select:focus{outline:none;border-color:#f0a742;box-shadow:0 0 0 3px rgba(240,167
   animation: logCursor 1.1s steps(1, end) infinite;
   vertical-align: baseline;
 }
-
 @keyframes logCursor{
   0%, 49%   { opacity: 1; }
   50%, 100% { opacity: 0; }
@@ -604,6 +591,107 @@ h1{
     inset 0 0 6px rgba(0,0,0,.8),
     inset 0 1px 0 rgba(255,255,255,.04) !important;
 }
+
+/* =========================================
+   BALANCED WARMTH (Тёплые акценты на холодном)
+   ========================================= */
+
+/* 1. Сетка на фоне — возвращаем в холодный синий */
+body::before {
+  background-image:
+    linear-gradient(rgba(127,180,214,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(127,180,214,.035) 1px, transparent 1px) !important;
+}
+
+/* 2. Туманности — синяя и фиолетовая (как было) */
+body, .warp-bg {
+  background:
+    radial-gradient(circle at 82% 12%, rgba(127,180,214,.08) 0%, transparent 50%),
+    radial-gradient(circle at 15% 88%, rgba(160,113,212,.05) 0%, transparent 50%),
+    linear-gradient(180deg,#11161e 0%, #0b1016 60%, #070a0f 100%) !important;
+}
+
+/* 3. Заголовки — возвращаем стальной блеск (без янтаря) */
+h1 {
+  color: #e8f4ff !important;
+  text-shadow: 0 0 18px rgba(127,180,214,.55) !important;
+}
+.card h2, .panel h3, .identity-reveal .name {
+  color: #d4e2ec !important;
+  text-shadow: 0 0 8px rgba(127,180,214,.25) !important;
+}
+.panel h4 {
+  color: #7fb4d6 !important;
+}
+
+/* 4. Кнопки — холодные, активная кнопка синяя */
+button:hover:not(:disabled) {
+  border-color: #7fb4d6 !important;
+  box-shadow: 0 0 10px rgba(127,180,214,.35) !important;
+}
+button.active {
+  background: linear-gradient(180deg,#2d5470,#1b3547) !important;
+  border-color: #7fb4d6 !important;
+  box-shadow: 0 0 10px rgba(127,180,214,.40) !important;
+}
+
+/* Инпуты при фокусе — синий */
+select:focus, .modal-box input:focus {
+  border-color: #7fb4d6 !important;
+  box-shadow: 0 0 0 3px rgba(127,180,214,.22) !important;
+}
+
+/* 5. Вкладки — зелёные, БЕЗ жёлтой подложки */
+.tabs button.active {
+  color: #4dff88 !important;
+  border-bottom-color: #4dff88 !important;
+  background: transparent !important; /* убрали желтизну */
+  text-shadow: 0 0 6px rgba(77,255,136,.6) !important;
+}
+.tabs button.active::after {
+  background: linear-gradient(90deg, transparent, #4dff88, transparent) !important;
+  box-shadow: 0 0 10px #4dff88 !important;
+}
+
+/* 6. Оси характера — холодные (стальной синий) */
+.axis-fill {
+  background: linear-gradient(90deg, #5a8fb0, #7fb4d6) !important;
+  box-shadow: 0 0 8px rgba(127,180,214,.4) !important;
+}
+.axis-fill.neg {
+  background: linear-gradient(90deg, #b04230, #d95a45) !important;
+  box-shadow: 0 0 8px rgba(217,90,69,.4) !important;
+}
+
+/* 7. Лог — возвращаем в холод */
+.log-line.start {
+  color: #7fb4d6 !important;
+  text-shadow: 0 0 6px rgba(127,180,214,.35) !important;
+}
+.log-line.event, .log-line.desc, .log-line.choice {
+  color: #c4d0dc !important; /* нейтральный стальной для текста */
+}
+
+
+/* Убираем «кнопочность» у активной вкладки */
+.tabs button.active {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  border-bottom: 2px solid #4dff88 !important;
+  box-shadow: none !important;
+}
+
+/* Оставляем только нижнюю светящуюся линию */
+.tabs button.active::after {
+  display: none !important; /* убираем дублирующую полоску из MobiGlas */
+}
+
+/* =========================================
+   BALANCED WARMTH END (Тёплые акценты на холодном)
+   ========================================= */
+
+
 </style>
 </head>
 <body>
@@ -4885,9 +4973,8 @@ function renderTime(){
   const fuelMax=G.ship.fuelMax||100;
   const fuelPct=clamp((fuel/fuelMax)*100,0,100);
   const need=G.ship.fuelToStation||15;
-  let fuelGrad='linear-gradient(90deg,#4ea1ff,#61d095)';
-  if(fuel<need) fuelGrad='linear-gradient(90deg,#ff6b7a,#ffd37a)';
-  else if(fuel<need*1.5) fuelGrad='linear-gradient(90deg,#ffd37a,#61d095)';
+  let fuelColor='#e0a838';                      // янтарь — норма
+  if(fuel<need) fuelColor='#d95a45';             // ржавый — критично
   const dynYears=Math.floor(G.timeMonths/12);
   const dynMonths=G.timeMonths%12;
   const yWord=pluralYears(dynYears);
@@ -4898,7 +4985,7 @@ function renderTime(){
   if(fuelNum) fuelNum.textContent=`${Math.round(fuel)}/${fuelMax}`;
   document.getElementById('yearFill').style.width=yearPct+'%';
   const lifeFill=document.getElementById('lifeFill');
-  if(lifeFill){lifeFill.style.width=fuelPct+'%';lifeFill.style.background=fuelGrad;}
+  if(lifeFill){lifeFill.style.width=fuelPct+'%';lifeFill.style.background=fuelColor;lifeFill.style.boxShadow='0 0 10px '+fuelColor+'88';}
 }
 
 function renderPanel(){
