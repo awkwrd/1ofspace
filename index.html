@@ -61,7 +61,7 @@ button.fire-btn{padding:4px 10px;font-size:12px;background:#2d1620;border-color:
 .banner.danger{background:rgba(255,107,122,.2);border:1px solid #ff6b7a;color:#ffb8c4;animation:pulse 1.5s infinite}
 .banner.warn{background:rgba(255,211,122,.15);border:1px solid #ffd37a;color:#ffe6b0}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
-.log{height:220px;overflow-y:auto;background:rgba(7,12,22,.85);border:1px solid var(--border);border-radius:12px;padding:12px;font-size:13px;line-height:1.5;margin:10px 0}
+.log{height:220px;overflow-y:auto;overflow-anchor:none;background:rgba(7,12,22,.85);border:1px solid var(--border);border-radius:12px;padding:12px;font-size:13px;line-height:1.5;margin:10px 0}
 .log-line{margin-bottom:6px;color:#a9bcd8}
 .log-line.start{color:#9fd3ff}
 .log-line.reveal{color:#ffd37a;font-weight:600}
@@ -2735,27 +2735,30 @@ function addLog(text,cls=''){
   const log=document.getElementById('log');
   if(!log) return;
 
-  // Игрок "приклеен" к низу?
-  const atBottom = (log.scrollHeight - log.scrollTop - log.clientHeight) < 40;
-  const prevScroll = log.scrollTop;
-  const prevScrollHeight = log.scrollHeight;
+  // Проверяем, приклеен ли скролл к низу
+  const isAtBottom = (log.scrollHeight - log.scrollTop - log.clientHeight) < 40;
+  const prevScrollTop = log.scrollTop;
 
+  // Добавляем новую строку
   const line=document.createElement('div');
   line.className='log-line '+(cls||'');
   line.textContent=text;
   log.appendChild(line);
 
-  while(log.children.length>LOG_MAX){
-    log.removeChild(log.firstChild);
+  // Удаляем старые строки и СЧИТАЕМ их высоту
+  let removedHeight = 0;
+  while(log.children.length > LOG_MAX){
+    const removed = log.removeChild(log.firstChild);
+    removedHeight += removed.offsetHeight;
   }
 
-  if(atBottom){
+  // Корректируем скролл
+  if(isAtBottom){
     log.scrollTop = log.scrollHeight;
-  } else {
-    // Компенсация на реальную дельту высоты — работает всегда,
-    // т.к. лог фактически всегда переполнен.
-    const delta = log.scrollHeight - prevScrollHeight;
-    log.scrollTop = Math.max(0, prevScroll + delta);
+  } else if (removedHeight > 0) {
+    // Если мы читаем историю, компенсируем удаление верхних строк,
+    // чтобы текст перед глазами оставался на месте.
+    log.scrollTop = Math.max(0, prevScrollTop - removedHeight);
   }
 }
 function renderLog(){
