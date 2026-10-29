@@ -2079,7 +2079,7 @@ window.renameDynasty=function(){
       G.dynastyName=trimmed;
       G.protagonist.surname=trimmed;
       G.protagonist.name=`${G.protagonist.first} ${trimmed}`;
-      if(G.spouse){G.spouse.surname=trimmed;G.spouse.name=`${G.spouse.name.split(' ')[0]} ${trimmed}`;}
+      if(G.spouse){G.spouse.surname=trimmed;G.spouse.name=`${G.spouse.name} ${trimmed}`;}
       if(G.child){G.child.surname=trimmed;G.child.name=`${G.child.first} ${trimmed}`;}
       if(G.grandchild){G.grandchild.surname=trimmed;G.grandchild.name=`${G.grandchild.first} ${trimmed}`;}
       if(G.parents){for(const p of G.parents){if(p.alive!==false){p.name=`${p.name.split(' ')[0]} ${trimmed}`;}}}
@@ -4095,8 +4095,8 @@ function renderProtagonist(){
     }
   }
   if(G.spouse){
-    const spIcon=G.spouse.gender==='ж'?'❤️♀':'❤️♂';
-    famParts.push(`${spIcon} ${G.spouse.name.split(' ')[0]} (${Math.floor(G.spouse.age||30)})`);
+    const spBadge=`<span class="badge" style="background:${(G.spouse.gender==='ж')?'#5c2a45':'#1d3c68'};border-color:${(G.spouse.gender==='ж')?'#ff6ba8':'#4ea1ff'};color:${(G.spouse.gender==='ж')?'#ffd9e8':'#cfe5ff'};font-size:10px;padding:2px 5px">${G.spouse.gender==='ж'?'♀':'♂'}</span>`;
+    famParts.push(`❤️ ${G.spouse.name} ${spBadge} (${Math.floor(G.spouse.age||30)})`);
   }
   if(G.pregnancy){
     famParts.push(`🤰 роды через ${G.pregnancy.monthsLeft} мес`);
@@ -4329,7 +4329,10 @@ function renderFamily(){
     }
     html+='</div>';
   }
-  if(G.spouse){html+=`<div class="kv"><span>Супруг(а) ❤️</span><b>${G.spouse.name} (${Math.floor(G.spouse.age||30)})</b></div>`;}
+  if(G.spouse){
+    const spBadge=`<span class="badge" style="background:${(G.spouse.gender==='ж')?'#5c2a45':'#1d3c68'};border-color:${(G.spouse.gender==='ж')?'#ff6ba8':'#4ea1ff'};color:${(G.spouse.gender==='ж')?'#ffd9e8':'#cfe5ff'};font-size:10px;padding:2px 5px">${G.spouse.gender==='ж'?'♀':'♂'}</span>`;
+    html+=`<div class="kv"><span>Супруг(а) ❤️</span><b>${G.spouse.name} ${spBadge} (${Math.floor(G.spouse.age||30)})</b></div>`;
+  }
   if(G.child){
     const crush=G.child.hasCrush?' 💕':'';
     html+=`<div class="kv"><span>Наследник</span><b>${G.child.name} (${Math.floor(G.child.age)})${crush}</b></div>`;
