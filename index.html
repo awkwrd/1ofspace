@@ -1525,6 +1525,14 @@ function timeTick(){
 
   advanceTime(1);
   if(!G||G.over||G.pendingInheritance){stopTimeFlow();renderTimeControls();renderAll();return;}
+  if(G.pendingPause){
+    G.pendingPause = false;
+    timeSpeed = 0;
+    stopTimeFlow();
+    renderTimeControls();
+    renderAll(); renderPanel(); saveGame();
+    return;
+  }
   if(G.combat||G.pilotingCourse){renderAll();saveGame();return;}
   if(G.currentEvent){renderAll();saveGame();return;}
   const mandatory=getMandatoryEvent();
@@ -2479,7 +2487,8 @@ function advanceTime(months){
     const prevAge=G.protagonist.age-1/12;
     if(!G.scafandryataGraduated&&Math.floor(prevAge)<6&&Math.floor(G.protagonist.age)>=6){
       G.scafandryataGraduated=true;
-      addLog('Скафандрята завершён. Пора учиться всерьёз.','level');
+      addLog('Скафандрята завершён. Пора учиться всерьёз. В «Обучении» ты найдёшь занятие по душе.','level');
+      G.pendingPause = true;
     }
 
     if(!G.isCaptain && G.crew.length===0 && G.protagonist.age<16){
@@ -2651,7 +2660,8 @@ function startNewGame(){
     shipCollapsed: true,
     crewCollapsed: true,
     leisure: null,
-    trainedThisYear: {}
+    trainedThisYear: {},
+    pendingPause: false
   };
   document.getElementById('intro').classList.add('hidden');
   document.getElementById('game').classList.remove('hidden');
@@ -3055,8 +3065,14 @@ function applyChoice(choice,target){
   }
 
   if(!G.currentEvent && !G.over && !G.pendingInheritance && !G.combat && !G.pilotingCourse){
-    timeSpeed = (G._prevTimeSpeed !== undefined) ? G._prevTimeSpeed : 1;
-    startTimeFlow();
+    if(G.pendingPause){
+      G.pendingPause = false;
+      timeSpeed = 0;
+      stopTimeFlow();
+    } else {
+      timeSpeed = (G._prevTimeSpeed !== undefined) ? G._prevTimeSpeed : 1;
+      startTimeFlow();
+    }
     renderTimeControls();
   }
 
@@ -3555,6 +3571,7 @@ window.inheritAndContinue=function(){
   G.recentEvents=[];
   G.leisure = null;
   G.trainedThisYear = {};
+  G.pendingPause = false;
   G.scafandryataGraduated=G.protagonist.age>=6;
   G.isCaptain=G.protagonist.age>=16;
   G.parents=[{name:deceasedName,age:deceasedAge,relation:'хорошие',role:'родитель',alive:false}];
