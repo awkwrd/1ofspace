@@ -3964,6 +3964,33 @@ function endGame(reason){
   restartBtn.style.width = '100%';
   restartBtn.onclick = () => { clearSave(); startNewGame(); };
   document.getElementById('panel').appendChild(restartBtn);
+
+  // Кнопка "Поделиться"
+  const shareBtn = document.createElement('button');
+  shareBtn.textContent = '🔗 Поделиться итогами';
+  shareBtn.className = 'small';
+  shareBtn.style.marginTop = '8px';
+  shareBtn.style.width = '100%';
+  shareBtn.onclick = () => {
+    try {
+      // Кодируем HTML в Base64, безопасно для кириллицы
+      const encoded = btoa(unescape(encodeURIComponent(reportHTML)));
+      const shareUrl = window.location.origin + window.location.pathname + '#report=' + encoded;
+      
+      if(navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(shareUrl).then(() => {
+          alert('Ссылка на итоги скопирована в буфер обмена! Можете отправлять её друзьям.');
+        }).catch(() => {
+          prompt('Скопируйте ссылку вручную:', shareUrl);
+        });
+      } else {
+        prompt('Скопируйте ссылку вручную:', shareUrl);
+      }
+    } catch(e) {
+      alert('Не удалось создать ссылку (слишком длинный отчёт).');
+    }
+  };
+  document.getElementById('panel').appendChild(shareBtn);
   
   // Сохраняем итоги в кэш
   try {
@@ -4855,6 +4882,62 @@ window.buyWeapon = function(weaponId) {
 };
 window.applyChoice=applyChoice;
 window.delegateTo=delegateTo;
+
+/* =========================================
+   ЗАГРУЗКА ОТЧЁТА ИЗ ССЫЛКИ
+   ========================================= */
+function checkSharedReport() {
+    const hash = window.location.hash;
+    if (hash && hash.startsWith('#report=')) {
+        try {
+            const encoded = hash.substring(8); // отрезаем "#report="
+            const decodedHtml = decodeURIComponent(escape(atob(encoded)));
+            
+            // Создаём фейковый G для рендера
+            G = { logHistory: [], over: true }; 
+            
+            document.getElementById('intro').classList.add('hidden');
+            document.getElementById('game').classList.remove('hidden');
+            
+            // Скрываем игровые панели
+            document.getElementById('playBtn').disabled = true;
+            document.getElementById('x1Btn').disabled = true;
+            document.getElementById('x2Btn').disabled = true;
+            const x4btn = document.getElementById('x4Btn');
+            if(x4btn) x4btn.disabled = true; 
+            document.getElementById('shipyardBtn').style.display = 'none';
+            document.getElementById('retireBtn').style.display = 'none';
+            document.querySelectorAll('#tabs button').forEach(b => b.style.display = 'none');
+            document.getElementById('pointOfNoReturn').style.display = 'none';
+            
+            // Очищаем лишние карточки
+            document.getElementById('protagonistCard').innerHTML = '';
+            document.getElementById('shipCard').innerHTML = '';
+            document.getElementById('crewCard').innerHTML = '';
+            document.getElementById('timeLabel').innerHTML = '';
+            document.getElementById('log').innerHTML = '';
+            
+            // Показываем отчёт
+            document.getElementById('panel').innerHTML = decodedHtml;
+            
+            // Кнопка возврата на главную
+            const backBtn = document.createElement('button');
+            backBtn.textContent = '🔄 Начать свою жизнь';
+            backBtn.className = 'small';
+            backBtn.style.marginTop = '12px';
+            backBtn.style.width = '100%';
+            backBtn.onclick = () => { window.location.href = window.location.pathname; };
+            document.getElementById('panel').appendChild(backBtn);
+            
+        } catch(e) {
+            console.error('Ошибка парсинга ссылки:', e);
+            alert('Не удалось загрузить отчёт. Возможно, ссылка повреждена.');
+            window.location.href = window.location.pathname;
+        }
+    }
+}
+// Вызываем проверку сразу при старте
+checkSharedReport();
 /* =========================================
    ГЕНЕРАТОР ЗВЁЗД ДЛЯ ГИПЕРПРЫЖКА
    ========================================= */
