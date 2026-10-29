@@ -2485,9 +2485,9 @@ function advanceTime(months){
     if(G.spouseCooldown&&G.spouseCooldown>0) G.spouseCooldown--;
 
     const prevAge=G.protagonist.age-1/12;
-    if(!G.scafandryataGraduated&&Math.floor(prevAge)<6&&Math.floor(G.protagonist.age)>=6){
+    if(!G.scafandryataGraduated&&Math.floor(prevAge)<12&&Math.floor(G.protagonist.age)>=12){
       G.scafandryataGraduated=true;
-      addLog('Скафандрята завершён. Пора учиться всерьёз. В «Обучении» ты найдёшь занятие по душе.','level');
+      addLog('Пора учиться всерьёз. В «Обучении» ты найдёшь занятие по душе.','level');
       G.pendingPause = true;
     }
 
@@ -3572,7 +3572,7 @@ window.inheritAndContinue=function(){
   G.leisure = null;
   G.trainedThisYear = {};
   G.pendingPause = false;
-  G.scafandryataGraduated=G.protagonist.age>=6;
+  G.scafandryataGraduated=G.protagonist.age>=12;
   G.isCaptain=G.protagonist.age>=16;
   G.parents=[{name:deceasedName,age:deceasedAge,relation:'хорошие',role:'родитель',alive:false}];
   if(spouseName){G.parents.push({name:spouseName,age:spouseAge,relation:'хорошие',role:'родитель',alive:true});}
@@ -3741,7 +3741,7 @@ window.abortContract=function(){
   saveGame();renderAll();renderPanel();
 };
 function startStudy(profId){
-  if(G.timeMonths < 144){addLog('Слишком мал для учёбы.','sys');return;}
+  if(G.protagonist.age < 12){addLog('Слишком мал для учёбы.','sys');return;}
   if(G.professions[profId]) return {ok:false};
   if(G.studying) return {ok:false};
   const p=PROFESSIONS[profId];
@@ -4247,7 +4247,7 @@ window.doContract=function(){
 };
 function renderStudyPanel(el){
   let html='<div class="panel"><h3>Обучение</h3>';
-  if(G.timeMonths < 144){
+  if(G.protagonist.age < 12){
     html+=`<p><b>Скафандрята</b> — начальный курс для дошколят. Тебе ${Math.floor(G.protagonist.age)}. Обычная учёба — с 12 лет.</p>`;
     html+='<p style="font-size:11px;color:var(--muted);margin-top:6px">Ты учишься дышать, двигаться и держаться в невесомости.</p>';
   } else if(G.studying){
