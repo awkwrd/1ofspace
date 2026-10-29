@@ -2331,6 +2331,23 @@ function advanceTime(months){
     if(G.child) G.child.age = Math.round(G.child.age*12)/12;
     if(G.spouse) G.spouse.age = Math.round(G.spouse.age*12)/12;
     if(G.parents) for(const p of G.parents) if(p.alive!==false) p.age = Math.round(p.age*12)/12;
+    // Уход на пенсию: после 60 — раз в год, 8% шанс
+    if(G.timeMonths % 12 === 0 && G.crew.length > 0){
+      for(let i=G.crew.length-1;i>=0;i--){
+        const c=G.crew[i];
+        if(Math.floor(c.age) >= 60 && Math.random() < 0.08){
+          // Регент не может уйти, пока наследник младше 16 — иначе одиночка умрёт
+          const leaderNow = (!G.isCaptain) ? getCurrentLeader() : null;
+          const isRegent = leaderNow && leaderNow.type==='crew' && leaderNow.ref.id===c.id;
+          if(isRegent && G.protagonist.age < 16) continue;
+
+          addLog(`👋 ${c.name} (${c.role||'матрос'}, ${Math.floor(c.age)} лет) уходит на пенсию. Заслужил(а).`,'sys');
+          G.crew.splice(i,1);
+          if(G.stats) G.stats.crewLost++;
+        }
+      }
+    }
+
     for(let i=G.crew.length-1;i>=0;i--){
       const c=G.crew[i];
       if(c.age>=(c.lifespan||75)){
