@@ -3954,6 +3954,15 @@ function endGame(reason){
   addLog(`★ ${reason}`,'end');
   addLog(`Династия длилась ${G.dynastyGeneration||1} поколений.`,'end');
   renderAll();renderTimeControls();
+  
+  // Скрываем интерфейс игры
+  document.querySelector('.row').style.display = 'none';
+  document.getElementById('crewCard').style.display = 'none';
+  document.querySelector('.time-block').style.display = 'none';
+  document.getElementById('log').style.display = 'none';
+  document.getElementById('tabs').style.display = 'none';
+  document.querySelector('.footer').style.display = 'none';
+  
   const reportHTML = generateFinalReport(reason);
   document.getElementById('panel').innerHTML = reportHTML;
   
@@ -4833,11 +4842,12 @@ lastGameBtn.addEventListener('click', () => {
     document.querySelectorAll('#tabs button').forEach(b => b.style.display = 'none');
     document.getElementById('pointOfNoReturn').style.display = 'none';
     
-    // Очищаем карточки
-    document.getElementById('protagonistCard').innerHTML = '';
-    document.getElementById('shipCard').innerHTML = '';
-    document.getElementById('crewCard').innerHTML = '';
-    document.getElementById('timeLabel').innerHTML = '';
+    // Прячем интерфейс игры
+    document.querySelector('.row').style.display = 'none';
+    document.getElementById('crewCard').style.display = 'none';
+    document.querySelector('.time-block').style.display = 'none';
+    document.getElementById('log').style.display = 'none';
+    document.querySelector('.footer').style.display = 'none';
     
     // Показываем отчёт и лог
     document.getElementById('panel').innerHTML = data.reportHTML;
