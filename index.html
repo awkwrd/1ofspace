@@ -1153,7 +1153,7 @@ const EVENTS=[
     {label:'Заплатить',weight:25,axes:{risk:-1,firmness:-1},available:s=>s.credits>=4000,log:'Пираты довольны.',effects:{credits:-4000,rep:-2}},
     {label:'Сбросить груз',weight:30,axes:{risk:-1},available:s=>s.credits>=1500,log:'Ты сбрасываешь контейнеры. Пираты довольны добычей и уходят.',effects:{credits:-1500,rep:-1}},
   ]},
-  {id:'alien_hostile',title:'Чужой корабль',text:'Из гиперпространства выходит корабль неизвестной конструкции. Он больше твоего в три раза. Похоже, он не настроен на разговор.',ageMin:18,requiresCaptain:true,choices:[
+  {id:'alien_hostile',title:'Чужой корабль',text:'Из гиперпространства выходит корабль неизвестной конструкции. Он больше твоего в три раза. Похоже, он не настроен на разговор.',ageMin:16,requiresCaptain:true,choices:[
     {label:'Атаковать первым',weight:40,axes:{risk:+1,firmness:+1},startCombat:'alien_main',log:'Ты открываешь огонь.'},
     {label:'Связаться',weight:35,axes:{certainty:+1,tempo:-1},check:()=>Math.random()<0.35,okLog:'Сигнал идёт. Отвечают.',failLog:'Молчание. Луч разрезает пространство.',okEffects:{rep:+20,credits:+8000},failEffects:{fuel:-10},failCombat:'alien_main'},
     {label:'Уйти в прыжок',weight:25,axes:{risk:-1,tempo:+1},check:s=>s.engine+shipEngineBonus()+Math.random()*30>=65,okLog:'Ты успеваешь уйти.',failLog:'Крейсер быстрее.',okEffects:{fuel:-25,rep:+3},failEffects:{fuel:-25,hull:-25,crewLossChance:0.1},failCombat:'alien_main'},
@@ -1263,17 +1263,17 @@ const EVENTS=[
       failEffects:{lifespanLoss:15},
     },
   ]},
-  {id:'black_hole',title:'Чёрная дыра',text:'Впереди — чёрная дыра. Гравитация искажает звёзды.',ageMin:18,requiresCaptain:true,choices:[
+  {id:'black_hole',title:'Чёрная дыра',text:'Впереди — чёрная дыра. Гравитация искажает звёзды.',ageMin:16,requiresCaptain:true,choices:[
     {label:'Пройти рядом',weight:30,axes:{risk:+1,certainty:+1},check:()=>Math.random()<0.55,okLog:'Данные бесценны.',failLog:'Корабль затягивает. Ты едва вырываешься.',okEffects:{rep:+25,credits:+15000},failEffects:{hull:-50,shields:-30,crewLossChance:0.35}},
     {label:'Обойти',weight:50,axes:{risk:-1,tempo:-1},log:'Безопасно, но скучно.',effects:{fuel:-20}},
     {label:'Прыгнуть вслепую',weight:20,axes:{risk:+1,tempo:+1},check:()=>Math.random()<0.15,okLog:'Ты выходишь в неизвестной системе.',failLog:'Тебя растягивает в атомы.',okEffects:{rep:+50,credits:+50000},failEffects:{hull:-100,deathReason:'Горизонт событий. Тебя медленно перетирает в атомы экспоненциальных уравнений.'}},
   ]},
-  {id:'new_planet',title:'Новая планета',text:'Сканеры показывают планету в обитаемой зоне. Атмосфера пригодна.',ageMin:18,requiresCaptain:true,choices:[
+  {id:'new_planet',title:'Новая планета',text:'Сканеры показывают планету в обитаемой зоне. Атмосфера пригодна.',ageMin:16,requiresCaptain:true,choices:[
     {label:'Высадиться',weight:40,axes:{risk:+1,initiative:+1},check:()=>Math.random()<0.7,okLog:'Ты ступаешь на землю нового мира.',failLog:'Фауна агрессивна.',okEffects:{rep:+30,credits:+10000},failEffects:{hull:-5,crewLossChance:0.15,rep:+5}},
     {label:'Нанести на карту',weight:40,axes:{tempo:-1,certainty:+1},log:'Картографы будут благодарны.',effects:{rep:+10,credits:+3000}},
     {label:'Пройти мимо',weight:20,axes:{risk:-1},log:'Ты не хочешь рисковать.',effects:{}},
   ]},
-{id:'first_contact',title:'Первый контакт',text:'Из гиперпространства выходит корабль неизвестной конструкции.',ageMin:18,requiresCaptain:true,choices:[
+{id:'first_contact',title:'Первый контакт',text:'Из гиперпространства выходит корабль неизвестной конструкции.',ageMin:16,requiresCaptain:true,choices:[
     {label:'Связаться',weight:50,axes:{certainty:+1,tempo:-1},check:()=>Math.random()<0.5,okLog:'Вас понимают. Это исторический момент.',failLog:'Сигнал проигнорирован.',okEffects:{rep:+25,credits:+20000},failEffects:{}},
     {label:'Сканировать издалека',weight:30,axes:{risk:-1,tempo:-1},
       check:()=>Math.random()*100 < 55 + shipStealthBonus(),
@@ -1294,7 +1294,7 @@ const EVENTS=[
     {label:'📖 Изучить самому',weight:20,axes:{tempo:-1,certainty:+3},log:'Ты тратишь недели на расшифровку. Часть загадок проясняется. Ты начинаешь думать иначе.',effects:{rep:+3},shipAxes:{renowned:+1}},
     {label:'🔥 Стереть запись',weight:10,axes:{risk:-1,tempo:-1},log:'Ты стираешь всё. Некоторые вещи лучше не знать. По крайней мере, сейчас.',effects:{},shipAxes:{renowned:-1}},
   ]},
-  {id:'insurance_agent',title:'Страховой агент',ageMin:18,
+  {id:'insurance_agent',title:'Страховой агент',ageMin:16,
     text:'На станции к тебе подходит агент в мятом костюме: «Полис на случай гибели корабля. Всего 8 000 ⬡ SC в год. Подумайте о семье».',
     choices:[
       {label:'Оформить полис (−8000 ⬡ SC)',weight:40,axes:{risk:-1,firmness:-1},available:s=>s.credits>=8000,
@@ -1308,7 +1308,7 @@ const EVENTS=[
         failLog:'Агент морщится: «С таким корпусом мы не работаем». Уходит.',
         okEffects:{credits:+2000,rep:-2},failEffects:{}},
     ]},
-  {id:'medical_policy',title:'Медицинский полис экипажа',ageMin:18,
+  {id:'medical_policy',title:'Медицинский полис экипажа',ageMin:16,
     text:'Клиника на станции предлагает годовой полис для экипажа: вакцины, диагностика, экстренная помощь.',
     choices:[
       {label:'Оплатить полис для всех (−6000 ⬡ SC)',weight:40,axes:{initiative:+1},available:s=>s.credits>=6000,
@@ -1319,7 +1319,7 @@ const EVENTS=[
       {label:'Отказаться',weight:30,axes:{risk:+1,firmness:+1},
         log:'«Космос сам лечит», — думаешь ты. Или убивает. Как повезёт.',effects:{}},
     ]},
-  {id:'ship_service',title:'Сервисное обслуживание',ageMin:18,
+  {id:'ship_service',title:'Сервисное обслуживание',ageMin:16,
     text:'Механики станции предлагают полное ТО корабля: диагностика, замена фильтров, калибровка двигателя.',
     choices:[
       {label:'Полное ТО (−4000 ⬡ SC)',weight:40,axes:{risk:-1,tempo:-1},available:s=>s.credits>=4000,
@@ -1334,7 +1334,7 @@ const EVENTS=[
         failLog:'Ты что-то ломаешь. Придётся чинить.',
         okEffects:{hull:+5},failEffects:{hull:-5,engine:-2}},
     ]},
-  {id:'faction_contract',title:'📜 Контракт фракции',ageMin:18,requiresCaptain:true,
+  {id:'faction_contract',title:'📜 Контракт фракции',ageMin:16,requiresCaptain:true,
     spawn:()=> (G.factions && (G.factions.fleet.rep >= 2 || G.factions.volnitsa.rep >= 2)) && !G.recentEvents.includes('faction_contract'),
     text:'К тебе приходит представитель фракции. «У нас есть работа. Хорошая плата. Не для всех».',
     choices:[
@@ -1353,7 +1353,7 @@ const EVENTS=[
         effects:{},
         factionEffect:{fleet:-1, volnitsa:-1}},
     ]},
-  {id:'spy_offer',title:'🕵 Предложение агента',ageMin:18,requiresCaptain:true,
+  {id:'spy_offer',title:'🕵 Предложение агента',ageMin:16,requiresCaptain:true,
     spawn:()=> G.spy && !G.spy.task,
     text:'Человек без имени. Без корабля. Без прошлого. «Есть работа: тихо, аккуратно.».',
     choices:[
@@ -2502,7 +2502,7 @@ function advanceTime(months){
     }
 
     // ── Содержание корабля и экипажа (только для взрослых) ──
-    if (G.protagonist.age >= 18) {
+    if (G.isCaptain || G.protagonist.age >= 16) {
       const totalUpkeep = getUpkeep();
       G.credits -= totalUpkeep;
 
@@ -2639,10 +2639,18 @@ function advanceTime(months){
       G.pendingPause = true;
     }
 
-    if(!G.isCaptain && G.crew.length===0 && G.protagonist.age<16){
-      addLog('Экипаж покинул корабль. В таком возрасте ты не выживешь один.','death');
-      endGame('Экипаж покинул корабль. Ты остался один в детстве.');
-      return;
+    if(!G.isCaptain && G.crew.length===0){
+      if(G.protagonist.age < 16){
+        addLog('Экипаж покинул корабль. В таком возрасте ты не выживешь один.','death');
+        endGame('Экипаж покинул корабль. Ты остался один в детстве.');
+        return;
+      } else {
+        G.isCaptain = true;
+        G.majorityEventDone = true;
+        addLog('Экипаж покинул корабль. Тебе больше некого ждать — штурвал твой.','reveal');
+        const rev = document.getElementById('identityReveal');
+        if(rev) rev.innerHTML = `<div class="name">${G.protagonist.name}</div><div class="ship">${G.ship.className} «${G.ship.name}» · капитан</div><div class="gen">Поколение ${G.dynastyGeneration||1}</div>`;
+      }
     }
 
     // ── Досуг: прогресс за месяц ──
@@ -4077,7 +4085,7 @@ function endGame(reason){
 
 function startContract(profId,durId){
   if(!G||G.over||G.pendingInheritance) return {ok:false};
-  const minAge=G.isCaptain?15:18;
+  const minAge=G.isCaptain?15:16;
   if(G.protagonist.age<minAge){addLog(`Слишком молод. Минимум ${minAge}.`,'sys');return {ok:false};}
   if(G.activeContract){addLog('Сначала заверши или прерви текущий.','sys');return {ok:false};}
   const prof=PROFESSIONS[profId];
@@ -4263,7 +4271,7 @@ function renderProtagonist(){
     ${familyLine}
     <div class="kv"><span>Кредиты</span><b>${G.credits} ${SC}</b></div>
     <div class="kv"><span>Содержание</span><b style="color:#ff6b7a">−${getUpkeep()} ${SC}/мес</b></div>
-    ${G.credits < getUpkeep() * 3 && G.protagonist.age >= 18 ? `<div class="banner danger" style="font-size:11px;margin:4px 0 0">⚠ Кредитов хватит меньше чем на 3 месяца. Бери контракт!</div>` : ''}`;
+    ${G.credits < getUpkeep() * 3 && (G.isCaptain || G.protagonist.age >= 16) ? `<div class="banner danger" style="font-size:11px;margin:4px 0 0">⚠ Кредитов хватит меньше чем на 3 месяца. Бери контракт!</div>` : ''}`;
 }
 function renderAxes(crew){
   let html='';
