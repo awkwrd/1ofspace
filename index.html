@@ -151,134 +151,228 @@ label.form{display:block;font-size:12px;color:var(--muted);margin:6px 0 3px}
 .modal-box input{font:inherit;background:#0a1222;color:var(--text);border:1px solid #2c4266;border-radius:10px;padding:12px 14px;width:100%;font-size:16px;margin-bottom:14px;min-height:48px}
 .modal-box input:focus{outline:none;border-color:#73b8ff;box-shadow:0 0 0 3px rgba(115,184,255,.2)}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
-/* THEME OVERRIDE — CYBERNETIC COOL */
+/* THEME OVERRIDE — THE EXPANSE */
 :root{
-  --bg:#0a0e1a;--panel:#141a2e;--panel2:#1d2540;--border:#2e3a5c;
-  --accent:#00e5ff;--text:#dbe4f5;--muted:#7a8ba8;
-  --success:#22d3a0;--warn:#ffab00;--danger:#ff2d6f;
-  --ship:#4fd1ff;--combat:#a06aff;--brand:#ff8a3d;--love:#ff5fa2;
+  --bg:#0b1016;
+  --panel:#161d26;
+  --panel2:#1f2833;
+  --border:#33414f;
+  --accent:#7fb4d6;      /* стальной синий */
+  --text:#e6eef5;
+  --muted:#8b9bae;
+  --success:#5ab890;     /* мягкий шалфей */
+  --warn:#e0a838;        /* янтарь */
+  --danger:#d95a45;      /* ржаво-оранжевый */
+  --ship:#5fb8b8;        /* приглушённая бирюза */
+  --combat:#a071d4;      /* фиолетовый */
+  --brand:#c47438;
+  --love:#d97aa0;
 }
+
 body{
   background:
-    radial-gradient(circle at 82% 12%, rgba(0,229,255,.10) 0%, transparent 45%),
-    radial-gradient(circle at 10% 88%, rgba(160,106,255,.08) 0%, transparent 45%),
-    linear-gradient(180deg,#0d1322 0%, #0a0e1a 60%, #070a12 100%);
+    radial-gradient(circle at 82% 12%, rgba(127,180,214,.08) 0%, transparent 50%),
+    radial-gradient(circle at 15% 88%, rgba(224,168,56,.05) 0%, transparent 50%),
+    linear-gradient(180deg,#11161e 0%, #0b1016 60%, #070a0f 100%);
   color:var(--text);
   background-attachment:fixed;
 }
-h1{color:#e8f4ff;text-shadow:0 0 22px rgba(0,229,255,.45), 0 0 1px rgba(0,229,255,.9);letter-spacing:.05em}
-.card,.panel,.time-block{
-  background:linear-gradient(180deg, rgba(29,37,64,.94), rgba(20,26,46,.96));
-  border:1px solid var(--border);
-  box-shadow:0 4px 20px rgba(0,0,0,.55), inset 0 1px 0 rgba(0,229,255,.10);
+
+h1{
+  color:#e6eef5;
+  text-shadow:0 0 14px rgba(127,180,214,.35);
+  letter-spacing:.06em;
 }
-.card h2,.panel h3,.panel h4{color:#cfeaff;text-shadow:0 0 10px rgba(0,229,255,.25)}
+
+.card,.panel,.time-block{
+  background:linear-gradient(180deg, rgba(31,40,51,.94), rgba(22,29,38,.96));
+  border:1px solid var(--border);
+  box-shadow:0 4px 20px rgba(0,0,0,.55), inset 0 1px 0 rgba(230,238,245,.05);
+}
+.card h2,.panel h3,.panel h4{
+  color:#d4e2ec;
+  text-shadow:0 0 8px rgba(127,180,214,.20);
+}
 .panel h4{border-bottom-color:var(--border)}
+
+/* Кнопки — стальные, белые буквы, без глоу в покое */
 button{
-  background:linear-gradient(180deg,#1d2540,#141a2e);
-  border:1px solid #34426a;color:#dbe4f5;
-  box-shadow:0 2px 8px rgba(0,0,0,.35);
+  background:linear-gradient(180deg,#2a3441,#1f2833);
+  border:1px solid #45556a;
+  color:#e6eef5;
+  box-shadow:0 2px 6px rgba(0,0,0,.4);
 }
 button:hover:not(:disabled){
-  border-color:var(--accent);color:#eaf6ff;
-  box-shadow:0 0 10px rgba(0,229,255,.35), 0 2px 8px rgba(0,0,0,.35);
+  border-color:var(--accent);
+  color:#ffffff;
+  box-shadow:0 0 8px rgba(127,180,214,.30), 0 2px 6px rgba(0,0,0,.4);
 }
-button.secondary{background:linear-gradient(180deg,#141a2e,#0d1222);border-color:#2a3452;color:#a9b8d4}
+button.secondary{
+  background:linear-gradient(180deg,#1f2833,#11161e);
+  border-color:#33414f;
+  color:#b8c4d4;
+}
 button.active{
-  background:linear-gradient(180deg,#0a3a47,#052230);
-  border-color:var(--accent);color:#aef6ff;
-  box-shadow:0 0 14px rgba(0,229,255,.45), inset 0 0 10px rgba(0,229,255,.15);
+  background:linear-gradient(180deg,#2d5470,#1b3547);
+  border-color:var(--accent);
+  color:#eaf3fa;
+  box-shadow:0 0 10px rgba(127,180,214,.40), inset 0 0 8px rgba(127,180,214,.12);
 }
-button.icon-btn{background:transparent;border-color:#34426a;color:#8fd8ff}
-button.delegate{border-color:var(--combat);background:linear-gradient(180deg,#2a1a4a,#160a2a);color:#e0d0ff;box-shadow:0 0 10px rgba(160,106,255,.25)}
-button.combat-btn{border-color:var(--combat);background:linear-gradient(180deg,#2a1550,#14082a);color:#e0d0ff;box-shadow:0 0 10px rgba(160,106,255,.3)}
-button.fire-btn{background:linear-gradient(180deg,#3a0d1e,#1a0510);border-color:var(--danger);color:#ffb8cc;box-shadow:0 0 10px rgba(255,45,111,.28)}
-button.love-btn{border-color:var(--love);background:linear-gradient(180deg,#3a1026,#1a0812);color:#ffd0e4;box-shadow:0 0 10px rgba(255,95,162,.22)}
-.badge{background:#1a2238;border-color:#34426a;color:#dbe4f5}
-.badge.nick{background:#221a3e;border-color:#6a4fbf;color:#e0d4ff}
-.badge.tag{background:#0d2e26;border-color:#2a8a6a;color:#a8ffe0}
-.badge.trans{background:#2e2410;border-color:#8a6a1a;color:#ffe0a0}
-.badge.mix{background:#2e1038;border-color:#8a3a9c;color:#ffc8f0}
-.badge.shiptag{background:#0a2634;border-color:#2a6a8a;color:#b8ecff}
-.badge.brand{background:#2e1a0a;border-color:var(--brand);color:#ffd8b8}
-.badge.captain{background:#0a2e38;border-color:var(--accent);color:#aef6ff}
-.badge.regent{background:linear-gradient(180deg,#0a3a47,#052230);border-color:var(--accent);color:#aef6ff;font-weight:700}
-.badge.love{background:#2e0a1e;border-color:var(--love);color:#ffd0e4}
-.badge.strength{background:#2a2a0a;border-color:#8a8a1a;color:#f0f0a8}
-.axis-bar,.stat-bar{background:#070a12;border-color:#2a3452;box-shadow:inset 0 0 6px rgba(0,0,0,.8)}
-.axis-fill{background:linear-gradient(90deg,#00b8d4,#00e5ff);box-shadow:0 0 8px rgba(0,229,255,.5)}
-.axis-fill.neg{background:linear-gradient(90deg,#c41a55,#ff2d6f);box-shadow:0 0 8px rgba(255,45,111,.45)}
-.axis-fill.shipfill{background:linear-gradient(90deg,#00b8d4,#4fd1ff);box-shadow:0 0 8px rgba(79,209,255,.45)}
-.axis-fill.shipfill.neg{background:linear-gradient(90deg,#6a3a9c,#a06aff);box-shadow:0 0 8px rgba(160,106,255,.45)}
-.axis-center{background:#2a3452}
-.axis-val{color:#e8f4ff;font-weight:600}
-.stat-fill{box-shadow:0 0 6px currentColor}
-.stat-fill.hull{background:#22d3a0;color:#22d3a0}
-.stat-fill.shields{background:#4fd1ff;color:#4fd1ff}
-.stat-fill.fuel{background:#ffab00;color:#ffab00}
-.stat-fill.fuellow{background:#ff2d6f;color:#ff2d6f}
-.stat-fill.engine{background:#00e5ff;color:#00e5ff}
-.stat-fill.weapons{background:#ff8a3d;color:#ff8a3d}
-.stat-fill.cargo{background:#a06aff;color:#a06aff}
-.stat-fill.crew{background:#cfeaff;color:#cfeaff}
-.stat-val{color:#dbe4f5;font-weight:600}
-.log{background:linear-gradient(180deg, rgba(13,18,34,.96), rgba(7,10,18,.98));border:1px solid var(--border);box-shadow:inset 0 0 20px rgba(0,229,255,.05)}
-.log-line{color:#b8c4dc}
-.log-line.start{color:#00e5ff;text-shadow:0 0 6px rgba(0,229,255,.4)}
-.log-line.event{color:#dbe4f5}
-.log-line.joke{color:#ffd166}
-.log-line.desc{color:#7a8ba8}
-.log-line.choice{color:#22d3a0}
-.log-line.level{color:#ffab00;font-weight:600}
-.log-line.death{color:#ff2d6f;font-weight:600;text-shadow:0 0 6px rgba(255,45,111,.4)}
-.log-line.sys{color:#a06aff}
-.log-line.shipdrift{color:#4fd1ff}
-.log-line.knowledge{color:#b8c4dc;border-left-color:#00e5ff}
-.log-line.work{color:#a8f0d8;border-left-color:#22d3a0}
-.log-line.routine{color:#cfeaff}
-.log-line.brand{color:#ff8a3d}
-.log-line.love{color:#ff5fa2}
-.log-line.combat{color:#a06aff}
-.log-line.end{color:#ffab00;font-weight:600}
+button.icon-btn{background:transparent;border-color:#45556a;color:#7fb4d6}
+button.delegate{border-color:var(--combat);background:linear-gradient(180deg,#2a1a3f,#150a25);color:#dcc8ff;box-shadow:0 0 8px rgba(160,113,212,.20)}
+button.combat-btn{border-color:var(--combat);background:linear-gradient(180deg,#2a1540,#150828);color:#dcc8ff;box-shadow:0 0 8px rgba(160,113,212,.25)}
+button.fire-btn{background:linear-gradient(180deg,#3a1510,#1a0805);border-color:var(--danger);color:#ffc0b0;box-shadow:0 0 8px rgba(217,90,69,.25)}
+button.love-btn{border-color:var(--love);background:linear-gradient(180deg,#3a1020,#1a0810);color:#ffd0e0;box-shadow:0 0 8px rgba(217,122,160,.20)}
+
+.badge{background:#1f2833;border-color:#45556a;color:#e6eef5}
+.badge.nick{background:#221a3a;border-color:#5a4a9c;color:#dcd0ff}
+.badge.tag{background:#0d2e24;border-color:#2a7a5a;color:#a8f0d0}
+.badge.trans{background:#2e2610;border-color:#8a6a1a;color:#ffe0a0}
+.badge.mix{background:#2a1030;border-color:#7a3a8a;color:#ffc8f0}
+.badge.shiptag{background:#0a2a2c;border-color:#2a6a6a;color:#b8e8e8}
+.badge.brand{background:#2e1a0a;border-color:var(--brand);color:#ffd0b0}
+.badge.captain{background:#2a3441;border-color:var(--accent);color:#eaf3fa}
+.badge.regent{background:linear-gradient(180deg,#2d5470,#1b3547);border-color:var(--accent);color:#eaf3fa;font-weight:700}
+.badge.love{background:#2e0a1e;border-color:var(--love);color:#ffd0e0}
+.badge.strength{background:#2a2a10;border-color:#8a8a2a;color:#eaeaa0}
+
+.axis-bar,.stat-bar{
+  background:#070a0f;border-color:#2d3644;
+  box-shadow:inset 0 0 6px rgba(0,0,0,.8);
+}
+.axis-fill{background:linear-gradient(90deg,#5a8fb0,#7fb4d6);box-shadow:0 0 6px rgba(127,180,214,.4)}
+.axis-fill.neg{background:linear-gradient(90deg,#b04230,#d95a45);box-shadow:0 0 6px rgba(217,90,69,.4)}
+.axis-fill.shipfill{background:linear-gradient(90deg,#3a8a8a,#5fb8b8);box-shadow:0 0 6px rgba(95,184,184,.4)}
+.axis-fill.shipfill.neg{background:linear-gradient(90deg,#6a3a9c,#a071d4);box-shadow:0 0 6px rgba(160,113,212,.4)}
+.axis-center{background:#2d3644}
+.axis-val{color:#e6eef5;font-weight:600}
+
+.stat-fill{box-shadow:0 0 5px currentColor}
+.stat-fill.hull{background:#5ab890;color:#5ab890}
+.stat-fill.shields{background:#5fb8b8;color:#5fb8b8}
+.stat-fill.fuel{background:#e0a838;color:#e0a838}
+.stat-fill.fuellow{background:#d95a45;color:#d95a45}
+.stat-fill.engine{background:#7fb4d6;color:#7fb4d6}
+.stat-fill.weapons{background:#c47438;color:#c47438}
+.stat-fill.cargo{background:#a071d4;color:#a071d4}
+.stat-fill.crew{background:#d4e2ec;color:#d4e2ec}
+.stat-val{color:#e6eef5;font-weight:600}
+
+.log{
+  background:linear-gradient(180deg, rgba(15,20,27,.96), rgba(8,11,16,.98));
+  border:1px solid var(--border);
+  box-shadow:inset 0 0 20px rgba(127,180,214,.04);
+}
+.log-line{color:#c4d0dc}
+.log-line.start{color:#7fb4d6;text-shadow:0 0 5px rgba(127,180,214,.35)}
+.log-line.event{color:#e6eef5}
+.log-line.joke{color:#e0c870}
+.log-line.desc{color:#8b9bae}
+.log-line.choice{color:#5ab890}
+.log-line.level{color:#e0a838;font-weight:600}
+.log-line.death{color:#d95a45;font-weight:600}
+.log-line.sys{color:#a071d4}
+.log-line.shipdrift{color:#5fb8b8}
+.log-line.knowledge{color:#c4d0dc;border-left-color:#7fb4d6}
+.log-line.work{color:#a8e0c0;border-left-color:#5ab890}
+.log-line.routine{color:#d4e2ec}
+.log-line.brand{color:#c47438}
+.log-line.love{color:#d97aa0}
+.log-line.combat{color:#a071d4}
+.log-line.end{color:#e0a838;font-weight:600}
+
 .tabs{border-bottom-color:var(--border)}
 .tabs button{color:var(--muted)}
-.tabs button.active{color:#00e5ff;border-bottom-color:var(--accent);text-shadow:0 0 8px rgba(0,229,255,.5)}
-.time-label{color:#dbe4f5}
-.time-label b{color:#00e5ff}
-.time-label .age{color:#ffab00}
-.time-bar{background:#070a12;border-color:#2a3452;height:12px;box-shadow:inset 0 0 8px rgba(0,0,0,.9)}
-.time-fill{background:linear-gradient(90deg,#00b8d4,#00e5ff,#22d3a0);box-shadow:0 0 10px rgba(0,229,255,.5)}
-.time-bar-mini{background:#070a12;border-color:#2a3452}
-.time-fill-mini{background:linear-gradient(90deg,#22d3a0,#4fd1ff);box-shadow:0 0 8px rgba(79,209,255,.45)}
-.banner.danger{background:rgba(255,45,111,.10);border-color:var(--danger);color:#ffc0d4;box-shadow:inset 0 0 18px rgba(255,45,111,.08)}
-.banner.warn{background:rgba(255,171,0,.10);border-color:var(--warn);color:#ffe0a8;box-shadow:inset 0 0 18px rgba(255,171,0,.06)}
+.tabs button.active{
+  color:#d4e2ec;
+  border-bottom-color:var(--accent);
+  text-shadow:0 0 6px rgba(127,180,214,.4);
+}
+
+.time-label{color:#e6eef5}
+.time-label b{color:#7fb4d6}
+.time-label .age{color:#e0a838}
+.time-bar{background:#070a0f;border-color:#2d3644;height:12px;box-shadow:inset 0 0 8px rgba(0,0,0,.9)}
+.time-fill{background:linear-gradient(90deg,#5a8fb0,#7fb4d6,#5ab890);box-shadow:0 0 8px rgba(127,180,214,.4)}
+.time-bar-mini{background:#070a0f;border-color:#2d3644}
+.time-fill-mini{background:linear-gradient(90deg,#5ab890,#5fb8b8);box-shadow:0 0 6px rgba(95,184,184,.4)}
+
+.banner.danger{
+  background:rgba(217,90,69,.10);
+  border-color:var(--danger);
+  color:#ffc0b0;
+  box-shadow:inset 0 0 14px rgba(217,90,69,.08);
+}
+.banner.warn{
+  background:rgba(224,168,56,.10);
+  border-color:var(--warn);
+  color:#ffe0a8;
+  box-shadow:inset 0 0 14px rgba(224,168,56,.06);
+}
+
 .combat-panel{
   background:
-    radial-gradient(circle at 50% 0%, rgba(160,106,255,.18) 0%, transparent 60%),
-    linear-gradient(135deg, rgba(26,14,48,.97), rgba(13,8,26,.97));
+    radial-gradient(circle at 50% 0%, rgba(160,113,212,.14) 0%, transparent 60%),
+    linear-gradient(135deg, rgba(26,16,44,.97), rgba(14,8,24,.97));
   border-color:var(--combat);
-  box-shadow:0 0 40px rgba(160,106,255,.30), inset 0 0 24px rgba(160,106,255,.08);
+  box-shadow:0 0 30px rgba(160,113,212,.25), inset 0 0 20px rgba(160,113,212,.06);
 }
-.modal-box{background:linear-gradient(180deg,#141a2e,#0a0e1a);border-color:#34426a;box-shadow:0 20px 60px rgba(0,0,0,.85), 0 0 30px rgba(0,229,255,.10)}
-.modal-box h3{color:#cfeaff;text-shadow:0 0 10px rgba(0,229,255,.3)}
-.modal-box input{background:#070a12;border-color:#34426a;color:#dbe4f5}
-.modal-box input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,229,255,.22)}
-select{background:#070a12;border-color:#34426a;color:#dbe4f5}
-select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,229,255,.22)}
-::selection{background:rgba(0,229,255,.35);color:#fff}
+
+.modal-box{background:linear-gradient(180deg,#1f2833,#0b1016);border-color:#45556a;box-shadow:0 20px 60px rgba(0,0,0,.85), 0 0 24px rgba(127,180,214,.08)}
+.modal-box h3{color:#d4e2ec;text-shadow:0 0 8px rgba(127,180,214,.25)}
+.modal-box input{background:#070a0f;border-color:#45556a;color:#e6eef5}
+.modal-box input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(127,180,214,.20)}
+select{background:#070a0f;border-color:#45556a;color:#e6eef5}
+select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(127,180,214,.20)}
+
+::selection{background:rgba(127,180,214,.35);color:#fff}
 *::-webkit-scrollbar{width:10px;height:10px}
-*::-webkit-scrollbar-track{background:#070a12}
-*::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#2a3452,#1d2540);border-radius:6px;border:1px solid #34426a}
-*::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#00b8d4,#00e5ff)}
+*::-webkit-scrollbar-track{background:#070a0f}
+*::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#2d3644,#1f2833);border-radius:6px;border:1px solid #45556a}
+*::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#5a8fb0,#7fb4d6)}
+
+
 .identity-reveal{display:none}
 
 select:focus{outline:none;border-color:#f0a742;box-shadow:0 0 0 3px rgba(240,167,66,.3)}
 .identity-reveal{display:none}
-/* стена событий: Cambria 18px */
+/* стена событий: цифровой терминал */
 .log,
 .log .log-line{
-  font-family: Cambria, "Cambria Math", Georgia, serif;
-  font-size: 18px;
+  font-family:
+    ui-monospace,
+    "SF Mono",
+    "JetBrains Mono",
+    "Fira Code",
+    "Cascadia Mono",
+    Menlo,
+    Consolas,
+    "Liberation Mono",
+    "Courier New",
+    monospace;
+  font-size: 16px;
+  letter-spacing: 0.01em;
+  font-variant-ligatures: none;
+  font-feature-settings: "tnum" 1, "zero" 1;
+  font-variant-numeric: tabular-nums slashed-zero;
+}
+
+/* мигающий блочный курсор в конце последней строки */
+.log-line:last-child::after{
+  content: '█';
+  display: inline-block;
+  margin-left: 4px;
+  color: var(--accent);
+  text-shadow:
+    0 0 8px rgba(127,180,214,.85),
+    0 0 16px rgba(127,180,214,.45);
+  animation: logCursor 1.1s steps(1, end) infinite;
+  vertical-align: baseline;
+}
+
+@keyframes logCursor{
+  0%, 49%   { opacity: 1; }
+  50%, 100% { opacity: 0; }
 }
 /* Подсветка вкладки при событии */
 @keyframes tabPulse {
@@ -296,14 +390,14 @@ select:focus{outline:none;border-color:#f0a742;box-shadow:0 0 0 3px rgba(240,167
 /* =========================================
    ГИПЕРПРЫЖОК: ЗВЁЗДЫ ЛЕТЯТ НА НАС
    ========================================= */
-body { background: #0a0e1a !important; }
+body { background: #0b1016 !important; }
 
 .warp-bg {
     position: fixed; inset: 0; z-index: -1;
     background:
-      radial-gradient(circle at 82% 12%, rgba(0,229,255,.10) 0%, transparent 45%),
-      radial-gradient(circle at 10% 88%, rgba(160,106,255,.08) 0%, transparent 45%),
-      linear-gradient(180deg,#0d1322 0%, #0a0e1a 60%, #070a12 100%);
+      radial-gradient(circle at 82% 12%, rgba(127,180,214,.08) 0%, transparent 50%),
+      radial-gradient(circle at 15% 88%, rgba(224,168,56,.05) 0%, transparent 50%),
+      linear-gradient(180deg,#11161e 0%, #0b1016 60%, #070a0f 100%);
     overflow: hidden;
     perspective: 400px;
 }
@@ -338,7 +432,178 @@ body { background: #0a0e1a !important; }
     0% { transform: rotateZ(0deg); }
     100% { transform: rotateZ(360deg); }
 }
+/* =========================================
+   MOBIGLASS — HUD-слой поверх The Expanse
+   ========================================= */
 
+/* Сетка-подложка на весь экран (еле заметная) */
+body::before{
+  content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(127,180,214,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(127,180,214,.035) 1px, transparent 1px);
+  background-size:44px 44px;
+  mask-image:radial-gradient(circle at center, black 40%, transparent 90%);
+  -webkit-mask-image:radial-gradient(circle at center, black 40%, transparent 90%);
+}
+
+/* Карточки и панели: стекло + угловые скобки */
+.card,.panel,.time-block{
+  position:relative;
+  background:linear-gradient(180deg, rgba(31,40,51,.55), rgba(22,29,38,.65));
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border:1px solid rgba(127,180,214,.28);
+  box-shadow:
+    0 8px 28px rgba(0,0,0,.55),
+    inset 0 1px 0 rgba(127,180,214,.15),
+    inset 0 0 40px rgba(127,180,214,.04);
+  /* скобки по углам — 8 градиентов */
+  background-image:
+    linear-gradient(var(--accent),var(--accent)),
+    linear-gradient(var(--accent),var(--accent)),
+    linear-gradient(var(--accent),var(--accent)),
+    linear-gradient(var(--accent),var(--accent)),
+    linear-gradient(var(--accent),var(--accent)),
+    linear-gradient(var(--accent),var(--accent)),
+    linear-gradient(var(--accent),var(--accent)),
+    linear-gradient(var(--accent),var(--accent)),
+    linear-gradient(180deg, rgba(31,40,51,.55), rgba(22,29,38,.65));
+  background-size:
+    14px 1px, 1px 14px,
+    14px 1px, 1px 14px,
+    14px 1px, 1px 14px,
+    14px 1px, 1px 14px,
+    100% 100%;
+  background-position:
+    top left, top left,
+    top right, top right,
+    bottom left, bottom left,
+    bottom right, bottom right,
+    0 0;
+  background-repeat:no-repeat;
+}
+
+/* Тонкая верхняя подсветка панели — «линза» */
+.card::before,.panel::before,.time-block::before{
+  content:'';position:absolute;top:0;left:16px;right:16px;height:1px;
+  background:linear-gradient(90deg, transparent, rgba(127,180,214,.6), transparent);
+  pointer-events:none;
+}
+
+/* Внутреннее свечение для заголовков карточек */
+.card h2,.panel h3{
+  text-shadow:0 0 10px rgba(127,180,214,.35), 0 0 1px rgba(127,180,214,.8);
+}
+
+/* Лог — терминал со сканлайнами */
+.log{
+  position:relative;
+  background:linear-gradient(180deg, rgba(13,18,26,.65), rgba(7,10,15,.75));
+  backdrop-filter: blur(10px) saturate(130%);
+  -webkit-backdrop-filter: blur(10px) saturate(130%);
+  border:1px solid rgba(127,180,214,.22);
+  box-shadow:
+    inset 0 0 24px rgba(127,180,214,.06),
+    0 8px 28px rgba(0,0,0,.55);
+  overflow-y:auto;
+}
+.log::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,
+    transparent 0 2px,
+    rgba(127,180,214,.035) 2px 3px);
+  border-radius:12px;
+  mix-blend-mode:screen;
+}
+
+/* Кнопки: лёгкое стекло */
+button{
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+button.active{
+  position:relative;
+  overflow:hidden;
+}
+button.active::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg, rgba(127,180,214,.10), transparent 60%);
+}
+
+/* Табы: активная вкладка — HUD-маркер */
+.tabs button.active{
+  position:relative;
+}
+.tabs button.active::after{
+  content:'';position:absolute;left:8px;right:8px;bottom:-1px;height:2px;
+  background:linear-gradient(90deg, transparent, var(--accent), transparent);
+  box-shadow:0 0 8px var(--accent);
+}
+
+/* Вкладка с событием — мягкое HUD-мигание */
+@keyframes hudPulse {
+  0%,100%{ box-shadow:inset 0 0 8px rgba(127,180,214,.15); }
+  50%    { box-shadow:inset 0 0 18px rgba(127,180,214,.45); }
+}
+.tabs button.tab-alert{
+  animation:hudPulse 1.8s ease-in-out infinite !important;
+  background:rgba(127,180,214,.06) !important;
+}
+
+/* Модалки тоже стекло */
+.modal-box{
+  background:linear-gradient(180deg, rgba(31,40,51,.75), rgba(11,16,22,.85));
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  border:1px solid rgba(127,180,214,.35);
+  box-shadow:
+    0 24px 80px rgba(0,0,0,.85),
+    inset 0 0 30px rgba(127,180,214,.05);
+}
+
+/* Боевая панель — больше «энергии», чем остальные */
+.combat-panel{
+  background:
+    radial-gradient(circle at 50% 0%, rgba(160,113,212,.22) 0%, transparent 60%),
+    linear-gradient(135deg, rgba(26,16,44,.75), rgba(14,8,24,.85)) !important;
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  border-color:rgba(160,113,212,.55) !important;
+  box-shadow:
+    0 0 40px rgba(160,113,212,.30),
+    inset 0 0 30px rgba(160,113,212,.10),
+    inset 0 1px 0 rgba(160,113,212,.35) !important;
+}
+
+/* Кнопки боя/делегата — лёгкая HUD-обводка */
+button.combat-btn,button.delegate{
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* identityReveal — как плашка HUD */
+.identity-reveal{
+  position:relative;
+  border-left:2px solid var(--accent);
+  padding-left:10px;
+  text-shadow:0 0 12px rgba(127,180,214,.35);
+}
+
+/* Заголовок h1 — «проекция» */
+h1{
+  text-shadow:
+    0 0 18px rgba(127,180,214,.55),
+    0 0 2px rgba(127,180,214,.9),
+    0 0 40px rgba(127,180,214,.25) !important;
+}
+
+/* Полоски (оси/статы) — внутренний блик сверху */
+.axis-bar,.stat-bar,.time-bar,.time-bar-mini{
+  box-shadow:
+    inset 0 0 6px rgba(0,0,0,.8),
+    inset 0 1px 0 rgba(255,255,255,.04) !important;
+}
 </style>
 </head>
 <body>
