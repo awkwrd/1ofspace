@@ -346,6 +346,7 @@ body { background: #000000 !important; }
       <button data-tab="shipyard">Верфь</button>
       <button data-tab="ship">Корабль</button>
       <button data-tab="agency">Агентура</button>
+      <button data-tab="leisure">Досуг</button>
     </div>
     <div id="pointOfNoReturn" class="banner hidden"></div>
     <div class="log" id="log"></div>
@@ -2124,7 +2125,7 @@ window.fireCrewMember=function(idx){
     onConfirm:(reason)=>{
       const trimmedReason=(reason||'').trim().slice(0,120);
       G.crew.splice(idx,1);
-      const suffix=trimmedReason?` Причина: «${trimmedReason}»`:'';
+      const suffix=trimmedReason?` Причина: «${trimmedReason}»`:'.';
       addLog(`📤 ${c.name} (${role}, ур. ${c.level}) покидает борт.${suffix}`,'sys');
       if(G.crew.length===0&&!G.isCaptain){
         G.isCaptain=true;
@@ -2327,6 +2328,7 @@ function advanceTime(months){
 
     if(!G.ship.stranded){
       G.ship.fuel=Math.max(0,G.ship.fuel-0.45);
+      if(!G.isCaptain) G.ship.fuel = G.ship.fuelMax; // <--- РЕГЕНТ ЗАПРАВЛЯЕТ САМ
       if(G.ship.fuel<=0){
         G.ship.fuel=0;
         G.ship.stranded={monthsLeft:18};
@@ -2482,6 +2484,31 @@ function advanceTime(months){
       return;
     }
 
+    // ── Досуг: прогресс за месяц ──
+    if(G.leisure){
+      G.leisure.monthsLeft--;
+      if(G.leisure.monthsLeft <= 0){
+        if(G.leisure.type === 'meditation'){
+          G.protagonist.axes.risk = clamp((G.protagonist.axes.risk||0) - 1, -100, 100);
+          G.protagonist.axes.certainty = clamp((G.protagonist.axes.certainty||0) + 1, -100, 100);
+          addLog('🧘 Медитация завершена. Риск −1, Уверенность +1.', 'level');
+        } else {
+          G.trainedThisYear = G.trainedThisYear || {};
+          G.trainedThisYear[G.leisure.axis] = true;
+          G.protagonist.axes[G.leisure.axis] = clamp((G.protagonist.axes[G.leisure.axis]||0) + 1, -100, 100);
+          addLog(`🎯 Год тренировок "${G.leisure.label}" завершён: +1 к оси.`, 'level');
+          if(Math.random() < 0.10){
+            G.protagonist.axes[G.leisure.riskAxis] = clamp((G.protagonist.axes[G.leisure.riskAxis]||0) + G.leisure.riskVal, -100, 100);
+            addLog(`⚠ Неудача: ${G.leisure.riskText} (${AXIS_LABELS[G.leisure.riskAxis]} ${G.leisure.riskVal}).`, 'death');
+          }
+        }
+        G.protagonist.badges = resolveBadges(G.protagonist);
+        G.leisure = null;
+      }
+    }
+
+    tickShipTransitions();
+
     tickShipTransitions();
 
     const qm = G.crew.find(c => c.role === 'Квартирмейстер');
@@ -2618,7 +2645,9 @@ function startNewGame(){
     spy:{name:'Агент',task:null,exposure:0},
     spyMonthsElapsed:0,
     shipCollapsed: true,
-    crewCollapsed: true
+    crewCollapsed: true,
+    leisure: null,
+    trainedThisYear: {}
   };
   document.getElementById('intro').classList.add('hidden');
   document.getElementById('game').classList.remove('hidden');
@@ -2669,6 +2698,7 @@ function loadAndContinue(){
   }
   if(G.spyMonthsElapsed==null) G.spyMonthsElapsed = 0;
   if(G.spy && G.spy.exposure==null) G.spy.exposure = 0;
+  if(!G.trainedThisYear) G.trainedThisYear = {};
   document.getElementById('intro').classList.add('hidden');
   document.getElementById('game').classList.remove('hidden');
   document.getElementById('identityReveal').innerHTML=`<div class="name">${G.protagonist.name}</div><div class="ship">${G.ship.className} «${G.ship.name}» · ${Math.floor(G.protagonist.age)} лет</div><div class="gen">Поколение ${G.dynastyGeneration||1}</div>`;
@@ -2976,7 +3006,10 @@ function applyChoice(choice,target){
     return;
   }
 
-  if(G.currentEvent&&G.currentEvent.isChild){
+  // ФИКС ЗАВИСАНИЯ: проверяем, является ли событие дочерним (по ID, а не по флагу)
+  const isChildEv = G.currentEvent.isChild || CHILD_EVENTS.some(e=>e.id===G.currentEvent.id);
+
+  if(G.currentEvent && isChildEv){
     G.childEventsDone=G.childEventsDone||[];
     if(!G.childEventsDone.includes(G.currentEvent.id)) G.childEventsDone.push(G.currentEvent.id);
     G.currentEvent=null;
@@ -3516,6 +3549,8 @@ window.inheritAndContinue=function(){
   G.pilotingCourse=null;
   G.combat=null;
   G.recentEvents=[];
+  G.leisure = null;
+  G.trainedThisYear = {};
   G.scafandryataGraduated=G.protagonist.age>=6;
   G.isCaptain=G.protagonist.age>=16;
   G.parents=[{name:deceasedName,age:deceasedAge,relation:'хорошие',role:'родитель',alive:false}];
@@ -4045,7 +4080,8 @@ function renderPanel(){
   else if(currentTab==='shipyard') renderShipyardPanel(el);
   else if(currentTab==='ship') renderShipTabPanel(el);
   else if(currentTab==='agency') renderAgencyPanel(el);
-  else if(currentTab==='map') currentTab='events', renderEventsPanel(el); // авто-фикс старых сейвов
+  else if(currentTab==='leisure') renderLeisurePanel(el); // <--- ДОБАВЛЕН ДОСУГ
+  else if(currentTab==='map') currentTab='events', renderEventsPanel(el); 
 }
 function renderCombatPanel(el){
   const c=G.combat;
@@ -4190,7 +4226,7 @@ window.doContract=function(){
 };
 function renderStudyPanel(el){
   let html='<div class="panel"><h3>Обучение</h3>';
-  if(G.timeMonths < 72){
+  if(G.timeMonths < 144){
     html+=`<p><b>Скафандрята</b> — начальный курс для дошколят. Тебе ${Math.floor(G.protagonist.age)}. Обычная учёба — с 12 лет.</p>`;
     html+='<p style="font-size:11px;color:var(--muted);margin-top:6px">Ты учишься дышать, двигаться и держаться в невесомости.</p>';
   } else if(G.studying){
@@ -4460,7 +4496,7 @@ lastGameBtn.addEventListener('click', () => {
     document.getElementById('x1Btn').disabled = true;
     document.getElementById('x2Btn').disabled = true;
     const x4btn = document.getElementById('x4Btn');
-    if(x4btn) x4btn.disabled = true; // <-- Защита от ошибки
+    if(x4btn) x4btn.disabled = true; 
     document.getElementById('shipyardBtn').style.display = 'none';
     document.getElementById('retireBtn').style.display = 'none';
     document.querySelectorAll('#tabs button').forEach(b => b.style.display = 'none');
@@ -4522,7 +4558,6 @@ document.addEventListener("DOMContentLoaded", function() {
     const tunnel = document.getElementById('warpTunnel');
     if (!tunnel) return;
 
-    // Прозрачность поднята до 0.6 (вполовину ярче, чем 0.35)
     const colors = [
         'rgba(255, 255, 255, 0.6)', 
         'rgba(255, 255, 255, 0.6)', 
@@ -4568,6 +4603,149 @@ document.addEventListener("DOMContentLoaded", function() {
         tunnel.appendChild(el);
     }
 });
+/* =========================================
+   ВКЛАДКА "ДОСУГ" (ЛИЧНОЕ ВРЕМЯ)
+   ========================================= */
+const LEISURE_ACTIONS = [
+  {id:'squash', label:'ZeroG сквош', axis:'tempo', desc:'+1 к Темпу.', risk:'Вы растянули связки.', riskAxis:'firmness', riskVal:-1},
+  {id:'desant', label:'Десантные учения', axis:'risk', desc:'+1 к Риску.', risk:'Микротравма на тренировке.', riskAxis:'tempo', riskVal:-1},
+  {id:'oratory', label:'Ораторское мастерство', axis:'initiative', desc:'+1 к Инициативе.', risk:'Вы слишком увлеклись и проспали смену.', riskAxis:'tempo', riskVal:-1},
+  {id:'conflict', label:'Конфликтология', axis:'firmness', desc:'+1 к Твёрдости.', risk:'Выгорание от споров.', riskAxis:'initiative', riskVal:-1},
+  {id:'brainstorm', label:'Мозговой штурм', axis:'certainty', desc:'+1 к Уверенности.', risk:'Идею раскритиковали в пух и прах.', riskAxis:'risk', riskVal:-1}
+];
+
+function renderLeisurePanel(el) {
+  let html = '<div class="panel"><h3>Досуг и тренировки</h3>';
+
+  if(G.protagonist.age < 6) {
+    html += '<p style="font-size:13px;color:var(--muted)">Занятия доступны с 6 лет. Пока ты слишком мал(а) — просто живи и наблюдай.</p></div>';
+    el.innerHTML = html;
+    return;
+  }
+
+  if(G.leisure) {
+    const l = G.leisure;
+    const elapsed = l.totalMonths - l.monthsLeft;
+    const pct = Math.round((elapsed / l.totalMonths) * 100);
+    html += `<div style="padding:12px;background:rgba(80,170,255,.08);border:1px solid #3b6ca8;border-radius:10px;margin-bottom:12px">
+      <div style="font-size:14px;margin-bottom:6px"><b>${l.label}</b> — активно</div>
+      <div class="kv"><span>Прогресс</span><b>${elapsed}/${l.totalMonths} мес (${pct}%)</b></div>
+      <div class="kv"><span>Осталось</span><b>${l.monthsLeft} мес</b></div>
+      <div style="height:6px;background:#0a1222;border:1px solid #1d2d4a;border-radius:99px;overflow:hidden;margin-top:8px">
+        <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#4ea1ff,#61d095);transition:width .3s"></div>
+      </div>
+      <div style="margin-top:10px"><button class="small" onclick="abortLeisure()">Прервать занятия</button></div>
+    </div></div>`;
+    el.innerHTML = html;
+    return;
+  }
+
+  html += '<p style="font-size:12px;color:var(--muted);margin-bottom:10px">Посвятите год развитию одной из черт характера. Пока занятия идут — другие занятия недоступны, но время продолжает идти.</p>';
+
+  for(const act of LEISURE_ACTIONS) {
+    const val = Math.round(G.protagonist.axes[act.axis] || 0);
+    const isLimit = val >= 80;
+    html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div>
+        <b>${act.label}</b> <span style="color:var(--muted);font-size:11px">(Текущее: ${val > 0 ? '+' : ''}${val})</span><br>
+        <span style="font-size:11px;color:var(--muted)">${act.desc}</span>
+      </div>
+      <div>
+        ${isLimit 
+          ? `<span style="color:#ff6b7a;font-size:11px;text-align:right;display:block;max-width:100px">Вы на грани.<br>Продолжение чревато срывом.</span>`
+          : `<button class="small" onclick="doLeisure('${act.id}')">Посвятить год</button>`}
+      </div>
+    </div>`;
+  }
+
+  html += `<div style="padding:10px 0;margin-top:10px">
+    <b>Медитация</b><br>
+    <span style="font-size:11px;color:var(--muted)">-1 к Риску, +1 к Уверенности. Занимает 1 месяц.</span><br>
+    <button class="small" style="margin-top:6px" onclick="doLeisure('meditation')">Помедитировать</button>
+  </div>`;
+
+  if (G.protagonist.age >= 16) {
+    html += `<div style="font-size:11px;color:var(--warn);margin-top:15px;padding:8px;background:rgba(255,204,92,.1);border:1px solid rgba(255,204,92,.3);border-radius:6px">
+      ⚠ <b>Внимание:</b> Вы уже взрослый. Черты, которые вы не развиваете, будут медленно атрофироваться каждый год.
+    </div>`;
+  }
+
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+window.doLeisure = function(actionId) {
+  if(!G || G.over || G.pendingInheritance) return;
+  if(G.leisure) { addLog('⏳ Сначала дождитесь окончания текущих занятий или прервите их.', 'sys'); return; }
+  if(G.protagonist.age < 6) { addLog('Занятия доступны с 6 лет.', 'sys'); return; }
+
+  if (actionId === 'meditation') {
+    G.leisure = { type:'meditation', label:'Медитация', monthsLeft:1, totalMonths:1 };
+    addLog('🧘 Вы начинаете медитировать. Это займёт 1 месяц.', 'level');
+    if(timeSpeed <= 0) { timeSpeed = 1; startTimeFlow(); renderTimeControls(); }
+    saveGame(); renderAll(); renderPanel();
+    return;
+  }
+
+  const act = LEISURE_ACTIONS.find(a => a.id === actionId);
+  if(!act) return;
+
+  if(G.protagonist.axes[act.axis] >= 80) {
+    addLog(`⚠ Тренировка "${act.label}" невозможна: параметр достиг предела 80.`, 'sys');
+    return;
+  }
+
+  G.leisure = {
+    type:'training',
+    actionId: act.id,
+    label: act.label,
+    axis: act.axis,
+    riskAxis: act.riskAxis,
+    riskVal: act.riskVal,
+    riskText: act.risk,
+    monthsLeft: 12,
+    totalMonths: 12
+  };
+  addLog(`🎯 Вы начинаете год тренировок "${act.label}". Осталось: 12 мес.`, 'level');
+  if(timeSpeed <= 0) { timeSpeed = 1; startTimeFlow(); renderTimeControls(); }
+  saveGame(); renderAll(); renderPanel();
+};
+
+window.abortLeisure = function() {
+  if(!G || !G.leisure) return;
+  addLog(`⏹ Занятия "${G.leisure.label}" прерваны. Эффект не применён.`, 'sys');
+  G.leisure = null;
+  saveGame(); renderAll(); renderPanel();
+};
+
+// Функция ежегодной деградации
+function applyYearlyDecay() {
+  // В детстве черты не атрофируются
+  if (G.protagonist.age < 16) return;
+  
+  const axes = ['tempo','risk','initiative','firmness','certainty'];
+  let decayed = [];
+  
+  for(const axis of axes) {
+    // Если мы не тренировали эту ось в этом году
+    if(!G.trainedThisYear || !G.trainedThisYear[axis]) {
+      const cur = G.protagonist.axes[axis] || 0;
+      // Если она положительная — минус 1. Если отрицательная — тоже минус 1 (уходит в минус)
+      // Но если она ровно 0 — уходит в -1
+      if (cur !== -100) {
+        G.protagonist.axes[axis] = cur - 1;
+        decayed.push(AXIS_LABELS[axis]);
+      }
+    }
+  }
+  
+  if (decayed.length > 0) {
+    addLog(`📉 Атрофия: Вы перестали тренировать [${decayed.join(', ')}]. Все показатели −1.`, 'sys');
+  }
+  
+  // Сбрасываем счетчик тренировок на следующий год
+  G.trainedThisYear = {};
+}
 </script>
 </body>
 </html>
