@@ -2570,10 +2570,22 @@ function advanceTime(months){
 
     // ── Досуг: прогресс за месяц ──
     if(G.leisure){
+      G.leisure.monthsActive = (G.leisure.monthsActive || 0) + 1;
+
       if(G.leisure.type === 'training'){
         G.leisure.progressMonths = (G.leisure.progressMonths || 0) + 1;
         G.trainedThisYear = G.trainedThisYear || {};
         G.trainedThisYear[G.leisure.axis] = true;
+
+        // Раз в 2 года — выученная фраза / мысль по теме
+        if(G.leisure.monthsActive % 24 === 0){
+          const line = formatLeisureQuote(G.leisure.actionId, G.leisure.quoteIdx || 0);
+          if(line){
+            addLog(line, 'knowledge');
+            G.leisure.quoteIdx = (G.leisure.quoteIdx || 0) + 1;
+          }
+        }
+
         if(G.leisure.progressMonths >= G.leisure.monthsPerPoint){
           G.leisure.progressMonths = 0;
           const curVal = G.protagonist.axes[G.leisure.axis] || 0;
@@ -2596,6 +2608,8 @@ function advanceTime(months){
           G.protagonist.axes.risk = clamp((G.protagonist.axes.risk||0) - 1, -100, 100);
           G.protagonist.axes.certainty = clamp((G.protagonist.axes.certainty||0) + 1, -100, 100);
           addLog('🧘 Медитация завершена. Риск −1, Уверенность +1.', 'level');
+          const line = formatLeisureQuote('meditation', G.leisure.quoteIdx || 0);
+          if(line) addLog(line, 'knowledge');
           G.protagonist.badges = resolveBadges(G.protagonist);
           G.leisure = null;
         }
@@ -2800,7 +2814,8 @@ function loadAndContinue(){
   if(G.spy && G.spy.exposure==null) G.spy.exposure = 0;
   if(!G.trainedThisYear) G.trainedThisYear = {};
   if(G.leisureUnlocked==null) G.leisureUnlocked = (G.protagonist && G.protagonist.age>=6);
-  if(G.leisure && G.leisure.type === 'training' && G.leisure.progressMonths === undefined){
+  if(G.leisure && G.leisure.monthsActive == null) G.leisure.monthsActive = 0;
+  if(G.leisure && G.leisure.quoteIdx == null) G.leisure.quoteIdx = 0;
     G.leisure.progressMonths = Math.max(0, (G.leisure.totalMonths||12) - (G.leisure.monthsLeft||0));
     G.leisure.monthsPerPoint = 6;
     delete G.leisure.monthsLeft;
@@ -4831,7 +4846,64 @@ const LEISURE_ACTIONS = [
   {id:'conflict', label:'Конфликтология', axis:'firmness', desc:'+1 к Твёрдости.', risk:'Выгорание от споров.', riskAxis:'initiative', riskVal:-1},
   {id:'brainstorm', label:'Мозговой штурм', axis:'certainty', desc:'+1 к Уверенности.', risk:'Идею раскритиковали в пух и прах.', riskAxis:'risk', riskVal:-1}
 ];
+const LEISURE_QUOTES = {
+  squash: [
+    {text:'«Тяжело в учении — легко в бою»', author:'Александр Суворов'},
+    {text:'«Постоянство — вот что отличает мечту от реальности»', author:''},
+    {text:'«Тот, кто хочет — ищет возможности, кто не хочет — ищет причины»', author:'Сократ'},
+    {text:'«Победа любит подготовку. И терпение»', author:''},
+    {text:'«Тело — это сад, воля — садовник»', author:''},
+  ],
+  desant: [
+    {text:'«Смелость — это сопротивление страху, а не его отсутствие»', author:'Марк Твен'},
+    {text:'«Быстрота нужна, но не торопливость»', author:'Александр Суворов'},
+    {text:'«Кто не рискует, тот не пьёт шампанского»', author:'народная мудрость'},
+    {text:'«В бою побеждает не тот, кто сильнее, а тот, кто быстрее принимает решения»', author:''},
+    {text:'«Десантник не боится высоты. Он боится опоздать»', author:''},
+  ],
+  oratory: [
+    {text:'«Цель красноречия — не истина, а убеждение»', author:'Томас Бабингтон Маколей'},
+    {text:'«Каждый раз, когда открываете рот, вы демонстрируете свои лидерские качества»', author:'Джеймс С. Хьюмс'},
+    {text:'«Поэтами рождаются, ораторами становятся»', author:'Марк Туллий Цицерон'},
+    {text:'«Убедительно говорит тот, кто произносит собственные слова»', author:'Малала Юсуфзай'},
+    {text:'«Ясность — главное достоинство речи»', author:'Аристотель'},
+    {text:'«Лучший оратор тот, кто способен сказать как можно меньше при помощи наибольшего количества слов»', author:'Сэмюэль Батлер'},
+    {text:'«Идеал — сказать нужное и промолчать о ненужном»', author:'Марк Туллий Цицерон'},
+    {text:'«Чтобы произнести короткую экспромт-речь, мне требуется больше трёх недель»', author:'Марк Твен'},
+    {text:'«Даже самые красноречивые ораторы испытывают волнение и холод в руках»', author:'Сенека'},
+  ],
+  conflict: [
+    {text:'«Лучший способ выиграть спор — не спорить»', author:'Дейл Карнеги'},
+    {text:'«В споре рождается истина»', author:'Сократ'},
+    {text:'«Понимать — не значит соглашаться»', author:'Аристотель'},
+    {text:'«Слово — самое сильное оружие. Им можно и ранить, и исцелить»', author:''},
+    {text:'«Твёрдость без грубости. Мягкость без слабости»', author:''},
+  ],
+  brainstorm: [
+    {text:'«Воображение важнее знания»', author:'Альберт Эйнштейн'},
+    {text:'«Все великие открытия совершались теми, кто не боялся ошибаться»', author:''},
+    {text:'«Идея — это просто мысль, которая не сдалась»', author:''},
+    {text:'«Хорошая идея приходит, когда думаешь о чём-то другом»', author:''},
+    {text:'«Если у тебя есть только молоток, всё вокруг кажется гвоздями»', author:'Абрахам Маслоу'},
+  ],
+  meditation: [
+    {text:'«Тишина — это не отсутствие звука, это присутствие себя»', author:''},
+    {text:'«Дыши. Это всё, что нужно сейчас»', author:''},
+    {text:'«Тот, кто владеет собой, владеет миром»', author:'Сенека'},
+    {text:'«Внутри тебя — целая вселенная. Не забывай заглядывать»', author:''},
+  ],
+};
 
+function formatLeisureQuote(actionId, idx){
+  const pool = LEISURE_QUOTES[actionId] || [];
+  if(!pool.length) return '';
+  const q = pool[idx % pool.length];
+  const label = actionId==='meditation' ? 'Медитация' :
+                (LEISURE_ACTIONS.find(a=>a.id===actionId)?.label || 'Досуг');
+  return q.author
+    ? `📖 ${label}: ${q.text} — ${q.author}`
+    : `📖 ${label}: ${q.text}`;
+}
 function renderLeisurePanel(el) {
   let html = '<div class="panel"><h3>Досуг и тренировки</h3>';
 
@@ -4907,7 +4979,7 @@ window.doLeisure = function(actionId) {
 
   if (actionId === 'meditation') {
     if(G.leisure) { addLog('⏳ Сначала прекратите текущие занятия.', 'sys'); return; }
-    G.leisure = { type:'meditation', label:'Медитация', monthsLeft:1 };
+    G.leisure = { type:'meditation', label:'Медитация', monthsLeft:1, monthsActive:0, quoteIdx:0 };
     addLog('🧘 Вы начинаете медитировать (1 мес).', 'level');
     if(timeSpeed <= 0) { timeSpeed = 1; startTimeFlow(); renderTimeControls(); }
     saveGame(); renderAll(); renderPanel();
@@ -4939,7 +5011,9 @@ window.doLeisure = function(actionId) {
     riskVal: act.riskVal,
     riskText: act.risk,
     progressMonths: 0,
-    monthsPerPoint: 6
+    monthsPerPoint: 6,
+    monthsActive: 0,
+    quoteIdx: 0
   };
   addLog(`🎯 Постоянные занятия "${act.label}" начаты. +1 к ${AXIS_LABELS[act.axis]} каждые 6 мес.`, 'level');
   if(timeSpeed <= 0) { timeSpeed = 1; startTimeFlow(); renderTimeControls(); }
