@@ -2672,12 +2672,31 @@ function addLog(text,cls=''){
 
   const log=document.getElementById('log');
   if(!log) return;
+
+  // Запоминаем, был ли игрок "приклеен" к низу перед добавлением строки
+  const atBottom = (log.scrollHeight - log.scrollTop - log.clientHeight) < 40;
+  const prevScroll = log.scrollTop;
+
   const line=document.createElement('div');
   line.className='log-line '+(cls||'');
   line.textContent=text;
   log.appendChild(line);
-  while(log.children.length>LOG_MAX) log.removeChild(log.firstChild);
-  log.scrollTop=log.scrollHeight;
+
+  // Если лог переполнен — выкидываем верхнюю строку
+  let trimmed = false;
+  while(log.children.length>LOG_MAX){
+    log.removeChild(log.firstChild);
+    trimmed = true;
+  }
+
+  if(atBottom){
+    // Ты внизу — веди вниз, чтобы видеть новое
+    log.scrollTop = log.scrollHeight;
+  } else {
+    // Ты читаешь историю — оставь позицию. Если строку выкинули сверху,
+    // компенсируем, чтобы видимый текст не «прыгнул».
+    log.scrollTop = trimmed ? Math.max(0, prevScroll - line.offsetHeight - 6) : prevScroll;
+  }
 }
 function renderLog(){
   const log=document.getElementById('log');
