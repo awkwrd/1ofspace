@@ -1331,7 +1331,7 @@ const EVENTS=[
     ]},
   {id:'spy_offer',title:'🕵 Предложение агента',ageMin:18,requiresCaptain:true,
     spawn:()=> G.spy && !G.spy.task,
-    text:'Человек без имени. Без корабля. Без прошлого. «Есть работа. Тихо, аккуратно. Провал — сам понимаешь».',
+    text:'Человек без имени. Без корабля. Без прошлого. «Есть работа: тихо, аккуратно.».',
     choices:[
       {label:'🕵 Внедрить агента во Флот',weight:40,axes:{risk:+1},
         available:s=>G.factions && G.factions.fleet.rep > -10,
@@ -1346,6 +1346,70 @@ const EVENTS=[
       {label:'Отказаться',weight:20,axes:{risk:-1},
         log:'Не твоё.',
         effects:{}},
+    ]},
+  {id:'time_anomaly',
+    title:'⏳ Временная аномалия',
+    text:'Гравитационная воронка накрывает корабль. Часы на всех приборах идут назад. Свет в коридорах краснеет. Когда ты приходишь в себя — твоё тело меньше, чем было. Ты снова ребёнок. Экипаж смотрит на тебя с ужасом и надеждой.',
+    ageMin:20,
+    requiresCaptain:true,
+    spawn:()=> !G.recentEvents.includes('time_anomaly') && Math.random() < 0.15,
+    choices:[
+      {label:'Принять новую реальность',weight:50,axes:{certainty:+1,tempo:-1},
+        log:'Ты сжимаешь маленькие кулаки. Знания остались.',
+        effects:{timeAnomaly:true}},
+      {label:'Сопротивляться',weight:30,axes:{firmness:+1},
+        log:'Ты пытаешься удержать возраст. Не выходит.',
+        effects:{timeAnomaly:true}},
+      {label:'Спросить экипаж, помнят ли они тебя взрослым',weight:20,axes:{initiative:+1},
+        log:'Помнят. И это страшнее всего.',
+        effects:{timeAnomaly:true}},
+    ]},
+
+  {id:'anomaly_spouse_choice',
+    hidden:true,
+    noTimeAdvance:true,
+    isLove:true,
+    title:'💔 Решение',
+    titleFn:()=> (G.spouse?.gender==='м' ? '💔 Он смотрит на тебя' : '💔 Она смотрит на тебя'),
+    textFn:()=>{
+      const sp = G.spouse;
+      if(!sp) return '';
+      const isHe = sp.gender === 'м';
+      const He = isHe ? 'Он' : 'Она';
+      let pregNote = '';
+      if(G.anomalyLostPregnancy){
+        pregNote = ' Ты потеряла ребёнка. ' + He + ' видит это в твоих глазах. И не знает, что сказать.';
+      } else if(G.pregnancy && G.pregnancy.bySpouse){
+        pregNote = ' ' + sp.name + ' беременна от тебя. ' + He + ' это знает.';
+      }
+      return `${sp.name} смотрит на тебя. Долго. ${He} помнит взрослого. И видит восьмилетнего ребёнка.${pregNote} ${He} молчит. Потом: «Мне нужно решить. Дай мне минуту».`;
+    },
+    choices:[
+      {label:'Попросить остаться',weight:50,axes:{firmness:-1,initiative:+1},
+        check:()=>{
+          const warm = G.ship.traits.warm||0;
+          const rep  = G.rep||0;
+          let p = 0.2;
+          if(warm>50) p+=0.2;
+          if(rep>50)  p+=0.2;
+          if(G.dynastyCapital) p+=0.1;
+          if(G.pregnancy && G.pregnancy.bySpouse) p += 0.45;
+          if(G.anomalyLostPregnancy) p += 0.6; // сострадание: муж/жена не бросает в горе
+          return Math.random()<Math.min(0.95, p);
+        },
+        okLog:'Остаётся. Не как супруг(а) — как хранитель. Ты будешь расти снова, и этот человек будет рядом.',
+        failLog:'Качает головой. «Прости». Дверь закрывается тихо.',
+        okEffects:{spouseStays:true, clearAnomalyLoss:true},
+        failEffects:{divorce:true, clearAnomalyLoss:true}},
+      {label:'Отпустить',weight:30,axes:{tempo:-1,firmness:+1},
+        log:'Ты не держишь. Уходит. Это честно.',
+        effects:{divorce:true, clearAnomalyLoss:true}},
+      {label:'Ничего не говорить',weight:20,axes:{tempo:-1,risk:-1},
+        check:()=>Math.random()<0.15,
+        okLog:'Остаётся. Потому что ты молчал. Потому что решать было нечего.',
+        failLog:'Уходит молча. Ты тоже молчишь.',
+        okEffects:{spouseStays:true, clearAnomalyLoss:true},
+        failEffects:{divorce:true, clearAnomalyLoss:true}},
     ]},
 ];
 
@@ -2504,24 +2568,35 @@ function advanceTime(months){
 
     // ── Досуг: прогресс за месяц ──
     if(G.leisure){
-      G.leisure.monthsLeft--;
-      if(G.leisure.monthsLeft <= 0){
-        if(G.leisure.type === 'meditation'){
+      if(G.leisure.type === 'training'){
+        G.leisure.progressMonths = (G.leisure.progressMonths || 0) + 1;
+        G.trainedThisYear = G.trainedThisYear || {};
+        G.trainedThisYear[G.leisure.axis] = true;
+        if(G.leisure.progressMonths >= G.leisure.monthsPerPoint){
+          G.leisure.progressMonths = 0;
+          const curVal = G.protagonist.axes[G.leisure.axis] || 0;
+          if(curVal < 80){
+            G.protagonist.axes[G.leisure.axis] = clamp(curVal + 1, -100, 100);
+            addLog(`🎯 Постоянные занятия "${G.leisure.label}": +1 к ${AXIS_LABELS[G.leisure.axis]}.`, 'level');
+            if(Math.random() < 0.10){
+              G.protagonist.axes[G.leisure.riskAxis] = clamp((G.protagonist.axes[G.leisure.riskAxis]||0) + G.leisure.riskVal, -100, 100);
+              addLog(`⚠ Неудача: ${G.leisure.riskText} (${AXIS_LABELS[G.leisure.riskAxis]} ${G.leisure.riskVal}).`, 'death');
+            }
+            G.protagonist.badges = resolveBadges(G.protagonist);
+          } else {
+            addLog(`🏁 ${AXIS_LABELS[G.leisure.axis]} достигло предела 80. Занятия "${G.leisure.label}" завершены.`, 'sys');
+            G.leisure = null;
+          }
+        }
+      } else if(G.leisure.type === 'meditation'){
+        G.leisure.monthsLeft--;
+        if(G.leisure.monthsLeft <= 0){
           G.protagonist.axes.risk = clamp((G.protagonist.axes.risk||0) - 1, -100, 100);
           G.protagonist.axes.certainty = clamp((G.protagonist.axes.certainty||0) + 1, -100, 100);
           addLog('🧘 Медитация завершена. Риск −1, Уверенность +1.', 'level');
-        } else {
-          G.trainedThisYear = G.trainedThisYear || {};
-          G.trainedThisYear[G.leisure.axis] = true;
-          G.protagonist.axes[G.leisure.axis] = clamp((G.protagonist.axes[G.leisure.axis]||0) + 1, -100, 100);
-          addLog(`🎯 Год тренировок "${G.leisure.label}" завершён: +1 к оси.`, 'level');
-          if(Math.random() < 0.10){
-            G.protagonist.axes[G.leisure.riskAxis] = clamp((G.protagonist.axes[G.leisure.riskAxis]||0) + G.leisure.riskVal, -100, 100);
-            addLog(`⚠ Неудача: ${G.leisure.riskText} (${AXIS_LABELS[G.leisure.riskAxis]} ${G.leisure.riskVal}).`, 'death');
-          }
+          G.protagonist.badges = resolveBadges(G.protagonist);
+          G.leisure = null;
         }
-        G.protagonist.badges = resolveBadges(G.protagonist);
-        G.leisure = null;
       }
     }
 
@@ -2667,7 +2742,10 @@ function startNewGame(){
     leisure: null,
     trainedThisYear: {},
     pendingPause: false,
-    leisureUnlocked: false
+    leisureUnlocked: false,
+    pendingAnomalyChoice: false,
+    timeAnomalies: [],
+    anomalyLostPregnancy: false,
   };
   document.getElementById('intro').classList.add('hidden');
   document.getElementById('game').classList.remove('hidden');
@@ -2720,6 +2798,15 @@ function loadAndContinue(){
   if(G.spy && G.spy.exposure==null) G.spy.exposure = 0;
   if(!G.trainedThisYear) G.trainedThisYear = {};
   if(G.leisureUnlocked==null) G.leisureUnlocked = (G.protagonist && G.protagonist.age>=6);
+  if(G.leisure && G.leisure.type === 'training' && G.leisure.progressMonths === undefined){
+    G.leisure.progressMonths = Math.max(0, (G.leisure.totalMonths||12) - (G.leisure.monthsLeft||0));
+    G.leisure.monthsPerPoint = 6;
+    delete G.leisure.monthsLeft;
+    delete G.leisure.totalMonths;
+  }
+  if(G.pendingAnomalyChoice==null) G.pendingAnomalyChoice = false;
+  if(!G.timeAnomalies) G.timeAnomalies = [];
+  if(G.anomalyLostPregnancy==null) G.anomalyLostPregnancy = false;
   document.getElementById('intro').classList.add('hidden');
   document.getElementById('game').classList.remove('hidden');
   document.getElementById('identityReveal').innerHTML=`<div class="name">${G.protagonist.name}</div><div class="ship">${G.ship.className} «${G.ship.name}» · ${Math.floor(G.protagonist.age)} лет</div><div class="gen">Поколение ${G.dynastyGeneration||1}</div>`;
@@ -3055,6 +3142,23 @@ function applyChoice(choice,target){
   renderAll();
   if(G.over||G.pendingInheritance){saveGame();stopTimeFlow();renderTimeControls();return;}
 
+  if(G.pendingAnomalyChoice){
+    G.pendingAnomalyChoice = false;
+    const ev = EVENTS.find(e=>e.id==='anomaly_spouse_choice');
+    if(ev && G.spouse){
+      const evCopy = {...ev};
+      if(typeof evCopy.titleFn === 'function'){ evCopy.title = evCopy.titleFn(); delete evCopy.titleFn; }
+      if(typeof evCopy.textFn  === 'function'){ evCopy.text  = evCopy.textFn();  delete evCopy.textFn;  }
+      G.currentEvent = evCopy;
+      addLog(`— ${evCopy.title} ${evCopy.text}`,'event');
+      timeSpeed = 0;
+      stopTimeFlow();
+      renderTimeControls();
+      renderAll(); renderPanel(); saveGame();
+      return;
+    }
+  }
+
   G.actionCooldown=randInt(8,14);
   const followupId = isOk === true ? (choice.okFollowupEvent || null)
                     : isOk === false ? (choice.failFollowupEvent || null)
@@ -3085,6 +3189,77 @@ function applyChoice(choice,target){
 
   renderPanel();
   saveGame();
+}
+
+function triggerTimeAnomaly(){
+  if(!G || G.over || G.pendingInheritance) return;
+  if(G.protagonist.age < 8) return;
+
+  // Если экипажа нет — приведём опекуна, иначе 8-летний одиночка умрёт на следующем тике
+  if(!G.crew || G.crew.length === 0){
+    const guardian = makeCrewMember(true, 'Опекун', undefined, [30, 55]);
+    guardian.role = 'Опекун';
+    G.crew.push(guardian);
+    addLog('👤 Из ниоткуда появляется опекун — старый знакомый семьи, готовый взять штурвал.','sys');
+  }
+
+  const oldAge = Math.floor(G.protagonist.age);
+  G.timeAnomalies = G.timeAnomalies || [];
+  G.timeAnomalies.push({
+    age: oldAge, name: G.protagonist.name,
+    generation: G.dynastyGeneration || 1,
+    timeMonths: G.timeMonths,
+  });
+
+  G.protagonist.age = 8;
+  G.isCaptain = false;
+  G.majorityEventDone = false;
+  G.scafandryataGraduated = false;
+  G.leisureUnlocked = true;
+  G.deathRolled = false;
+  G.protagonist.wounded = null;
+
+  // Своя беременность — стирается (8-летняя не может быть беременна), но остаётся травмой
+  if(G.pregnancy && !G.pregnancy.bySpouse){
+    addLog('⏳ То, что росло внутри, осталось в прежнем времени. Ты снова ребёнок — и не беременна.','love');
+    G.anomalyLostPregnancy = true;
+    G.pregnancy = null;
+  }
+  // Беременность супруги — это её тело, её беременность. Остаётся.
+  if(G.pregnancy && G.pregnancy.bySpouse){
+    addLog('⏳ ' + (G.spouse?.name || 'Супруга') + ' всё ещё ждёт ребёнка. Это не изменилось.','love');
+  }
+
+  if(G.activeContract) G.activeContract = null;
+  if(G.studying) G.studying = null;
+  if(G.combat) G.combat = null;
+  if(G.pilotingCourse) G.pilotingCourse = null;
+  if(G.leisure) G.leisure = null;
+
+  G.childPirateDone = false;
+  G.childFuelDone = false;
+  G.parentGiftTaken = false;
+  G.pilotingCooldown = 0;
+
+  addLog('⏳ ВРЕМЕННАЯ АНОМАЛИЯ','death');
+  addLog('Гравитационная воронка. Свет идёт назад. Твоё тело сжимается — ты снова ребёнок.','desc');
+  addLog(`Тебе снова 8 лет. Ты помнишь всё: ${(G.learnedKnowledge||[]).length} знаний, ${Object.values(G.professions).filter(Boolean).length} профессий. Корабль и экипаж остались с тобой.`,'reveal');
+
+  if(G.child)      addLog(`👶 ${G.child.name} остаётся. Теперь формально старше тебя. Но помнишь больше ты.`,'love');
+  if(G.grandchild) addLog(`👶 ${G.grandchild.name} остаётся. Он(а) тоже не понимает, что произошло.`,'love');
+  if(G.dynastyCapital) addLog(`🏛 Столица династии в ${G.dynastyCapital.systemName} осталась. Ты помнишь каждый камень фундамента.`,'sys');
+
+  const rev = document.getElementById('identityReveal');
+  if(rev) rev.innerHTML = `<div class="name">${G.protagonist.name}</div><div class="ship">${G.ship.className} «${G.ship.name}» · ${Math.floor(G.protagonist.age)} лет · регент</div><div class="gen">Поколение ${G.dynastyGeneration} · после временной аномалии</div>`;
+
+  if(G.spouse){
+    G.pendingAnomalyChoice = true;
+  } else {
+    G.pendingPause = true;
+    timeSpeed = 0;
+    stopTimeFlow();
+  }
+  renderTimeControls();
 }
 
 function applyEffects(e){
@@ -3137,14 +3312,23 @@ function applyEffects(e){
   }
   if(e.divorce && G.spouse){
     addLog(`💔 ${G.spouse.name} уходит. Брак расторгнут.`,'love');
+    if(G.pregnancy && G.pregnancy.bySpouse){
+      addLog(`👶 ${G.spouse.name} уходит вместе с ребёнком. Ты его больше не увидишь.`,'love');
+      G.pregnancy = null;
+    }
     G.spouse = null;
     G.spouseCooldown = 12;
     G.recentEvents = G.recentEvents.filter(x => x !== 'divorce_event');
   }
   if(e.haveChild){
     const months=randInt(7,9);
-    G.pregnancy={monthsLeft:months};
-    addLog(`🤰 Вы ждёте ребёнка. Роды через ~${months} мес.`,'love');
+    if(G.protagonist.gender === 'ж'){
+      G.pregnancy={monthsLeft:months};
+      addLog(`🤰 Вы ждёте ребёнка. Роды через ~${months} мес.`,'love');
+    } else if(G.spouse){
+      G.pregnancy={monthsLeft:months, bySpouse:true};
+      addLog(`🤰 ${G.spouse.name} ждёт ребёнка. Роды через ~${months} мес.`,'love');
+    }
   }
   if(e.childCrush){if(G.child) G.child.hasCrush=true;addLog(`${G.child?.name||'Наследник'} влюбился(ась). Дела сердечные.`,'love');}
   if(e.grandchild){
@@ -3219,6 +3403,8 @@ function applyEffects(e){
   if(G.ship.hull<=0 && !G._impendingDeath){
     G._impendingDeath = e.deathReason || 'Корпус не выдержал. Корабль становится обломком.';
   }
+  if(e.timeAnomaly){ triggerTimeAnomaly(); }
+  if(e.clearAnomalyLoss){ G.anomalyLostPregnancy = false; }
 }
 function describeAxesShort(m){
   const parts=[];
@@ -4647,55 +4833,64 @@ function renderLeisurePanel(el) {
   let html = '<div class="panel"><h3>Досуг и тренировки</h3>';
 
   if(G.protagonist.age < 6) {
-    html += '<p style="font-size:13px;color:var(--muted)">Занятия доступны с 6 лет. Пока ты слишком мал(а) — просто живи и наблюдай.</p></div>';
+    html += '<p style="font-size:13px;color:var(--muted)">Занятия доступны с 6 лет. Пока — просто живи и наблюдай.</p></div>';
     el.innerHTML = html;
     return;
   }
 
   if(G.leisure) {
     const l = G.leisure;
-    const elapsed = l.totalMonths - l.monthsLeft;
-    const pct = Math.round((elapsed / l.totalMonths) * 100);
-    html += `<div style="padding:12px;background:rgba(80,170,255,.08);border:1px solid #3b6ca8;border-radius:10px;margin-bottom:12px">
-      <div style="font-size:14px;margin-bottom:6px"><b>${l.label}</b> — активно</div>
-      <div class="kv"><span>Прогресс</span><b>${elapsed}/${l.totalMonths} мес (${pct}%)</b></div>
-      <div class="kv"><span>Осталось</span><b>${l.monthsLeft} мес</b></div>
-      <div style="height:6px;background:#0a1222;border:1px solid #1d2d4a;border-radius:99px;overflow:hidden;margin-top:8px">
-        <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#4ea1ff,#61d095);transition:width .3s"></div>
-      </div>
-      <div style="margin-top:10px"><button class="small" onclick="abortLeisure()">Прервать занятия</button></div>
-    </div></div>`;
-    el.innerHTML = html;
-    return;
+    if(l.type === 'training') {
+      const pct = Math.round((l.progressMonths / l.monthsPerPoint) * 100);
+      const val = Math.round(G.protagonist.axes[l.axis] || 0);
+      html += `<div style="padding:12px;background:rgba(80,170,255,.08);border:1px solid #3b6ca8;border-radius:10px;margin-bottom:12px">
+        <div style="font-size:14px;margin-bottom:6px"><b>${l.label}</b> — постоянные занятия</div>
+        <div class="kv"><span>${AXIS_LABELS[l.axis]}</span><b>${val > 0 ? '+' : ''}${val}</b></div>
+        <div class="kv"><span>До следующего +1</span><b>${l.monthsPerPoint - l.progressMonths} мес</b></div>
+        <div style="height:6px;background:#0a1222;border:1px solid #1d2d4a;border-radius:99px;overflow:hidden;margin-top:8px">
+          <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#4ea1ff,#61d095);transition:width .3s"></div>
+        </div>
+        <div style="margin-top:10px"><button class="small" onclick="abortLeisure()">Прекратить занятия</button></div>
+      </div>`;
+      html += '<p style="font-size:12px;color:var(--muted);margin-bottom:10px">Сменить деятельность:</p>';
+    } else if(l.type === 'meditation') {
+      html += `<div style="padding:12px;background:rgba(80,170,255,.08);border:1px solid #3b6ca8;border-radius:10px;margin-bottom:12px">
+        <div style="font-size:14px;margin-bottom:6px"><b>🧘 Медитация</b></div>
+        <div class="kv"><span>Осталось</span><b>${l.monthsLeft} мес</b></div>
+        <div style="margin-top:10px"><button class="small" onclick="abortLeisure()">Прекратить</button></div>
+      </div>`;
+    }
+  } else {
+    html += '<p style="font-size:12px;color:var(--muted);margin-bottom:10px">Выберите занятие — оно будет идти постоянно, давая +1 к оси каждые 6 месяцев. Смена деятельности сбрасывает прогресс.</p>';
   }
-
-  html += '<p style="font-size:12px;color:var(--muted);margin-bottom:10px">Посвятите год развитию одной из черт характера. Пока занятия идут — другие занятия недоступны, но время продолжает идти.</p>';
 
   for(const act of LEISURE_ACTIONS) {
     const val = Math.round(G.protagonist.axes[act.axis] || 0);
     const isLimit = val >= 80;
+    const isCurrent = G.leisure && G.leisure.type === 'training' && G.leisure.actionId === act.id;
+    const btnLabel = (G.leisure && G.leisure.type === 'training') ? 'Сменить на это' : 'Заняться';
     html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
       <div>
-        <b>${act.label}</b> <span style="color:var(--muted);font-size:11px">(Текущее: ${val > 0 ? '+' : ''}${val})</span><br>
-        <span style="font-size:11px;color:var(--muted)">${act.desc}</span>
+        <b>${act.label}</b> ${isCurrent?'<span class="badge tag">текущее</span>':''}<br>
+        <span style="color:var(--muted);font-size:11px">${act.desc} Текущее: ${val > 0 ? '+' : ''}${val}</span>
       </div>
       <div>
-        ${isLimit 
-          ? `<span style="color:#ff6b7a;font-size:11px;text-align:right;display:block;max-width:100px">Вы на грани.<br>Продолжение чревато срывом.</span>`
-          : `<button class="small" onclick="doLeisure('${act.id}')">Посвятить год</button>`}
+        ${isLimit
+          ? `<span style="color:#ff6b7a;font-size:11px;text-align:right;display:block;max-width:100px">Предел достигнут.</span>`
+          : (isCurrent ? '' : `<button class="small" onclick="doLeisure('${act.id}')">${btnLabel}</button>`)}
       </div>
     </div>`;
   }
 
   html += `<div style="padding:10px 0;margin-top:10px">
     <b>Медитация</b><br>
-    <span style="font-size:11px;color:var(--muted)">-1 к Риску, +1 к Уверенности. Занимает 1 месяц.</span><br>
-    <button class="small" style="margin-top:6px" onclick="doLeisure('meditation')">Помедитировать</button>
+    <span style="font-size:11px;color:var(--muted)">-1 к Риску, +1 к Уверенности. 1 месяц. Разовое действие.</span><br>
+    <button class="small" style="margin-top:6px" onclick="doLeisure('meditation')" ${G.leisure ? 'disabled' : ''}>Помедитировать</button>
   </div>`;
 
   if (G.protagonist.age >= 16) {
     html += `<div style="font-size:11px;color:var(--warn);margin-top:15px;padding:8px;background:rgba(255,204,92,.1);border:1px solid rgba(255,204,92,.3);border-radius:6px">
-      ⚠ <b>Внимание:</b> Вы уже взрослый. Черты, которые вы не развиваете, будут медленно атрофироваться каждый год.
+      ⚠ <b>Внимание:</b> Оси, которые вы не тренируете, будут медленно атрофироваться каждый год.
     </div>`;
   }
 
@@ -4705,12 +4900,12 @@ function renderLeisurePanel(el) {
 
 window.doLeisure = function(actionId) {
   if(!G || G.over || G.pendingInheritance) return;
-  if(G.leisure) { addLog('⏳ Сначала дождитесь окончания текущих занятий или прервите их.', 'sys'); return; }
   if(G.protagonist.age < 6) { addLog('Занятия доступны с 6 лет.', 'sys'); return; }
 
   if (actionId === 'meditation') {
-    G.leisure = { type:'meditation', label:'Медитация', monthsLeft:1, totalMonths:1 };
-    addLog('🧘 Вы начинаете медитировать. Это займёт 1 месяц.', 'level');
+    if(G.leisure) { addLog('⏳ Сначала прекратите текущие занятия.', 'sys'); return; }
+    G.leisure = { type:'meditation', label:'Медитация', monthsLeft:1 };
+    addLog('🧘 Вы начинаете медитировать (1 мес).', 'level');
     if(timeSpeed <= 0) { timeSpeed = 1; startTimeFlow(); renderTimeControls(); }
     saveGame(); renderAll(); renderPanel();
     return;
@@ -4719,9 +4914,17 @@ window.doLeisure = function(actionId) {
   const act = LEISURE_ACTIONS.find(a => a.id === actionId);
   if(!act) return;
 
-  if(G.protagonist.axes[act.axis] >= 80) {
+  if((G.protagonist.axes[act.axis]||0) >= 80) {
     addLog(`⚠ Тренировка "${act.label}" невозможна: параметр достиг предела 80.`, 'sys');
     return;
+  }
+
+  if(G.leisure && G.leisure.type === 'training'){
+    if(G.leisure.actionId === act.id){
+      addLog('Вы уже занимаетесь этим.', 'sys');
+      return;
+    }
+    addLog(`🔄 Смена деятельности: "${G.leisure.label}" → "${act.label}". Прогресс сброшен.`, 'sys');
   }
 
   G.leisure = {
@@ -4732,11 +4935,20 @@ window.doLeisure = function(actionId) {
     riskAxis: act.riskAxis,
     riskVal: act.riskVal,
     riskText: act.risk,
-    monthsLeft: 12,
-    totalMonths: 12
+    progressMonths: 0,
+    monthsPerPoint: 6
   };
-  addLog(`🎯 Вы начинаете год тренировок "${act.label}". Осталось: 12 мес.`, 'level');
+  addLog(`🎯 Постоянные занятия "${act.label}" начаты. +1 к ${AXIS_LABELS[act.axis]} каждые 6 мес.`, 'level');
   if(timeSpeed <= 0) { timeSpeed = 1; startTimeFlow(); renderTimeControls(); }
+  saveGame(); renderAll(); renderPanel();
+};
+
+window.abortLeisure = function() {
+  if(!G || !G.leisure) return;
+  if(G.leisure.type === 'training'){
+    addLog(`⏹ Постоянные занятия "${G.leisure.label}" прекращены.`, 'sys');
+  }
+  G.leisure = null;
   saveGame(); renderAll(); renderPanel();
 };
 
