@@ -1776,7 +1776,8 @@ function resolveBadges(crew){
   }
   return out;
 }
-function applyDecision(crew,choice){
+function applyDecision(crew,choice,scale){
+  scale = (scale==null) ? 1 : scale;
   const dirs=choice.axes||{};
   for(const [axis,direction] of Object.entries(dirs)){
     if(!direction) continue;
@@ -1784,7 +1785,8 @@ function applyDecision(crew,choice){
     const currentTag=resolveTagOnAxis(crew,axis);
     let mult=1.0;
     if(currentTag) mult=(currentTag.sign===direction)?0.85:1.15;
-    const delta=(choice.weight||50)*direction*mult*0.03;
+    let delta=(choice.weight||50)*direction*mult*0.03*scale;
+    delta=clamp(delta,-5,5); // потолок ±5 за одно решение
     const nv=clamp(current+delta,-100,100);
     const oldSign=Math.sign(current),newSign=Math.sign(nv);
     if(oldSign!==0&&newSign!==0&&oldSign!==newSign&&Math.abs(nv)>=TAG_ON){
@@ -2400,7 +2402,7 @@ function advanceTime(months){
 
     if(!G.ship.stranded){
       G.ship.fuel=Math.max(0,G.ship.fuel-0.45);
-      // Регент доливает топливо раз в 3 года, чтобы игрок видел расход
+      // Регент доливает топливо (раз в 3) года, чтобы игрок видел расход
       if(!G.isCaptain && G.timeMonths > 0 && G.timeMonths % 36 === 0){
         G.ship.fuel = G.ship.fuelMax||100;
         addLog('⛽ Регент доливает топливо до полного бака.','sys');
@@ -3046,7 +3048,8 @@ function applyChoice(choice,target){
     if(isOk){logText=choice.okLog;effects=choice.okEffects||{};if(G.stats) G.stats.successes++;}
     else{logText=choice.failLog;effects=choice.failEffects||{};if(G.stats) G.stats.doubtful++;}
   }
-  applyDecision(actor,choice);
+  const hasRep = (effects.rep !== undefined && effects.rep !== 0);
+  applyDecision(actor, choice, hasRep ? 3 : 1);
   tickTransitions(actor);
   if(choice.shipAxes) applyShipDrift(choice.shipAxes);
   if(isOk===true&&choice.okShipAxes) applyShipDrift(choice.okShipAxes);
