@@ -3685,7 +3685,7 @@ window.abortContract=function(){
   saveGame();renderAll();renderPanel();
 };
 function startStudy(profId){
-  if(G.timeMonths < 72){addLog('Слишком мал для учёбы.','sys');return;}
+  if(G.timeMonths < 144){addLog('Слишком мал для учёбы.','sys');return;}
   if(G.professions[profId]) return {ok:false};
   if(G.studying) return {ok:false};
   const p=PROFESSIONS[profId];
@@ -4191,7 +4191,7 @@ window.doContract=function(){
 function renderStudyPanel(el){
   let html='<div class="panel"><h3>Обучение</h3>';
   if(G.timeMonths < 72){
-    html+=`<p><b>Скафандрята</b> — начальный курс для дошколят. Тебе ${Math.floor(G.protagonist.age)}. Обычная учёба — с 6 лет.</p>`;
+    html+=`<p><b>Скафандрята</b> — начальный курс для дошколят. Тебе ${Math.floor(G.protagonist.age)}. Обычная учёба — с 12 лет.</p>`;
     html+='<p style="font-size:11px;color:var(--muted);margin-top:6px">Ты учишься дышать, двигаться и держаться в невесомости.</p>';
   } else if(G.studying){
     const p=PROFESSIONS[G.studying.profId];
