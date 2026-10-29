@@ -1646,12 +1646,14 @@ function timeTick(){
     renderAll();safeRenderPanel();saveGame();
     return;
   }
-  if(Math.random()<0.04){
+  const solo = (!G.crew || G.crew.length === 0);
+  const evChance = solo ? 0.012 : 0.04;
+  if(Math.random() < evChance){
     const ev=pickActionEvent();
     if(ev){
       G._prevTimeSpeed = timeSpeed;
       G.currentEvent=ev;
-      G.actionCooldown=randInt(8,14);
+      G.actionCooldown = solo ? randInt(24, 36) : randInt(8,14);
       addLog(`— ${ev.title||''} ${ev.text}`,'event');
       timeSpeed=0;stopTimeFlow();renderTimeControls();
       renderAll();renderPanel();saveGame();
@@ -1698,8 +1700,13 @@ function canAdultEvents(){return G.isCaptain?G.protagonist.age>=15:G.protagonist
 function maybeLogFlavor(force){
   if(!G) return;
 
+  const soloOnBoard = (!G.crew || G.crew.length===0);
+
   // Anti-spam: не чаще раза в 3 месяца
   if(!force && G.timeMonths - (G._lastFlavorMonth ?? -1000) < 3) return;
+
+  // В одиночестве — почти полная тишина (только 3% шанс, вместо обычного)
+  if(soloOnBoard && !force && Math.random() > 0.03) return;
 
   // ── До 6 лет: показываем 3 детских события из пула ──
   if(G.protagonist.age < 6 && G.childFlavorPool && G.childFlavorPool.length > 0){
@@ -1711,7 +1718,6 @@ function maybeLogFlavor(force){
     }
   }
 
-  const soloOnBoard = (!G.crew || G.crew.length===0);
   let type;
 
   if(soloOnBoard){
@@ -2719,7 +2725,6 @@ function advanceTime(months){
     }
 
     if(G.timeMonths % 12 === 0){
-      applyYearlyDecay();
       const drift={};
       if (!qm) {
         drift.maintained = randInt(-3, 0);
@@ -3300,7 +3305,8 @@ function applyChoice(choice,target){
     }
   }
 
-  G.actionCooldown=randInt(8,14);
+  const soloOnResolve = (!G.crew || G.crew.length === 0);
+  G.actionCooldown = soloOnResolve ? randInt(24, 36) : randInt(8,14);
   const followupId = isOk === true ? (choice.okFollowupEvent || null)
                     : isOk === false ? (choice.failFollowupEvent || null)
                     : (choice.followupEvent || null);
@@ -4575,7 +4581,7 @@ function renderEventsPanel(el){
   }
   const isLove=ev.isLove||ev.title?.includes('💕');
   let html=`<div class="panel ${isLove?'love-panel':''}"><h3>${ev.title||''}</h3><p style="font-size:14px;line-height:1.5">${ev.text}</p>`;
-  if(G.crew.length>0&&!ev.isChild&&G.isCaptain&&G.protagonist.age>=18&&!isLove){
+  if(G.crew.length>0&&!ev.isChild&&G.isCaptain&&G.protagonist.age>=16&&!isLove){
     html+=`<div class="delegates"><span class="label">Пусть решит:</span>`;
     G.crew.forEach((c,i)=>{html+=`<button class="delegate small" onclick="delegateTo(${i})">${c.name}</button>`;});
     html+=`</div>`;
@@ -4594,7 +4600,7 @@ function renderEventsPanel(el){
 }
 function renderContractsPanel(el){
   let html='<div class="panel"><h3>Контракты</h3>';
-  const minAge=G.isCaptain?15:18;
+  const minAge=G.isCaptain?15:16;
   if(G.activeContract){
     const c=G.activeContract;
     const p=PROFESSIONS[c.profId];
@@ -5088,7 +5094,7 @@ const LEISURE_ACTIONS = [
 ];
 const LEISURE_QUOTES = {
   squash: [
-    {text:'«Тяжело в учении — легко в бою»', author:'Александр Суворов'},
+    {text:'«Постоянство — вот что отличает мечту от реальности»', author:''},
     {text:'«Постоянство — вот что отличает мечту от реальности»', author:''},
     {text:'«Тот, кто хочет — ищет возможности, кто не хочет — ищет причины»', author:'Сократ'},
     {text:'«Победа любит подготовку. И терпение»', author:''},
@@ -5201,11 +5207,11 @@ function renderLeisurePanel(el) {
     <button class="small" style="margin-top:6px" onclick="doLeisure('meditation')" ${G.leisure ? 'disabled' : ''}>Помедитировать</button>
   </div>`;
 
-  if (G.protagonist.age >= 16) {
-    html += `<div style="font-size:11px;color:var(--warn);margin-top:15px;padding:8px;background:rgba(255,204,92,.1);border:1px solid rgba(255,204,92,.3);border-radius:6px">
-      ⚠ <b>Внимание:</b> Оси, которые вы не тренируете, будут медленно атрофироваться каждый год.
-    </div>`;
-  }
+  // if (G.protagonist.age >= 16) {
+  //   html += `<div style="font-size:11px;color:var(--warn);margin-top:15px;padding:8px;background:rgba(255,204,92,.1);border:1px solid rgba(255,204,92,.3);border-radius:6px">
+  //     ⚠ <b>Внимание:</b> Оси, которые вы не тренируете, будут медленно атрофироваться каждый год.
+  //   </div>`;
+  // }
 
   html += '</div>';
   el.innerHTML = html;
@@ -5268,34 +5274,6 @@ window.abortLeisure = function() {
 };
 
 
-// Функция ежегодной деградации
-function applyYearlyDecay() {
-  // В детстве черты не атрофируются
-  if (G.protagonist.age < 16) return;
-  
-  const axes = ['tempo','risk','initiative','firmness','certainty'];
-  let decayed = [];
-  
-  for(const axis of axes) {
-    // Если мы не тренировали эту ось в этом году
-    if(!G.trainedThisYear || !G.trainedThisYear[axis]) {
-      const cur = G.protagonist.axes[axis] || 0;
-      // Если она положительная — минус 1. Если отрицательная — тоже минус 1 (уходит в минус)
-      // Но если она ровно 0 — уходит в -1
-      if (cur !== -100) {
-        G.protagonist.axes[axis] = cur - 1;
-        decayed.push(AXIS_LABELS[axis]);
-      }
-    }
-  }
-  
-  if (decayed.length > 0) {
-    addLog(`📉 Атрофия: Вы перестали тренировать [${decayed.join(', ')}]. Все показатели −1.`, 'sys');
-  }
-  
-  // Сбрасываем счетчик тренировок на следующий год
-  G.trainedThisYear = {};
-}
 </script>
 </body>
 </html>
