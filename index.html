@@ -1698,10 +1698,14 @@ function canAdultEvents(){return G.isCaptain?G.protagonist.age>=15:G.protagonist
 function maybeLogFlavor(force){
   if(!G) return;
 
+  // Anti-spam: не чаще раза в 3 месяца
+  if(!force && G.timeMonths - (G._lastFlavorMonth ?? -1000) < 3) return;
+
   // ── До 6 лет: показываем 3 детских события из пула ──
   if(G.protagonist.age < 6 && G.childFlavorPool && G.childFlavorPool.length > 0){
-    if(force || Math.random() < 0.15){
+    if(force || Math.random() < 0.25){
       const text = G.childFlavorPool.shift();
+      G._lastFlavorMonth = G.timeMonths;
       addLog(`~ ${text}`, 'desc');
       return;
     }
@@ -1732,7 +1736,6 @@ function maybeLogFlavor(force){
   let pool;
 
   if(G.protagonist.age < 6) {
-    // Если 3 детских события уже показаны (пул пуст), просто описываем космос
     pool = DESCRIPTIONS;
   } else if(G.protagonist.age < 16) {
     // ── С 6 до 16 лет: подростковый флэйвор (без повторов) ──
@@ -1741,10 +1744,10 @@ function maybeLogFlavor(force){
     }
     const teenText = G.teenFlavorBag.pop();
     G.lastFlavorType = 'desc';
+    G._lastFlavorMonth = G.timeMonths;
     addLog(`~ ${teenText}`, 'desc');
-    return; // Выходим, чтобы не идти в общую логику G.recentFlavor
+    return;
   } else if(soloOnBoard){
-    // ── Взрослая жизнь: когда один на корабле — 50% космос, 50% одиночные мысли ──
     pool = Math.random() < 0.5
       ? SOLO_DESCRIPTIONS
       : (type==='joke'?JOKES:(type==='routine'?ROUTINE:DESCRIPTIONS));
@@ -1759,6 +1762,7 @@ function maybeLogFlavor(force){
 
   G.recentFlavor=[...(G.recentFlavor||[]),text].slice(-30);
   G.lastFlavorType=type;
+  G._lastFlavorMonth = G.timeMonths;
   addLog(`~ ${text}`,type);
 }
 function renderTimeControls(){
@@ -2663,8 +2667,8 @@ function advanceTime(months){
         G.trainedThisYear[G.leisure.axis] = true;
 
         // Раз в 2 года — выученная фраза / мысль по теме
-        if(G.leisure.monthsActive % 24 === 0){
-          const line = formatLeisureQuote(G.leisure.actionId, G.leisure.quoteIdx || 0);
+          if(G.leisure.actionId === 'oratory' && G.leisure.monthsActive % 24 === 0){
+            const line = formatLeisureQuote('oratory', G.leisure.quoteIdx || 0);
           if(line){
             addLog(line, 'knowledge');
             G.leisure.quoteIdx = (G.leisure.quoteIdx || 0) + 1;
@@ -2752,6 +2756,7 @@ function advanceTime(months){
 function addLog(text,cls=''){
   if(!G) return;
   if(!G.logHistory) G.logHistory = [];
+  if(!G.protagonist.gender) G.protagonist.gender = (G.spouse && G.spouse.gender==='м') ? 'ж' : pickGender();
   G.logHistory.push({text, cls});
   if(G.logHistory.length > LOG_MAX) G.logHistory.shift();
 
@@ -2808,7 +2813,7 @@ const BIRTH_ORIGINS = [
 ];
 
 function startNewGame(){
-  const {first,surname}=randomName();
+  const {first,surname,gender}=randomName();
   const name=`${first} ${surname}`;
   
   const origin = pick(BIRTH_ORIGINS);
@@ -2818,7 +2823,7 @@ function startNewGame(){
   }
 
   G={
-    protagonist:{first,surname,name,age:0,lifespan:72+randInt(0,28),level:1,xp:0,axes:baseAxes,badges:[],transitions:{},isMain:true,nickname:null,brands:[]},
+    protagonist:{first,surname,name,gender,age:0,lifespan:72+randInt(0,28),level:1,xp:0,axes:baseAxes,badges:[],transitions:{},isMain:true,nickname:null,brands:[]},
     ship:generateShip({allowLarge: false}),
     crew:[makeCrewMember(true,undefined,undefined,[25,45])],
     child:null,spouse:null,grandchild:null,inheritedProfPreview:null,pregnancy:null,
@@ -3440,9 +3445,9 @@ function applyEffects(e){
       }
     }
   }
-  if(e.marry){
+if(e.marry){
     const surname=G.protagonist.surname;
-    const spG=pickGender();
+    const spG = G.protagonist.gender === 'м' ? 'ж' : 'м'; // противоположный пол
     const spFirst=spG==='м'?pick(CREW_MALE):pick(CREW_FEMALE);
     G.spouse={name:`${spFirst} ${surname}`,gender:spG,age:G.protagonist.age,isSpouse:true,surname,relation:'хорошие',lifespan:70+randInt(0,25)};
     addLog(`💕 ${G.spouse.name} теперь с тобой. Вы стали семьёй.`,'love');
