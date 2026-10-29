@@ -4122,7 +4122,7 @@ function renderProtagonist(){
     }
   }
   if(G.spouse){
-    const spBadge=`<span class="badge" style="background:${(G.spouse.gender==='ж')?'#5c2a45':'#1d3c68'};border-color:${(G.spouse.gender==='ж')?'#ff6ba8':'#4ea1ff'};color:${(G.spouse.gender==='ж')?'#ffd9e8':'#cfe5ff'};font-size:10px;padding:2px 5px">${G.spouse.gender==='ж'?'♀':'♂'}</span>`;
+    const spBadge=`<span class="badge" style="background:${(G.spouse.gender==='ж')?'#5c2a45':'#1d3c68'};border-color:${(G.spouse.gender==='ж')?'#ff6ba8':'#4ea1ff'};color:${(G.spouse.gender==='ж')?'#ffd9e8':'#cfe5ff'};font-size:10px;padding:2px 5px">${G.spouse.gender==='ж'?'Ж':'М'}</span>`;
     famParts.push(`❤️ ${G.spouse.name} ${spBadge} (${Math.floor(G.spouse.age||30)})`);
   }
   if(G.pregnancy){
@@ -4179,7 +4179,7 @@ function renderProtagonist(){
     if(factionsHtml) factionsHtml=`<div style="margin-top:4px">${factionsHtml}</div>`;
   }
 
-  const genderBadge = `<span class="badge" style="background:${(p.gender==='ж')?'#5c2a45':'#1d3c68'};border-color:${(p.gender==='ж')?'#ff6ba8':'#4ea1ff'};color:${(p.gender==='ж')?'#ffd9e8':'#cfe5ff'}">${p.gender==='ж'?'♀':'♂'}</span>`;
+  const genderBadge = `<span class="badge" style="background:${(p.gender==='ж')?'#5c2a45':'#1d3c68'};border-color:${(p.gender==='ж')?'#ff6ba8':'#4ea1ff'};color:${(p.gender==='ж')?'#ffd9e8':'#cfe5ff'}">${p.gender==='ж'?'Ж':'М'}</span>`;
 
   document.getElementById('protagonistCard').innerHTML=`
     <h2>${p.name} ${genderBadge} ${p.nickname?`<span class="badge nick">«${p.nickname}»</span>`:''} ${p.wounded?`<span class="badge" style="background:#3d1f1f;border-color:#6c3b3b;color:#ffc8c8">🩸 ранен (${p.wounded.monthsLeft})</span>`:''} <span style="color:var(--muted);font-size:12px">ур. ${p.level} · ${stage}</span></h2>
@@ -4321,7 +4321,7 @@ function renderCrew(){
       }})();
       html+=`<div style="border-top:1px solid var(--border);padding:8px 0">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
-          <div><b>${c.name}</b> <span class="badge" style="background:${(c.gender==='ж')?'#5c2a45':'#1d3c68'};border-color:${(c.gender==='ж')?'#ff6ba8':'#4ea1ff'};color:${(c.gender==='ж')?'#ffd9e8':'#cfe5ff'}">${c.gender==='ж'?'♀':'♂'}</span> <span class="badge" style="background:${roleStyle.bg};border-color:${roleStyle.bg};color:${roleStyle.fg}">${c.role||'Матрос'}</span> <span style="color:var(--muted);font-size:12px">ур. ${c.level} · ${Math.floor(c.age||25)}</span>${c.nickname?`<span class="badge nick">«${c.nickname}»</span>`:''}${isLeader?'&nbsp;&nbsp;<span class="badge regent">Регент</span>':''}</div>
+          <div><b>${c.name}</b> <span class="badge" style="background:${(c.gender==='ж')?'#5c2a45':'#1d3c68'};border-color:${(c.gender==='ж')?'#ff6ba8':'#4ea1ff'};color:${(c.gender==='ж')?'#ffd9e8':'#cfe5ff'}">${c.gender==='ж'?'Ж':'М'}</span> <span class="badge" style="background:${roleStyle.bg};border-color:${roleStyle.bg};color:${roleStyle.fg}">${c.role||'Матрос'}</span> <span style="color:var(--muted);font-size:12px">ур. ${c.level} · ${Math.floor(c.age||25)}</span>${c.nickname?`<span class="badge nick">«${c.nickname}»</span>`:''}${isLeader?'&nbsp;&nbsp;<span class="badge regent">Регент</span>':''}</div>
           <button class="fire-btn" onclick="fireCrewMember(${i})" title="Уволить">✖ Уволить</button>
         </div>
         ${renderAxes(c)}${renderTagsBadges(c,tags,badges)}</div>`;
@@ -4357,7 +4357,7 @@ function renderFamily(){
     html+='</div>';
   }
   if(G.spouse){
-    const spBadge=`<span class="badge" style="background:${(G.spouse.gender==='ж')?'#5c2a45':'#1d3c68'};border-color:${(G.spouse.gender==='ж')?'#ff6ba8':'#4ea1ff'};color:${(G.spouse.gender==='ж')?'#ffd9e8':'#cfe5ff'};font-size:10px;padding:2px 5px">${G.spouse.gender==='ж'?'♀':'♂'}</span>`;
+    const spBadge=`<span class="badge" style="background:${(G.spouse.gender==='ж')?'#5c2a45':'#1d3c68'};border-color:${(G.spouse.gender==='ж')?'#ff6ba8':'#4ea1ff'};color:${(G.spouse.gender==='ж')?'#ffd9e8':'#cfe5ff'};font-size:10px;padding:2px 5px">${G.spouse.gender==='ж'?'Ж':'М'}</span>`;
     html+=`<div class="kv"><span>Супруг(а) ❤️</span><b>${G.spouse.name} ${spBadge} (${Math.floor(G.spouse.age||30)})</b></div>`;
   }
   if(G.child){
