@@ -379,23 +379,23 @@ const FIRST_NAMES=[...MALE_NAMES,...FEMALE_NAMES];
 const CREW_NAMES=[...CREW_MALE,...CREW_FEMALE];
 
 const SHIP_TEMPLATES=[
-  {className:'Сойка',role:'разведчик-курьер · лёгкий рейдер',name:'Сойка',classId:'small',crewMax:3,hull:95,shields:100,engine:58,weapons:22,cargo:35,cargoMax:60,fuel:80,fuelMax:80,fuelToStation:14,
+  {className:'Сойка',role:'разведчик-курьер · лёгкий рейдер',name:'Сойка',classId:'small',crewMax:3,hull:95,shields:100,engine:58,weapons:22,cargo:35,cargoMax:60,fuel:40,fuelMax:40,fuelToStation:14,
    traits:{sturdy:+2,jumpworthy:+3,loud:-2,maintained:+18,loyal:+22,warm:+8,renowned:+4}},
-  {className:'Овод',role:'перехватчик · сторожевой',name:'Овод',classId:'small',crewMax:3,hull:100,shields:85,engine:72,weapons:61,cargo:12,cargoMax:40,fuel:100,fuelMax:100,fuelToStation:31,
+  {className:'Овод',role:'перехватчик · сторожевой',name:'Овод',classId:'small',crewMax:3,hull:100,shields:85,engine:72,weapons:61,cargo:12,cargoMax:40,fuel:60,fuelMax:60,fuelToStation:31,
    traits:{sturdy:-6,jumpworthy:+1,loud:+3,maintained:+52,loyal:+9,warm:+2,renowned:+17}},
-  {className:'Мотыль',role:'челнок-разведчик · тихий',name:'Мотыль',classId:'small',crewMax:3,hull:88,shields:100,engine:66,weapons:14,cargo:28,cargoMax:50,fuel:70,fuelMax:70,fuelToStation:9,
+  {className:'Мотыль',role:'челнок-разведчик · тихий',name:'Мотыль',classId:'small',crewMax:3,hull:88,shields:100,engine:66,weapons:14,cargo:28,cargoMax:50,fuel:30,fuelMax:30,fuelToStation:9,
    traits:{sturdy:-3,jumpworthy:+2,loud:-4,maintained:+37,loyal:+28,warm:+6,renowned:-5}},
-  {className:'Кречет',role:'корвет · рейдер',name:'Кречет',classId:'medium',crewMax:4,hull:140,shields:150,engine:64,weapons:128,cargo:145,cargoMax:320,fuel:260,fuelMax:300,fuelToStation:47,
+  {className:'Кречет',role:'корвет · рейдер',name:'Кречет',classId:'medium',crewMax:4,hull:140,shields:150,engine:64,weapons:128,cargo:145,cargoMax:320,fuel:100,fuelMax:100,fuelToStation:47,
    traits:{sturdy:+11,jumpworthy:+2,loud:+1,maintained:+34,loyal:+26,warm:+14,renowned:+38}},
-  {className:'Скиталец',role:'исследователь · дальний рейс',name:'Скиталец',classId:'medium',crewMax:4,hull:150,shields:140,engine:49,weapons:42,cargo:290,cargoMax:420,fuel:340,fuelMax:340,fuelToStation:68,
+  {className:'Скиталец',role:'исследователь · дальний рейс',name:'Скиталец',classId:'medium',crewMax:4,hull:150,shields:140,engine:49,weapons:42,cargo:290,cargoMax:420,fuel:140,fuelMax:140,fuelToStation:68,
    traits:{sturdy:+19,jumpworthy:+4,loud:-1,maintained:+44,loyal:+31,warm:+27,renowned:+22}},
-  {className:'Кузнец',role:'ремонтник · плавучая мастерская',name:'Кузнец',classId:'medium',crewMax:4,hull:150,shields:130,engine:41,weapons:36,cargo:380,cargoMax:460,fuel:210,fuelMax:300,fuelToStation:54,
+  {className:'Кузнец',role:'ремонтник · плавучая мастерская',name:'Кузнец',classId:'medium',crewMax:4,hull:150,shields:130,engine:41,weapons:36,cargo:380,cargoMax:460,fuel:100,fuelMax:100,fuelToStation:54,
    traits:{sturdy:+22,jumpworthy:+1,loud:+2,maintained:+67,loyal:+38,warm:+19,renowned:+29}},
-  {className:'Левиафан',role:'линкор · тяжёлый крейсер',name:'Левиафан',classId:'large',crewMax:6,hull:200,shields:200,engine:58,weapons:242,cargo:540,cargoMax:1000,fuel:780,fuelMax:900,fuelToStation:102,
+  {className:'Левиафан',role:'линкор · тяжёлый крейсер',name:'Левиафан',classId:'large',crewMax:6,hull:200,shields:200,engine:58,weapons:242,cargo:540,cargoMax:1000,fuel:200,fuelMax:200,fuelToStation:102,
    traits:{sturdy:+24,jumpworthy:+2,loud:+5,maintained:+29,loyal:+41,warm:+18,renowned:+76}},
-  {className:'Молот',role:'штурмовой крейсер · осадный',name:'Молот',classId:'large',crewMax:6,hull:200,shields:180,engine:47,weapons:286,cargo:380,cargoMax:800,fuel:700,fuelMax:900,fuelToStation:88,
+  {className:'Молот',role:'штурмовой крейсер · осадный',name:'Молот',classId:'large',crewMax:6,hull:200,shields:180,engine:47,weapons:286,cargo:380,cargoMax:800,fuel:200,fuelMax:200,fuelToStation:88,
    traits:{sturdy:+31,jumpworthy:+1,loud:+7,maintained:+36,loyal:+46,warm:+12,renowned:+81}},
-  {className:'Ковчег',role:'колонизатор · дальний хаулер',name:'Ковчег',classId:'large',crewMax:12,crewBaseMax:12,hull:180,shields:190,engine:44,weapons:92,cargo:960,cargoMax:1400,fuel:860,fuelMax:900,fuelToStation:141,
+  {className:'Ковчег',role:'колонизатор · дальний хаулер',name:'Ковчег',classId:'large',crewMax:12,crewBaseMax:12,hull:180,shields:190,engine:44,weapons:92,cargo:960,cargoMax:1400,fuel:250,fuelMax:250,fuelToStation:141,
    traits:{sturdy:+12,jumpworthy:+4,loud:0,maintained:+72,loyal:+58,warm:+41,renowned:+54}},
 ];
 
