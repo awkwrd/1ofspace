@@ -806,7 +806,31 @@ const SOLO_DESCRIPTIONS=[
   'В кают-компании непривычно тихо. Ты сам себе и капитан, и кок, и тот, кто моет посуду.',
   'Можно включить музыку на полную. Никто не пожалуется. Даже сосед по каюте — его нет.',
 ];
+const CHILD_DESCRIPTIONS = [
+  'Вы пытаетесь рисовать акварелью в невесомости. Старшие долго умиляются. И вы проводите чудный вечер.',
+  'Вы прячетесь в грузовом отсеке. Экипаж ищет вас два часа, а потом устраивает целый квест.',
+  'Механик показывает вам, как звучит обшивка, если постучать по ней гаечным ключом.',
+  'Вы рисуете мелом на полу классики. Родители прыгают вместе с вами.',
+  'В кают-компании пекут печенье. Вам доверяют вырезать фигурки.',
+  'Вы пытаетесь поймать солнечного зайчика от пульта управления. Получается не сразу, но это весело.',
+  'Родители читают вам на ночь книгу о звёздных драконах.',
+  'Вы находите старую коробку с болтами и строите из неё "настоящий звездолёт".',
+  'Экипаж устраивает для вас импровизированный кукольный театр.',
+  'Вы помогаете протирать приборы в штурманской. Вас хвалят за аккуратность.',
+];
 
+const TEEN_DESCRIPTIONS = [
+  'Ты пытаешься выглядеть старше, но экипаж только посмеивается. В невесомости всё выглядит иначе.',
+  'Подростковый максимализм: из-за пустяка ты в ссоре со старшими и теперь демонстративно сидишь в грузовом отсеке.',
+  'Ты тайком пробираешься в кабину пилота и включаешь музыку на полную, но нажимаешь не ту кнопку и будишь весь корабль сиреной.',
+  'Экипаж замечает, что ты всё чаще смотришь на своё отражение в обзорном стекле. Отрочество берёт своё.',
+  'Вы с механиком чините старый дрон. Он подаёт вам детали, а вы пытаетесь понять, как эта штука вообще летает.',
+  'Ты заводишь личный дневник. Прячешь его в вентиляции, чтобы никто не прочитал твои мысли о жизни во вселенной.',
+  'Кто-то из экипажа ставит тебе старый фильм про космических пиратов. Ты весь вечер ходишь и стреляешь из пальца.',
+  'Ты пытаешься доказать, что уже взрослый. Помогаешь с тяжестями в трюме, но на самом деле просто мешаешься под ногами.',
+  'В кают-компании вы ссоритесь из-за того, чью музыку слушать. Побеждает дружба (и глушители шума).',
+  'Ты находишь старый скафандр, который тебе велик, и устраиваешь в нём импровизированную прогулку по коридорам, наступая на все возможные ноги.',
+];
 const ROUTINE=[
   'Кто-то снова оставил кружку в шлюзе. Она третьи сутки летает по коридору и пугает новичков.',
   'В кают-компании спорят, чей носок нашли на фильтре вентиляции. Все молчат, но все уже знают.',
@@ -1664,6 +1688,17 @@ function getMandatoryEvent(){
 }
 function canAdultEvents(){return G.isCaptain?G.protagonist.age>=15:G.protagonist.age>=16;}
 function maybeLogFlavor(force){
+  if(!G) return;
+
+  // ── До 6 лет: показываем 3 детских события из пула ──
+  if(G.protagonist.age < 6 && G.childFlavorPool && G.childFlavorPool.length > 0){
+    if(force || Math.random() < 0.15){
+      const text = G.childFlavorPool.shift();
+      addLog(`~ ${text}`, 'desc');
+      return;
+    }
+  }
+
   const soloOnBoard = (!G.crew || G.crew.length===0);
   let type;
 
@@ -1687,14 +1722,22 @@ function maybeLogFlavor(force){
 
   let text;
   let pool;
-  if(soloOnBoard){
-    // Когда один на корабле — 50% космос, 50% одиночные мысли
+
+  if(G.protagonist.age < 6) {
+    // Если 3 детских события уже показаны (пул пуст), просто описываем космос
+    pool = DESCRIPTIONS;
+  } else if(G.protagonist.age < 16) {
+    // ── С 6 до 16 лет: подростковый флэйвор ──
+    pool = TEEN_DESCRIPTIONS;
+  } else if(soloOnBoard){
+    // ── Взрослая жизнь: когда один на корабле — 50% космос, 50% одиночные мысли ──
     pool = Math.random() < 0.5
       ? SOLO_DESCRIPTIONS
       : (type==='joke'?JOKES:(type==='routine'?ROUTINE:DESCRIPTIONS));
   } else {
     pool = type==='joke'?JOKES:(type==='routine'?ROUTINE:DESCRIPTIONS);
   }
+
   const used=G.recentFlavor||[];
   const available=pool.filter(t=>!used.includes(t));
   if(available.length){text=pick(available);}
@@ -2772,6 +2815,7 @@ function startNewGame(){
     learnedKnowledge:[],
     workedEvents:[],
     logHistory: [],
+    childFlavorPool: [...CHILD_DESCRIPTIONS].sort(() => Math.random() - 0.5).slice(0, 3),
     stats:{decisions:0,successes:0,doubtful:0,combats:0,victories:0,defeats:0,crewHired:0,crewLost:0},
     scafandryataGraduated:false,
     isCaptain:false,
@@ -2839,6 +2883,7 @@ function loadAndContinue(){
     G.studying.eventFired = false;
   }
   if(!G.logHistory) G.logHistory = [];
+  if(!G.childFlavorPool) G.childFlavorPool = [...CHILD_DESCRIPTIONS].sort(() => Math.random() - 0.5).slice(0, 3);
   if(G.familyFund==null) G.familyFund = 0;
   if(G.capitalOpportunityCooldown==null) G.capitalOpportunityCooldown = 0;
   if(G.fundClaimed==null) G.fundClaimed = (G.protagonist && G.protagonist.age >= 18);
@@ -2878,7 +2923,7 @@ function makeChildPirateEvent(){
   G.childPirateDone=true;
   const choices=[
     {label:'Спрятаться в каюте',weight:40,axes:{risk:-1},log:'Ты прячешься под кроватью, пока стреляют.',effects:{brand:'ptsd'}},
-    {label:'Помочь экипажу',weight:40,axes:{initiative:+1,firmness:+1},log:'Ты метко швырнул ногой болтер угрожающего вида космодесантнику',effects:{brand:'helper'}},
+    {label:'Помочь экипажу',weight:40,axes:{initiative:+1,firmness:+1},log:'Ты метко швыряешь ногой болтер угрожающего вида космодесантнику',effects:{brand:'helper'}},
   ];
   if(G.protagonist.age>=15){
     choices.push({label:'Взять командование',weight:30,axes:{risk:+1,firmness:+1},log:'Ты встаёшь у штурвала.',effects:{brand:'captain_by_force',becomeCaptain:true}});
