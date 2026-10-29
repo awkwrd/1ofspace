@@ -2816,6 +2816,7 @@ function loadAndContinue(){
   if(G.leisureUnlocked==null) G.leisureUnlocked = (G.protagonist && G.protagonist.age>=6);
   if(G.leisure && G.leisure.monthsActive == null) G.leisure.monthsActive = 0;
   if(G.leisure && G.leisure.quoteIdx == null) G.leisure.quoteIdx = 0;
+  if(G.leisure && G.leisure.type === 'training' && G.leisure.progressMonths === undefined){
     G.leisure.progressMonths = Math.max(0, (G.leisure.totalMonths||12) - (G.leisure.monthsLeft||0));
     G.leisure.monthsPerPoint = 6;
     delete G.leisure.monthsLeft;
@@ -5027,12 +5028,6 @@ window.abortLeisure = function() {
   saveGame(); renderAll(); renderPanel();
 };
 
-window.abortLeisure = function() {
-  if(!G || !G.leisure) return;
-  addLog(`⏹ Занятия "${G.leisure.label}" прерваны. Эффект не применён.`, 'sys');
-  G.leisure = null;
-  saveGame(); renderAll(); renderPanel();
-};
 
 // Функция ежегодной деградации
 function applyYearlyDecay() {
