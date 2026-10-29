@@ -4249,7 +4249,6 @@ window.doBuyShip=function(className){
     fuelToStation:tpl.fuelToStation, crewMax:tpl.crewMax, crewBaseMax:tpl.crewBaseMax||null, shelterActive:false,
     oldHulls, traits:newTraits, shipTransitions:{}, weaponId: 'none', firstBlood:false, baptized:false, stranded:null, currentSystem:oldSystem, undyingUsed:false
   };
-  };
   addLog(`🛒 Новый корабль: ${G.ship.className} «${G.ship.name}». −${price} ${SC}.`,'reveal');
   addLog(`📦 Старый ${oldClassName} «${oldName}» → музей династии.`,'sys');
   saveGame();renderAll();renderPanel();
